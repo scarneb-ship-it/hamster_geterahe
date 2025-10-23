@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>Games Verse - Вселенная игр Telegram</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header with Level & XP -->
+        <header class="header">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="logo-icon">🎮</div>
+                    <div class="title-group">
+                        <h1 class="app-title" data-i18n="appTitle">Games Verse</h1>
+                        <div class="level-badge" id="level-badge">
+                            <span class="level-icon">⭐</span>
+                            <span class="level-text" id="level-text">Level 1</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="xp-container" id="xp-container">
+                        <div class="xp-bar-bg">
+                            <div class="xp-bar-fill" id="xp-bar"></div>
+                        </div>
+                        <span class="xp-text" id="xp-text">0 / 100 XP</span>
+                    </div>
+                    <button class="settings-button" id="settings-button" aria-label="Settings">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M12 1v6m0 6v6m0-15l-4 2m8 0l-4-2m-4 13l4 2m4-2l-4 2"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Daily Bonus Banner -->
+        <div class="daily-bonus-banner" id="daily-bonus-banner">
+            <div class="bonus-content">
+                <div class="bonus-icon">🎁</div>
+                <div class="bonus-text">
+                    <h3 id="bonus-title" data-i18n="dailyBonus">Ежедневный бонус!</h3>
+                    <p id="bonus-message">Заходи каждый день и получай награды</p>
+                </div>
+                <button class="claim-bonus-btn" id="claim-bonus-btn" data-i18n="claim">Забрать</button>
+            </div>
+            <div class="streak-counter" id="streak-counter">
+                <span class="fire-icon">🔥</span>
+                <span class="streak-text" id="streak-text">0 дней подряд</span>
+            </div>
+        </div>
+
+        <!-- Settings Panel -->
+        <div class="settings-panel" id="settings-panel">
+            <div class="settings-content">
+                <h3 class="settings-title" data-i18n="settings">Настройки</h3>
+                
+                <div class="setting-item">
+                    <span class="setting-label" data-i18n="theme">Тема</span>
+                    <div class="theme-switcher">
+                        <button class="theme-option active" data-theme="light">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                <circle cx="12" cy="12" r="5"></circle>
+                                <path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>
+                            </svg>
+                            <span data-i18n="lightTheme">Светлая</span>
+                        </button>
+                        <button class="theme-option" data-theme="dark">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                            </svg>
+                            <span data-i18n="darkTheme">Темная</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="setting-item">
+                    <span class="setting-label" data-i18n="language">Язык</span>
+                    <div class="language-switcher">
+                        <button class="language-option active" data-lang="ru">
+                            <span class="flag">🇷🇺</span>
+                            <span data-i18n="russian">Русский</span>
+                        </button>
+                        <button class="language-option" data-lang="en">
+                            <span class="flag">🇬🇧</span>
+                            <span data-i18n="english">English</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <button class="close-settings" id="close-settings" data-i18n="done">Готово</button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Games Section -->
+            <section id="games-section" class="content-section active">
+                <div class="section-header">
+                    <h2 data-i18n="games">🎮 Игры</h2>
+                    <span class="section-subtitle" data-i18n="bestGames">Лучшие игры Telegram</span>
+                </div>
+                
+                <div class="games-grid" id="games-grid">
+                    <div class="game-card" data-bot="hamsterdev_bot" data-game-id="hamster-gamedev">
+                        <button class="favorite-btn" data-game-id="hamster-gamedev">
+                            <svg class="heart-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                        </button>
+                        <div class="game-image">
+                            <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=200&h=200&fit=crop" alt="Hamster GameDev" class="game-img">
+                            <div class="xp-reward">+10 XP</div>
+                        </div>
+                        <div class="game-info">
+                            <h3>Hamster GameDev</h3>
+                            <p data-i18n="hamsterGameDevDesc">Создай свою студию</p>
+                            <div class="game-stats">
+                                <span class="stat">⭐ 4.8</span>
+                                <span class="stat">👥 1.2M</span>
+                            </div>
+                        </div>
+                        <button class="play-button" data-i18n="play">Играть</button>
+                    </div>
+
+                    <div class="game-card" data-bot="hamsterking_bot" data-game-id="hamster-king">
+                        <button class="favorite-btn" data-game-id="hamster-king">
+                            <svg class="heart-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                        </button>
+                        <div class="game-image">
+                            <img src="https://images.unsplash.com/photo-1425082661705-1834bfd09dca?w=200&h=200&fit=crop" alt="Hamster King" class="game-img">
+                            <div class="xp-reward">+10 XP</div>
+                        </div>
+                        <div class="game-info">
+                            <h3>Hamster King</h3>
+                            <p data-i18n="hamsterKingDesc">Стань королем хомяков</p>
+                            <div class="game-stats">
+                                <span class="stat">⭐ 4.9</span>
+                                <span class="stat">👥 980K</span>
+                            </div>
+                        </div>
+                        <button class="play-button" data-i18n="play">Играть</button>
+                    </div>
+
+                    <div class="game-card" data-bot="hamsterfightclub_bot" data-game-id="hamster-fight">
+                        <button class="favorite-btn" data-game-id="hamster-fight">
+                            <svg class="heart-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                        </button>
+                        <div class="game-image">
+                            <img src="https://images.unsplash.com/photo-1534670007418-fbb7f6cf32c3?w=200&h=200&fit=crop" alt="Hamster Fight Club" class="game-img">
+                            <div class="xp-reward">+10 XP</div>
+                        </div>
+                        <div class="game-info">
+                            <h3>Hamster Fight Club</h3>
+                            <p data-i18n="hamsterFightClubDesc">Бойцовский клуб хомяков</p>
+                            <div class="game-stats">
+                                <span class="stat">⭐ 4.7</span>
+                                <span class="stat">👥 750K</span>
+                            </div>
+                        </div>
+                        <button class="play-button" data-i18n="play">Играть</button>
+                    </div>
+
+                    <div class="game-card" data-bot="bitquest_bot" data-game-id="bitquest">
+                        <button class="favorite-btn" data-game-id="bitquest">
+                            <svg class="heart-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                        </button>
+                        <div class="game-image">
+                            <img src="https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=200&h=200&fit=crop" alt="BitQuest" class="game-img">
+                            <div class="xp-reward">+10 XP</div>
+                        </div>
+                        <div class="game-info">
+                            <h3>BitQuest</h3>
+                            <p data-i18n="bitquestDesc">Приключения в мире крипты</p>
+                            <div class="game-stats">
+                                <span class="stat">⭐ 4.6</span>
+                                <span class="stat">👥 650K</span>
+                            </div>
+                        </div>
+                        <button class="play-button" data-i18n="play">Играть</button>
+                    </div>
+
+                    <div class="game-card" data-bot="notcoin_bot" data-game-id="notcoin">
+                        <button class="favorite-btn" data-game-id="notcoin">
+                            <svg class="heart-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                        </button>
+                        <div class="game-image">
+                            <img src="https://images.unsplash.com/photo-1622630998477-20aa696ecb05?w=200&h=200&fit=crop" alt="Notcoin" class="game-img">
+                            <div class="xp-reward">+10 XP</div>
+                        </div>
+                        <div class="game-info">
+                            <h3>Notcoin</h3>
+                            <p data-i18n="notcoinDesc">Кликай и зарабатывай</p>
+                            <div class="game-stats">
+                                <span class="stat">⭐ 4.5</span>
+                                <span class="stat">👥 2.5M</span>
+                            </div>
+                        </div>
+                        <button class="play-button" data-i18n="play">Играть</button>
+                    </div>
+
+                    <div class="game-card" data-bot="catizen_bot" data-game-id="catizen">
+                        <button class="favorite-btn" data-game-id="catizen">
+                            <svg class="heart-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                        </button>
+                        <div class="game-image">
+                            <img src="https://images.unsplash.com/photo-1574158622682-e40e69881006?w=200&h=200&fit=crop" alt="Catizen" class="game-img">
+                            <div class="xp-reward">+10 XP</div>
+                        </div>
+                        <div class="game-info">
+                            <h3>Catizen</h3>
+                            <p data-i18n="catizenDesc">Мир милых котиков</p>
+                            <div class="game-stats">
+                                <span class="stat">⭐ 4.8</span>
+                                <span class="stat">👥 1.8M</span>
+                            </div>
+                        </div>
+                        <button class="play-button" data-i18n="play">Играть</button>
+                    </div>
+
+                    <div class="game-card" data-bot="pixeltap_bot" data-game-id="pixeltap">
+                        <button class="favorite-btn" data-game-id="pixeltap">
+                            <svg class="heart-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                        </button>
+                        <div class="game-image">
+                            <img src="https://images.unsplash.com/photo-1511512578047-dfb367046420?w=200&h=200&fit=crop" alt="Pixel Tap" class="game-img">
+                            <div class="xp-reward">+10 XP</div>
+                        </div>
+                        <div class="game-info">
+                            <h3>Pixel Tap</h3>
+                            <p data-i18n="pixeltapDesc">Пиксельные приключения</p>
+                            <div class="game-stats">
+                                <span class="stat">⭐ 4.4</span>
+                                <span class="stat">👥 520K</span>
+                            </div>
+                        </div>
+                        <button class="play-button" data-i18n="play">Играть</button>
+                    </div>
+
+                    <div class="game-card" data-bot="yescoin_bot" data-game-id="yescoin">
+                        <button class="favorite-btn" data-game-id="yescoin">
+                            <svg class="heart-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                        </button>
+                        <div class="game-image">
+                            <img src="https://images.unsplash.com/photo-1621504450181-5d356f61d307?w=200&h=200&fit=crop" alt="Yescoin" class="game-img">
+                            <div class="xp-reward">+10 XP</div>
+                        </div>
+                        <div class="game-info">
+                            <h3>Yescoin</h3>
+                            <p data-i18n="yescoinDesc">Свайпай и зарабатывай</p>
+                            <div class="game-stats">
+                                <span class="stat">⭐ 4.7</span>
+                                <span class="stat">👥 890K</span>
+                            </div>
+                        </div>
+                        <button class="play-button" data-i18n="play">Играть</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Exchanges Section -->
+            <section id="exchanges-section" class="content-section">
+                <div class="section-header">
+                    <h2 data-i18n="exchanges">📊 Биржи</h2>
+                    <span class="section-subtitle" data-i18n="exchangesDesc">Торгуйте криптовалютами безопасно</span>
+                </div>
+                
+                <div class="exchanges-list">
+                    <div class="exchange-card" data-url="https://www.bybit.com">
+                        <div class="exchange-logo">
+                            <div class="logo-placeholder" style="background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);">BY</div>
+                        </div>
+                        <div class="exchange-info">
+                            <h3>Bybit</h3>
+                            <p data-i18n="bybitDesc">Продвинутая торговая платформа</p>
+                            <div class="exchange-features">
+                                <span class="feature">🔒 Безопасно</span>
+                                <span class="feature">💰 Низкие комиссии</span>
+                            </div>
+                        </div>
+                        <button class="exchange-button" data-i18n="go">Перейти <span class="xp-mini">+5 XP</span></button>
+                    </div>
+
+                    <div class="exchange-card" data-url="https://www.bingx.com">
+                        <div class="exchange-logo">
+                            <div class="logo-placeholder" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">BX</div>
+                        </div>
+                        <div class="exchange-info">
+                            <h3>BingX</h3>
+                            <p data-i18n="bingxDesc">Социальная торговля и копирование</p>
+                            <div class="exchange-features">
+                                <span class="feature">👥 Copy Trading</span>
+                                <span class="feature">📈 Фьючерсы</span>
+                            </div>
+                        </div>
+                        <button class="exchange-button" data-i18n="go">Перейти <span class="xp-mini">+5 XP</span></button>
+                    </div>
+
+                    <div class="exchange-card" data-url="https://www.bitget.com">
+                        <div class="exchange-logo">
+                            <div class="logo-placeholder" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">BG</div>
+                        </div>
+                        <div class="exchange-info">
+                            <h3>Bitget</h3>
+                            <p data-i18n="bitgetDesc">Инновационная торговая платформа</p>
+                            <div class="exchange-features">
+                                <span class="feature">🚀 Быстрая</span>
+                                <span class="feature">💎 Бонусы</span>
+                            </div>
+                        </div>
+                        <button class="exchange-button" data-i18n="go">Перейти <span class="xp-mini">+5 XP</span></button>
+                    </div>
+
+                    <div class="exchange-card" data-url="https://www.mexc.com">
+                        <div class="exchange-logo">
+                            <div class="logo-placeholder" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">MX</div>
+                        </div>
+                        <div class="exchange-info">
+                            <h3>MEXC</h3>
+                            <p data-i18n="mexcDesc">Глобальная биржа с низкими комиссиями</p>
+                            <div class="exchange-features">
+                                <span class="feature">🌍 Глобальная</span>
+                                <span class="feature">⚡ 0% комиссия</span>
+                            </div>
+                        </div>
+                        <button class="exchange-button" data-i18n="go">Перейти <span class="xp-mini">+5 XP</span></button>
+                    </div>
+
+                    <div class="exchange-card" data-url="https://www.okx.com">
+                        <div class="exchange-logo">
+                            <div class="logo-placeholder" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">OX</div>
+                        </div>
+                        <div class="exchange-info">
+                            <h3>OKX</h3>
+                            <p data-i18n="okxDesc">Ведущая криптобиржа</p>
+                            <div class="exchange-features">
+                                <span class="feature">📊 NFT</span>
+                                <span class="feature">💼 DeFi</span>
+                            </div>
+                        </div>
+                        <button class="exchange-button" data-i18n="go">Перейти <span class="xp-mini">+5 XP</span></button>
+                    </div>
+
+                    <div class="exchange-card" data-url="https://www.gate.io">
+                        <div class="exchange-logo">
+                            <div class="logo-placeholder" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">GT</div>
+                        </div>
+                        <div class="exchange-info">
+                            <h3>Gate.io</h3>
+                            <p data-i18n="gateDesc">Безопасная торговля с 2013 года</p>
+                            <div class="exchange-features">
+                                <span class="feature">🏆 Надежная</span>
+                                <span class="feature">🔐 Secure</span>
+                            </div>
+                        </div>
+                        <button class="exchange-button" data-i18n="go">Перейти <span class="xp-mini">+5 XP</span></button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Achievements Section -->
+            <section id="achievements-section" class="content-section">
+                <div class="section-header">
+                    <h2>🏆 Достижения</h2>
+                    <span class="section-subtitle">Собери их все!</span>
+                </div>
+                
+                <div class="achievements-grid" id="achievements-grid">
+                    <!-- Achievements will be dynamically loaded -->
+                </div>
+            </section>
+
+            <!-- Leaderboard Section -->
+            <section id="leaderboard-section" class="content-section">
+                <div class="section-header">
+                    <h2>👥 Таблица лидеров</h2>
+                    <span class="section-subtitle">Топ по рефералам</span>
+                </div>
+                
+                <div class="leaderboard-container" id="leaderboard-container">
+                    <!-- Leaderboard will be dynamically loaded -->
+                </div>
+            </section>
+
+            <!-- Profile Section -->
+            <section id="profile-section" class="content-section">
+                <div class="profile-header">
+                    <div class="profile-avatar" id="user-avatar">
+                        <img src="" alt="User Avatar" id="avatar-img" style="display: none;">
+                        <span id="avatar-fallback">U</span>
+                    </div>
+                    <div class="profile-info">
+                        <h2 id="user-name" data-i18n="user">Пользователь</h2>
+                        <p id="user-username">@username</p>
+                        <div class="profile-stats">
+                            <div class="stat-item">
+                                <span class="stat-icon">🎮</span>
+                                <span class="stat-value" id="games-clicked">0</span>
+                                <span class="stat-label" data-i18n="gamesClicked">Кликов по играм</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-icon">👥</span>
+                                <span class="stat-value" id="referrals-count">0</span>
+                                <span class="stat-label" data-i18n="referrals">Рефералов</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-icon">🏆</span>
+                                <span class="stat-value" id="achievements-earned">0</span>
+                                <span class="stat-label">Достижений</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-actions">
+                    <div class="referral-card">
+                        <div class="referral-header">
+                            <h3 data-i18n="inviteFriends">Пригласи друзей</h3>
+                            <p data-i18n="referralDesc">Получай +50 XP за каждого друга</p>
+                        </div>
+                        <div class="referral-link-box">
+                            <input type="text" id="referral-link" readonly value="Loading...">
+                            <button class="copy-button" id="copy-referral">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button class="share-friends-button" id="share-friends-button">
+                        <span class="action-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="18" cy="5" r="3"></circle>
+                                <circle cx="6" cy="12" r="3"></circle>
+                                <circle cx="18" cy="19" r="3"></circle>
+                                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                            </svg>
+                        </span>
+                        <span data-i18n="shareWithFriends">Поделиться с друзьями</span>
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" data-section="games-section" data-testid="nav-games">
+                <span class="nav-icon">🎮</span>
+                <span class="nav-label" data-i18n="games">Игры</span>
+            </button>
+            <button class="nav-item" data-section="exchanges-section" data-testid="nav-exchanges">
+                <span class="nav-icon">📊</span>
+                <span class="nav-label" data-i18n="exchanges">Биржи</span>
+            </button>
+            <button class="nav-item" data-section="achievements-section" data-testid="nav-achievements">
+                <span class="nav-icon">🏆</span>
+                <span class="nav-label">Награды</span>
+            </button>
+            <button class="nav-item" data-section="leaderboard-section" data-testid="nav-leaderboard">
+                <span class="nav-icon">👑</span>
+                <span class="nav-label">Топ</span>
+            </button>
+            <button class="nav-item" data-section="profile-section" data-testid="nav-profile">
+                <span class="nav-icon">👤</span>
+                <span class="nav-label" data-i18n="profile">Профиль</span>
+            </button>
+        </nav>
+
+        <!-- Notification Toast -->
+        <div id="notification" class="notification">
+            <span id="notification-text" data-i18n="linkCopied">Ссылка скопирована!</span>
+        </div>
+
+        <!-- XP Gain Animation -->
+        <div id="xp-gain-animation" class="xp-gain-animation"></div>
+
+        <!-- Level Up Modal -->
+        <div id="level-up-modal" class="level-up-modal">
+            <div class="level-up-content">
+                <div class="level-up-icon">🎉</div>
+                <h2>Новый уровень!</h2>
+                <p class="level-up-number" id="level-up-number">Level 2</p>
+                <p class="level-up-message">Продолжай в том же духе!</p>
+                <button class="level-up-close" id="level-up-close">Круто!</button>
+            </div>
+        </div>
+
+        <!-- Achievement Unlock Modal -->
+        <div id="achievement-modal" class="achievement-modal">
+            <div class="achievement-content">
+                <div class="achievement-icon" id="achievement-icon">🏆</div>
+                <h2>Достижение разблокировано!</h2>
+                <p class="achievement-name" id="achievement-name"></p>
+                <p class="achievement-desc" id="achievement-desc"></p>
+                <div class="achievement-reward" id="achievement-reward"></div>
+                <button class="achievement-close" id="achievement-close">Забрать!</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
