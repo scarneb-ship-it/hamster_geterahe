@@ -1,0 +1,190 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #0a0a0c;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  overflow: hidden;
+  touch-action: none;
+  font-family: 'Courier New', monospace;
+  color: #d4b98c;
+}
+
+.screen {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Меню */
+.menu-box {
+  background: rgba(20, 15, 10, 0.95);
+  border: 2px solid #6a5030;
+  padding: 40px;
+  text-align: center;
+  border-radius: 16px;
+  box-shadow: 0 0 40px rgba(0,0,0,0.8);
+  max-width: 90vw;
+}
+.menu-box h1 {
+  font-size: clamp(24px, 6vw, 36px);
+  color: #ffcc66;
+  text-shadow: 2px 2px 4px black;
+}
+.subtitle {
+  color: #aa9977;
+  margin: 10px 0 20px;
+  font-size: 16px;
+}
+button {
+  background: #4a3a2a;
+  color: #ffe0a0;
+  border: 1px solid #7a6a4a;
+  padding: 12px 28px;
+  margin: 8px;
+  font-family: inherit;
+  font-size: 18px;
+  cursor: pointer;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  transition: all 0.2s;
+  touch-action: manipulation;
+}
+button:hover { background: #5a4a3a; }
+button:active { transform: scale(0.96); }
+
+/* Игровой интерфейс */
+#game-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+#ui-top {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 10px;
+  pointer-events: none;
+  z-index: 5;
+}
+.panel {
+  background: rgba(15, 10, 5, 0.9);
+  border: 1px solid #5a4a30;
+  padding: 6px 12px;
+  font-size: 15px;
+  border-radius: 8px;
+  color: #d4b98c;
+  white-space: nowrap;
+  backdrop-filter: blur(8px);
+}
+.stats .icon-heart { color: #ff4466; }
+.stats .icon-sword { color: #aaaaff; margin-left: 8px; }
+.stats .icon-shield { color: #88aaff; margin-left: 8px; }
+.floor-info { font-weight: bold; }
+.inventory { font-size: 14px; }
+
+#gameCanvas {
+  border: 2px solid #4a3a2a;
+  image-rendering: pixelated;
+  box-shadow: 0 0 30px rgba(0,0,0,0.9);
+  margin: 8px 0;
+  flex-shrink: 0;
+}
+
+#log {
+  position: absolute;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #ffdd77;
+  font-size: 18px;
+  font-weight: bold;
+  text-shadow: 3px 3px 5px black;
+  background: rgba(0,0,0,0.8);
+  padding: 6px 22px;
+  border-radius: 24px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s;
+  white-space: nowrap;
+  z-index: 10;
+}
+
+/* Мобильное управление */
+#mobile-controls {
+  position: absolute;
+  bottom: 20px;
+  left: 0; right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 0 20px;
+  pointer-events: none;
+  z-index: 20;
+}
+
+#joystick-zone {
+  pointer-events: auto;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#joystick-base {
+  width: 100px;
+  height: 100px;
+  background: rgba(30, 20, 10, 0.7);
+  border: 2px solid #7a6a4a;
+  border-radius: 50%;
+  position: relative;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 15px rgba(0,0,0,0.7);
+}
+
+#joystick-thumb {
+  width: 48px;
+  height: 48px;
+  background: rgba(200, 160, 100, 0.8);
+  border: 2px solid #ffcc66;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  transition: transform 0.05s linear;
+  box-shadow: 0 0 10px #ffaa22;
+}
+
+.action-button {
+  pointer-events: auto;
+  width: 70px;
+  height: 70px;
+  background: rgba(180, 40, 40, 0.8);
+  border: 2px solid #ff8866;
+  border-radius: 50%;
+  font-size: 30px;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 20px rgba(255,80,80,0.6);
+  transition: all 0.1s;
+  touch-action: manipulation;
+}
+.action-button:active { background: rgba(220, 50, 50, 0.9); transform: scale(0.9); }
