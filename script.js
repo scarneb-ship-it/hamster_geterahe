@@ -16,11 +16,12 @@ const EXCHANGES_DATA = [
     { id:4, name:"MEXC", url:"https://promote.mexc.com/r/aTSLfdm54W", description:"Глобальная биржа", image:"images/mexc.jpg", fallback:"🌍" }
 ];
 
-// Скины (теперь все бесплатны)
+// Замените массив SKINS в script.js на следующий, добавив элитный скин:
 const SKINS = [
     { id: 'classic', name: 'Классический', price: 0, preview: '2' },
     { id: 'golden', name: 'Золотой', price: 0, preview: '🪙' },
-    { id: 'neon', name: 'Неоновый', price: 0, preview: '💠' }
+    { id: 'neon', name: 'Неоновый', price: 0, preview: '💠' },
+    { id: 'elite', name: 'Элитный', price: 0, preview: '👑' }  // новый премиальный стиль
 ];
 
 function vibrate() { if (navigator.vibrate) navigator.vibrate(50); }
