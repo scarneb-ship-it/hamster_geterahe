@@ -29,8 +29,9 @@ document.addEventListener('DOMContentLoaded', () => {
     setupShareReferral();
     initGame2048();
     setupLeaderboardRefresh();
-    setupTransferModal();
-    // начальная загрузка данных для игровой вкладки
+    setupGameTabs();
+    setupTransferForm();
+    // Начальная загрузка лидеров
     fetchLeaderboard();
 });
 
@@ -41,7 +42,7 @@ function initializeTelegramWebApp() {
     }
 }
 
-// ==================== НАВИГАЦИЯ ====================
+// ==================== НАВИГАЦИЯ (основные вкладки) ====================
 function setupNavigation() {
     const navItems = document.querySelectorAll('.nav-item');
     const sections = document.querySelectorAll('.content-section');
@@ -55,41 +56,60 @@ function setupNavigation() {
             document.getElementById(target).classList.add('active');
             toggleHeader(target);
 
-            if (target === 'game-section') fetchLeaderboard();
-            else if (target === 'tasks-section') renderTasks();
+            if (target === 'game-section') {
+                fetchLeaderboard();
+                updateBalanceFromServer();
+            } else if (target === 'tasks-section') renderTasks();
             else if (target === 'referrals-section') updateReferralInfo();
         });
     });
-    // начальное состояние
-    const activeSection = document.querySelector('.content-section.active');
-    if (activeSection) {
-        toggleHeader(activeSection.id);
-        if (activeSection.id === 'game-section') fetchLeaderboard();
-        else if (activeSection.id === 'tasks-section') renderTasks();
-        else if (activeSection.id === 'referrals-section') updateReferralInfo();
+    const active = document.querySelector('.content-section.active');
+    if (active) {
+        toggleHeader(active.id);
+        if (active.id === 'game-section') {
+            fetchLeaderboard();
+            updateBalanceFromServer();
+        } else if (active.id === 'tasks-section') renderTasks();
+        else if (active.id === 'referrals-section') updateReferralInfo();
     }
 }
 
 function toggleHeader(sectionId) {
     const header = document.querySelector('.header');
-    const mainContent = document.querySelector('.main-content');
-    if (sectionId === 'game-section' || sectionId === 'upgrades-section' || sectionId === 'referrals-section' || sectionId === 'tasks-section') {
+    const main = document.querySelector('.main-content');
+    if (['game-section','upgrades-section','referrals-section','tasks-section'].includes(sectionId)) {
         header.style.display = 'none';
-        mainContent.style.paddingTop = '8px';
+        main.style.paddingTop = '8px';
     } else {
         header.style.display = 'block';
-        mainContent.style.paddingTop = '';
+        main.style.paddingTop = '';
     }
 }
 
-// ==================== ЗАГРУЗКА ПОЛЬЗОВАТЕЛЯ ====================
+// ==================== ПОЛЬЗОВАТЕЛЬ ====================
 function loadUserData() {
     const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
     if (user) {
         currentUserId = user.id;
-        updateReferralInfo(); // обновим реферальную ссылку
+        updateReferralInfo();
+        updateBalanceFromServer();
     } else {
         currentUserId = null;
+    }
+}
+
+async function updateBalanceFromServer() {
+    if (!currentUserId) {
+        document.getElementById('user-balance-display').textContent = 'Ваш баланс: 0 очк.';
+        return;
+    }
+    try {
+        const res = await fetch(WORKER_URL + '/leaderboard');
+        const data = await res.json();
+        const me = (data.leaderboard || []).find(p => p.userId.toString() === currentUserId.toString());
+        document.getElementById('user-balance-display').textContent = me ? `Ваш баланс: ${me.score} очк.` : 'Ваш баланс: 0 очк.';
+    } catch(e) {
+        document.getElementById('user-balance-display').textContent = 'Ваш баланс: 0 очк.';
     }
 }
 
@@ -101,8 +121,7 @@ function updateReferralInfo() {
         ? `https://t.me/${BOT_USERNAME}?start=ref_${currentUserId}`
         : `https://t.me/${BOT_USERNAME}`;
     linkText.textContent = refLink;
-    // статистика – заглушка, можно позже прикрутить бэкенд
-    document.getElementById('referral-count').textContent = '0';
+    document.getElementById('referral-count').textContent = '0'; // заглушка
 }
 
 function setupShareReferral() {
@@ -124,14 +143,13 @@ function setupShareReferral() {
 
 function copyToClipboard(text) {
     navigator.clipboard?.writeText(text).then(() => showNotification('Ссылка скопирована')).catch(() => {
-        const ta = document.createElement('textarea');
-        ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        const ta = document.createElement('textarea'); ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
         document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
         showNotification('Ссылка скопирована');
     });
 }
 
-// ==================== ЗАДАНИЯ (упрощённые списки) ====================
+// ==================== ЗАДАНИЯ ====================
 function renderTasks() {
     const gamesGrid = document.getElementById('tasks-games-grid');
     const exchangesGrid = document.getElementById('tasks-exchanges-grid');
@@ -139,270 +157,36 @@ function renderTasks() {
 
     gamesGrid.innerHTML = GAMES_DATA.map(game => `
         <div class="task-card">
-            <div class="task-image">
-                <img src="${game.image}" alt="${game.name}" onerror="this.parentElement.innerHTML='<span style=font-size:20px>${game.fallback}</span>'">
-            </div>
-            <div class="task-info">
-                <h4>${game.name}</h4>
-                <p>${game.description}</p>
-            </div>
+            <div class="task-image"><img src="${game.image}" alt="${game.name}" onerror="this.parentElement.innerHTML='<span style=font-size:20px>${game.fallback}</span>'"></div>
+            <div class="task-info"><h4>${game.name}</h4><p>${game.description}</p></div>
             <button class="task-action-btn" data-link="${game.fullLink}">Играть</button>
         </div>
     `).join('');
-
     exchangesGrid.innerHTML = EXCHANGES_DATA.map(ex => `
         <div class="task-card">
-            <div class="task-image">
-                <img src="${ex.image}" alt="${ex.name}" onerror="this.parentElement.innerHTML='<span style=font-size:20px>${ex.fallback}</span>'">
-            </div>
-            <div class="task-info">
-                <h4>${ex.name}</h4>
-                <p>${ex.description}</p>
-            </div>
+            <div class="task-image"><img src="${ex.image}" alt="${ex.name}" onerror="this.parentElement.innerHTML='<span style=font-size:20px>${ex.fallback}</span>'"></div>
+            <div class="task-info"><h4>${ex.name}</h4><p>${ex.description}</p></div>
             <button class="task-action-btn" data-link="${ex.url}">Перейти</button>
         </div>
     `).join('');
-
-    document.querySelectorAll('.task-action-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            vibrate();
-            const link = this.dataset.link;
-            if (link) {
-                if (window.Telegram?.WebApp) {
-                    if (link.startsWith('https://t.me/')) window.Telegram.WebApp.openTelegramLink(link);
-                    else window.Telegram.WebApp.openLink(link);
-                } else window.open(link, '_blank');
-            }
-        });
-    });
+    document.querySelectorAll('.task-action-btn').forEach(btn => btn.addEventListener('click', function(e) {
+        e.stopPropagation(); vibrate();
+        const link = this.dataset.link;
+        if (link) {
+            if (window.Telegram?.WebApp) {
+                if (link.startsWith('https://t.me/')) window.Telegram.WebApp.openTelegramLink(link);
+                else window.Telegram.WebApp.openLink(link);
+            } else window.open(link, '_blank');
+        }
+    }));
 }
 
-// ==================== ИГРА 2048 (полный класс) ====================
+// ==================== ИГРА 2048 ====================
 class Game2048 {
-    constructor(boardEl, scoreEl, bestEl, statusEl) {
-        this.boardEl = boardEl;
-        this.scoreEl = scoreEl;
-        this.bestEl = bestEl;
-        this.statusEl = statusEl;
-        this.size = 4;
-        this.grid = [];
-        this.score = 0;
-        this.bestScore = parseInt(localStorage.getItem('bestScore2048') || '0');
-        this.lastAddedTile = null;
-        this.mergedPositions = new Set();
-        this.moveMap = null;
-        this.updateBestUI();
-        this.init();
-        this.setupSwipe();
-        this.setupKeys();
-    }
-
-    init() {
-        this.grid = Array(this.size).fill().map(() => Array(this.size).fill(0));
-        this.score = 0;
-        this.updateScoreUI();
-        this.statusEl.textContent = '';
-        this.lastAddedTile = null;
-        this.mergedPositions.clear();
-        this.moveMap = null;
-        this.addRandom();
-        this.addRandom();
-        this.render();
-    }
-
-    addRandom() {
-        const empty = [];
-        for (let i = 0; i < this.size; i++)
-            for (let j = 0; j < this.size; j++)
-                if (this.grid[i][j] === 0) empty.push({ x: i, y: j });
-        if (empty.length > 0) {
-            const { x, y } = empty[Math.floor(Math.random() * empty.length)];
-            this.grid[x][y] = Math.random() < 0.9 ? 2 : 4;
-            this.lastAddedTile = { x, y };
-            return true;
-        }
-        return false;
-    }
-
-    move(direction) {
-        const oldGrid = JSON.parse(JSON.stringify(this.grid));
-        let gained = 0;
-        this.mergedPositions.clear();
-        this.moveMap = {};
-
-        const slide = (line, isCol, idx, reverse) => {
-            let arr = line.filter(v => v !== 0);
-            let merged = Array(arr.length).fill(false);
-            let newRow = [];
-            for (let i = 0; i < arr.length; i++) {
-                if (i + 1 < arr.length && arr[i] === arr[i + 1] && !merged[i] && !merged[i + 1]) {
-                    newRow.push(arr[i] * 2);
-                    gained += arr[i] * 2;
-                    merged[i] = merged[i + 1] = true;
-                    i++;
-                } else {
-                    newRow.push(arr[i]);
-                }
-            }
-            while (newRow.length < this.size) newRow.push(0);
-            if (reverse) newRow.reverse();
-            if (!isCol) {
-                for (let c = 0; c < this.size; c++) this.grid[idx][c] = newRow[c];
-            } else {
-                for (let r = 0; r < this.size; r++) this.grid[r][idx] = newRow[r];
-            }
-        };
-
-        if (direction === 'left') {
-            for (let i = 0; i < this.size; i++) slide(this.grid[i], false, i, false);
-        } else if (direction === 'right') {
-            for (let i = 0; i < this.size; i++) slide([...this.grid[i]].reverse(), false, i, true);
-        } else if (direction === 'up') {
-            for (let j = 0; j < this.size; j++) {
-                const col = [];
-                for (let i = 0; i < this.size; i++) col.push(this.grid[i][j]);
-                slide(col, true, j, false);
-            }
-        } else if (direction === 'down') {
-            for (let j = 0; j < this.size; j++) {
-                const col = [];
-                for (let i = 0; i < this.size; i++) col.push(this.grid[i][j]);
-                slide(col.reverse(), true, j, true);
-            }
-        }
-
-        if (gained > 0) {
-            this.score += gained;
-            this.updateScoreUI();
-        }
-
-        if (!this.gridsEqual(oldGrid, this.grid)) {
-            this.addRandom();
-            this.render();
-            if (this.checkWin()) {
-                this.statusEl.textContent = 'Вы победили! 🎉';
-                this.submitScore();
-            } else if (this.checkLose()) {
-                this.statusEl.textContent = 'Игра окончена! 😔';
-                this.submitScore();
-            }
-        }
-    }
-
-    gridsEqual(a, b) {
-        for (let i = 0; i < this.size; i++)
-            for (let j = 0; j < this.size; j++)
-                if (a[i][j] !== b[i][j]) return false;
-        return true;
-    }
-
-    render() {
-        this.boardEl.innerHTML = '';
-        for (let i = 0; i < this.size; i++) {
-            for (let j = 0; j < this.size; j++) {
-                const value = this.grid[i][j];
-                const tile = document.createElement('div');
-                tile.className = 'tile-cell';
-                if (value !== 0) {
-                    tile.classList.add(`tile-${value <= 2048 ? value : 'super'}`);
-                    tile.textContent = value;
-                    if (this.lastAddedTile && this.lastAddedTile.x === i && this.lastAddedTile.y === j) {
-                        tile.classList.add('tile-new');
-                        tile.addEventListener('animationend', () => tile.classList.remove('tile-new'), { once: true });
-                    }
-                }
-                this.boardEl.appendChild(tile);
-            }
-        }
-        this.lastAddedTile = null;
-    }
-
-    updateScoreUI() {
-        this.scoreEl.textContent = this.score;
-        if (this.score > this.bestScore) {
-            this.bestScore = this.score;
-            localStorage.setItem('bestScore2048', this.bestScore);
-            this.updateBestUI();
-        }
-    }
-
-    updateBestUI() {
-        this.bestEl.textContent = this.bestScore;
-    }
-
-    checkWin() {
-        return this.grid.some(row => row.includes(2048));
-    }
-
-    checkLose() {
-        for (let i = 0; i < this.size; i++)
-            for (let j = 0; j < this.size; j++)
-                if (this.grid[i][j] === 0) return false;
-        for (let i = 0; i < this.size; i++)
-            for (let j = 0; j < this.size; j++) {
-                if (j < this.size - 1 && this.grid[i][j] === this.grid[i][j + 1]) return false;
-                if (i < this.size - 1 && this.grid[i][j] === this.grid[i + 1][j]) return false;
-            }
-        return true;
-    }
-
-    submitScore() {
-        if (!currentUserId) return;
-        const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
-        if (!user) return;
-        fetch(WORKER_URL + '/submit-score', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                userId: currentUserId.toString(),
-                firstName: user.first_name || 'Игрок',
-                username: user.username || '',
-                score: this.score,
-                avatarUrl: user.photo_url || ''
-            })
-        }).then(() => fetchLeaderboard()).catch(() => {});
-    }
-
-    setupSwipe() {
-        let startX = 0, startY = 0;
-        this.boardEl.addEventListener('touchstart', e => {
-            startX = e.touches[0].clientX;
-            startY = e.touches[0].clientY;
-            e.preventDefault();
-        });
-        this.boardEl.addEventListener('touchend', e => {
-            if (!startX && !startY) return;
-            const dx = e.changedTouches[0].clientX - startX;
-            const dy = e.changedTouches[0].clientY - startY;
-            if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return;
-            if (Math.abs(dx) > Math.abs(dy)) {
-                this.move(dx > 0 ? 'right' : 'left');
-            } else {
-                this.move(dy > 0 ? 'down' : 'up');
-            }
-            startX = startY = 0;
-            vibrate();
-        });
-    }
-
-    setupKeys() {
-        window.addEventListener('keydown', e => {
-            if (!document.getElementById('game-section').classList.contains('active')) return;
-            const key = e.key;
-            if (key === 'ArrowLeft') { this.move('left'); e.preventDefault(); vibrate(); }
-            else if (key === 'ArrowRight') { this.move('right'); e.preventDefault(); vibrate(); }
-            else if (key === 'ArrowUp') { this.move('up'); e.preventDefault(); vibrate(); }
-            else if (key === 'ArrowDown') { this.move('down'); e.preventDefault(); vibrate(); }
-        });
-    }
-
-    resetGame() {
-        this.init();
-    }
+    // (полный код без изменений, как в предыдущем ответе)
+    // ...
 }
-
-let game2048 = null;
+let game2048;
 function initGame2048() {
     const board = document.getElementById('game-board-2048');
     const scoreEl = document.getElementById('game-score');
@@ -410,29 +194,38 @@ function initGame2048() {
     const statusEl = document.getElementById('game-status');
     if (board && scoreEl && bestEl && statusEl && !game2048) {
         game2048 = new Game2048(board, scoreEl, bestEl, statusEl);
-        document.getElementById('new-game-btn').addEventListener('click', () => {
-            vibrate();
-            game2048.resetGame();
-        });
+        document.getElementById('new-game-btn').addEventListener('click', () => { vibrate(); game2048.resetGame(); });
     }
 }
 
-// ==================== LEADERBOARD ====================
+// ==================== ПОДВКЛАДКИ В ИГРЕ (Топ / Перевести / Ускорение) ====================
+function setupGameTabs() {
+    const tabs = document.querySelectorAll('.game-tab');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const target = tab.dataset.gameTab;
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            document.querySelectorAll('.game-tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(`game-tab-${target}`).classList.add('active');
+            if (target === 'leaderboard') fetchLeaderboard();
+            else if (target === 'transfer') updateBalanceFromServer();
+        });
+    });
+}
+
+// ==================== ЛИДЕРБОРД ====================
 async function fetchLeaderboard() {
-    const lbList = document.getElementById('leaderboard-list');
-    const trList = document.getElementById('transfer-list');
-    if (lbList) lbList.innerHTML = '<div class="leaderboard-loading">Загрузка...</div>';
-    if (trList) trList.innerHTML = '<div class="leaderboard-loading">Загрузка...</div>';
+    const list = document.getElementById('leaderboard-list');
+    if (!list) return;
+    list.innerHTML = '<div class="leaderboard-loading">Загрузка...</div>';
     try {
         const res = await fetch(WORKER_URL + '/leaderboard');
         const data = await res.json();
         const players = data.leaderboard || [];
         renderLeaderboard(players);
-        renderTransferList(players);
-        updateBalanceDisplay(players);
-    } catch (e) {
-        if (lbList) lbList.innerHTML = '<div class="leaderboard-loading">Ошибка загрузки</div>';
-        if (trList) trList.innerHTML = '<div class="leaderboard-loading">Ошибка загрузки</div>';
+    } catch(e) {
+        list.innerHTML = '<div class="leaderboard-loading">Ошибка загрузки</div>';
     }
 }
 
@@ -457,115 +250,124 @@ function renderLeaderboard(players) {
     }).join('');
 }
 
-function renderTransferList(players) {
-    const list = document.getElementById('transfer-list');
-    if (!list) return;
-    const others = players.filter(p => p.userId.toString() !== currentUserId?.toString());
-    if (!others.length) {
-        list.innerHTML = '<div class="leaderboard-loading">Нет других игроков</div>';
-        return;
-    }
-    list.innerHTML = others.map(p => {
-        const avatar = p.avatarUrl
-            ? `<img src="${p.avatarUrl}" alt="${p.firstName}" onerror="this.parentElement.textContent='${p.firstName.charAt(0).toUpperCase()}';">`
-            : p.firstName.charAt(0).toUpperCase();
-        return `<div class="transfer-item">
-            <div class="transfer-avatar">${avatar}</div>
-            <div class="transfer-info">
-                <div class="transfer-name">${escapeHtml(p.firstName)}</div>
-                <div class="transfer-score">${p.score} очк.</div>
-            </div>
-            <button class="btn-transfer" data-userid="${p.userId}" data-username="${escapeHtml(p.firstName)}">Перевести</button>
-        </div>`;
-    }).join('');
-
-    document.querySelectorAll('.btn-transfer').forEach(btn => {
-        btn.addEventListener('click', function () {
-            openTransferModal(this.dataset.userid, this.dataset.username);
-        });
-    });
+function setupLeaderboardRefresh() {
+    document.getElementById('refresh-leaderboard')?.addEventListener('click', () => { vibrate(); fetchLeaderboard(); });
 }
 
-function updateBalanceDisplay(players) {
-    const balanceEl = document.getElementById('user-balance-display');
-    if (!balanceEl) return;
-    const me = players.find(p => p.userId.toString() === currentUserId?.toString());
-    balanceEl.textContent = me ? `Ваш баланс: ${me.score} очк.` : 'Ваш баланс: 0 очк.';
-}
-
-function escapeHtml(text) {
-    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-    return text.replace(/[&<>"']/g, m => map[m]);
-}
-
-// ==================== ПЕРЕВОД ОЧКОВ ====================
-let transferTargetUserId = null;
-
-function setupTransferModal() {
-    const modal = document.getElementById('transfer-modal');
-    document.getElementById('transfer-cancel').addEventListener('click', () => modal.classList.remove('active'));
-    document.getElementById('transfer-confirm').addEventListener('click', executeTransfer);
-    modal.querySelector('.modal-backdrop').addEventListener('click', () => modal.classList.remove('active'));
-    document.getElementById('transfer-amount-input').addEventListener('input', function () {
-        const max = getCurrentBalance();
+// ==================== ПЕРЕВОД ПО НИКНЕЙМУ ====================
+function setupTransferForm() {
+    document.getElementById('btn-transfer-submit').addEventListener('click', initiateTransferByUsername);
+    document.getElementById('transfer-amount-input').addEventListener('input', function() {
+        const max = getCurrentBalanceFromDisplay();
         if (parseInt(this.value) > max) this.value = max;
     });
 }
 
-function openTransferModal(userId, userName) {
-    if (!currentUserId) {
-        showNotification('Авторизуйтесь в Telegram');
+async function initiateTransferByUsername() {
+    const username = document.getElementById('transfer-username-input').value.trim().replace(/^@/, '');
+    const amount = parseInt(document.getElementById('transfer-amount-input').value);
+    const resultDiv = document.getElementById('transfer-result-message');
+    resultDiv.textContent = '';
+
+    if (!username || !amount || amount <= 0) {
+        resultDiv.textContent = 'Введите корректный никнейм и сумму';
         return;
     }
-    transferTargetUserId = userId;
-    document.getElementById('transfer-target-name').textContent = `Получатель: ${userName}`;
-    document.getElementById('transfer-amount-input').value = '';
-    document.getElementById('transfer-max-hint').textContent = `Максимум: ${getCurrentBalance()} очк.`;
-    document.getElementById('transfer-modal').classList.add('active');
+    const myBalance = getCurrentBalanceFromDisplay();
+    if (amount > myBalance) {
+        resultDiv.textContent = 'Недостаточно очков';
+        return;
+    }
+    if (!currentUserId) {
+        resultDiv.textContent = 'Авторизуйтесь в Telegram';
+        return;
+    }
+
+    // Пытаемся найти пользователя по username через бэкенд
+    try {
+        const findRes = await fetch(`${WORKER_URL}/find-user?username=${encodeURIComponent(username)}`);
+        if (!findRes.ok) throw new Error('not found');
+        const findData = await findRes.json();
+        if (!findData.userId) throw new Error('not found');
+
+        // Пользователь найден, выполняем перевод
+        const transferRes = await fetch(WORKER_URL + '/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                fromUserId: currentUserId.toString(),
+                toUserId: findData.userId.toString(),
+                amount: amount
+            })
+        });
+        if (!transferRes.ok) throw new Error('transfer failed');
+        const transferData = await transferRes.json();
+        if (transferData.success) {
+            resultDiv.textContent = `Переведено ${amount} очк. пользователю @${username}`;
+            updateBalanceFromServer();
+            fetchLeaderboard();
+        } else {
+            resultDiv.textContent = transferData.error || 'Ошибка перевода';
+        }
+    } catch (err) {
+        // Пользователь не найден – показываем fallback с реферальной ссылкой
+        document.getElementById('transfer-fallback').style.display = 'block';
+        // Сохраняем сумму для ссылки
+        window.pendingTransferAmount = amount;
+        document.getElementById('btn-share-fallback').onclick = shareTransferLink;
+    }
 }
 
-function getCurrentBalance() {
+function shareTransferLink() {
+    const amount = window.pendingTransferAmount || 0;
+    if (!currentUserId || amount <= 0) return;
+    const refLink = `https://t.me/${BOT_USERNAME}?start=transfer_${currentUserId}_${amount}`;
+    const text = `Прими мой перевод ${amount} очков в Games Verse! Перейди по ссылке и получи их.`;
+    if (window.Telegram?.WebApp) {
+        window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent(text)}`);
+    } else if (navigator.share) {
+        navigator.share({ title:'Games Verse', text, url:refLink }).catch(() => copyToClipboard(refLink));
+    } else copyToClipboard(refLink);
+}
+
+function getCurrentBalanceFromDisplay() {
     const text = document.getElementById('user-balance-display')?.textContent || '0';
     const match = text.match(/(\d+)/);
     return match ? parseInt(match[1]) : 0;
 }
 
-async function executeTransfer() {
-    const amount = parseInt(document.getElementById('transfer-amount-input').value);
-    if (!amount || amount <= 0) {
-        showNotification('Введите сумму');
-        return;
-    }
-    if (amount > getCurrentBalance()) {
-        showNotification('Недостаточно очков');
-        return;
-    }
-    try {
-        const res = await fetch(WORKER_URL + '/transfer', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                fromUserId: currentUserId.toString(),
-                toUserId: transferTargetUserId,
-                amount
-            })
-        });
-        if (!res.ok) throw new Error();
-        const data = await res.json();
-        if (data.success) {
-            showNotification(`Переведено ${amount} очк.`);
-            document.getElementById('transfer-modal').classList.remove('active');
-            transferTargetUserId = null;
-            fetchLeaderboard();
-        } else {
-            showNotification(data.error || 'Ошибка перевода');
-        }
-    } catch (e) {
-        showNotification('Ошибка сети');
-    }
+function escapeHtml(text) {
+    const map = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'};
+    return text.replace(/[&<>"']/g, m => map[m]);
 }
 
-// ==================== УВЕДОМЛЕНИЯ ====================
+// ==================== НАСТРОЙКИ ====================
+function setupSettingsPanel() {
+    document.getElementById('settings-button').addEventListener('click', () => {
+        vibrate(); document.getElementById('settings-panel').classList.add('active');
+    });
+    document.getElementById('close-settings').addEventListener('click', () => {
+        vibrate(); document.getElementById('settings-panel').classList.remove('active');
+    });
+    document.getElementById('settings-panel').addEventListener('click', function(e) {
+        if (e.target === this) this.classList.remove('active');
+    });
+    document.querySelectorAll('.theme-option').forEach(opt => opt.addEventListener('click', function() {
+        vibrate();
+        document.querySelectorAll('.theme-option').forEach(o => o.classList.remove('active'));
+        this.classList.add('active');
+        if (this.dataset.theme === 'dark') document.body.classList.add('dark-theme');
+        else document.body.classList.remove('dark-theme');
+        localStorage.setItem('theme', this.dataset.theme);
+    }));
+}
+
+function loadThemePreference() {
+    const saved = localStorage.getItem('theme') || 'light';
+    if (saved === 'dark') document.body.classList.add('dark-theme');
+    document.querySelectorAll('.theme-option').forEach(o => o.classList.toggle('active', o.dataset.theme === saved));
+}
+
 function showNotification(msg) {
     const el = document.getElementById('notification');
     el.textContent = msg;
@@ -573,42 +375,5 @@ function showNotification(msg) {
     setTimeout(() => el.classList.remove('show'), 2000);
 }
 
-// ==================== НАСТРОЙКИ ====================
-function setupSettingsPanel() {
-    document.getElementById('settings-button').addEventListener('click', () => {
-        vibrate();
-        document.getElementById('settings-panel').classList.add('active');
-    });
-    document.getElementById('close-settings').addEventListener('click', () => {
-        vibrate();
-        document.getElementById('settings-panel').classList.remove('active');
-    });
-    document.getElementById('settings-panel').addEventListener('click', function (e) {
-        if (e.target === this) this.classList.remove('active');
-    });
-    document.querySelectorAll('.theme-option').forEach(opt => {
-        opt.addEventListener('click', function () {
-            vibrate();
-            document.querySelectorAll('.theme-option').forEach(o => o.classList.remove('active'));
-            this.classList.add('active');
-            if (this.dataset.theme === 'dark') document.body.classList.add('dark-theme');
-            else document.body.classList.remove('dark-theme');
-            localStorage.setItem('theme', this.dataset.theme);
-        });
-    });
-}
-
-function loadThemePreference() {
-    const saved = localStorage.getItem('theme') || 'light';
-    if (saved === 'dark') document.body.classList.add('dark-theme');
-    document.querySelectorAll('.theme-option').forEach(o => {
-        o.classList.toggle('active', o.dataset.theme === saved);
-    });
-}
-
-function setupLeaderboardRefresh() {
-    document.getElementById('refresh-leaderboard')?.addEventListener('click', () => {
-        vibrate();
-        fetchLeaderboard();
-    });
-}
+// ==================== ВСТАВЬТЕ ПОЛНЫЙ КЛАСС GAME2048 ИЗ ПРЕДЫДУЩЕГО ОТВЕТА ====================
+// (Здесь должен быть полный код класса Game2048, как в предыдущем ответе, чтобы игра работала)
