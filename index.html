@@ -2,140 +2,279 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#667eea">
-    <title>TapVerse — кликер как VK Coin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0a0a0a">
+    <title>BAUCHET — тапай как VK Coin</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        /* Дополнительные стили для точного соответствия картинке */
+        :root {
+            --bg-dark: #0d0f12;
+            --card-bg: #1a1d24;
+            --accent: #ffd966;
+            --accent-glow: #ffb347;
+            --text-primary: #ffffff;
+            --text-secondary: #8e8e93;
+            --border-color: #2c2f36;
+            --btn-gradient: linear-gradient(135deg, #ffd966, #ffb347);
+        }
+        body {
+            background: var(--bg-dark);
+            color: var(--text-primary);
+        }
+        .app-container {
+            background: var(--bg-dark);
+        }
+        .header {
+            background: transparent;
+            box-shadow: none;
+            padding: 12px 16px 0;
+        }
+        .app-title {
+            font-size: 20px;
+            font-weight: 800;
+            background: var(--btn-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .balance-panel {
+            background: var(--card-bg);
+            border-radius: 32px;
+            padding: 20px 16px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+        .balance-title {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+        }
+        .balance-value {
+            font-size: 48px;
+            font-weight: 800;
+            color: var(--accent);
+            text-shadow: 0 0 8px rgba(255, 217, 102, 0.3);
+        }
+        .kurs-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+        }
+        .kurs-btn {
+            background: rgba(255, 217, 102, 0.15);
+            border: none;
+            padding: 6px 16px;
+            border-radius: 40px;
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 13px;
+        }
+        .transfer-btn {
+            background: rgba(255,255,255,0.08);
+            border: none;
+            padding: 6px 16px;
+            border-radius: 40px;
+            color: var(--text-primary);
+            font-size: 13px;
+        }
+        .coin-area {
+            display: flex;
+            justify-content: center;
+            margin: 24px 0;
+        }
+        .coin {
+            width: 160px;
+            height: 160px;
+            background: radial-gradient(circle at 35% 35%, #ffdd88, #d4af37);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 0 8px rgba(255, 217, 102, 0.2), 0 0 0 16px rgba(255, 217, 102, 0.1);
+            cursor: pointer;
+            transition: transform 0.05s linear;
+        }
+        .coin:active { transform: scale(0.96); }
+        .coin span { font-size: 80px; filter: drop-shadow(2px 4px 12px rgba(0,0,0,0.4)); }
+        .upgrade-block {
+            background: var(--card-bg);
+            border-radius: 28px;
+            padding: 16px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+        .block-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .upgrade-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .upgrade-item:last-child { border-bottom: none; }
+        .upgrade-left h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+        .upgrade-left p { font-size: 12px; color: var(--text-secondary); }
+        .upgrade-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .price {
+            font-weight: 800;
+            color: var(--accent);
+            font-size: 15px;
+        }
+        .buy-btn {
+            background: var(--btn-gradient);
+            border: none;
+            padding: 6px 18px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 13px;
+            color: #0a0a0a;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .buy-btn:active { transform: scale(0.96); }
+        .buy-btn.disabled, .buy-btn:disabled {
+            opacity: 0.5;
+            transform: none;
+        }
+        .share-vk-btn {
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-color);
+            padding: 14px;
+            border-radius: 60px;
+            color: var(--text-primary);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 16px;
+            cursor: pointer;
+        }
+        .bottom-nav {
+            background: rgba(26, 29, 36, 0.95);
+            backdrop-filter: blur(12px);
+            border-top: 1px solid var(--border-color);
+        }
+        .nav-item.active .nav-icon { color: var(--accent); }
+        .nav-icon { font-size: 24px; }
+    </style>
 </head>
 <body>
-    <!-- Splash Screen -->
-    <div id="splash-screen">
-        <img src="oblochka.jpg" alt="Загрузка..." id="splash-img">
-    </div>
-
+    <div id="splash-screen" style="display: none;"></div>
     <div class="app-container">
-        <!-- Header -->
         <header class="header">
             <div class="header-content">
-                <h1 class="app-title">TapVerse</h1>
-                <button class="settings-button" id="settings-button" aria-label="Настройки">⚙️</button>
+                <h1 class="app-title">BAUCHET</h1>
+                <button class="settings-button" id="settings-button">⚙️</button>
             </div>
         </header>
 
-        <!-- Settings Panel -->
         <div class="settings-panel" id="settings-panel">
             <div class="settings-content">
-                <h3 class="settings-title">Настройки</h3>
-                <div class="setting-item">
-                    <span class="setting-label">Тема</span>
-                    <div class="theme-switcher">
-                        <button class="theme-option active" data-theme="light">Светлая</button>
-                        <button class="theme-option" data-theme="dark">Темная</button>
-                    </div>
+                <h3>Настройки</h3>
+                <div class="theme-switcher">
+                    <button class="theme-option active" data-theme="dark">Тёмная</button>
+                    <button class="theme-option" data-theme="light">Светлая</button>
                 </div>
-                <button class="close-settings" id="close-settings">Готово</button>
+                <button id="close-settings">Готово</button>
             </div>
         </div>
 
-        <!-- Main Content -->
         <main class="main-content">
-            <!-- TAP (Кликер) Секция -->
+            <!-- КЛИКЕР (основной экран) -->
             <section id="tap-section" class="content-section active">
-                <div class="tap-container">
-                    <div class="balance-panel">
-                        <div class="balance-title">BAUCHET</div>
-                        <div class="balance-value" id="balance">0.000</div>
-                        <div class="kurs-info">Курс: 1.00 ₽</div>
-                    </div>
-
-                    <div class="coin-wrapper" id="coin-wrapper">
-                        <div class="coin" id="coin-tap">
-                            <span class="coin-emoji">🪙</span>
-                        </div>
-                    </div>
-
-                    <div class="stats-row">
-                        <div class="stat-card">
-                            <span class="stat-label">⚡ Сила клика</span>
-                            <span class="stat-value" id="click-power">1.000</span>
-                        </div>
-                        <div class="stat-card">
-                            <span class="stat-label">🤖 Авто-доход/сек</span>
-                            <span class="stat-value" id="passive-income">0.000</span>
-                        </div>
-                    </div>
-
-                    <div class="upgrades-section">
-                        <h3 class="upgrades-title">🏪 Улучшения (как VK Coin)</h3>
-                        <div class="upgrades-grid" id="upgrades-list"></div>
-                    </div>
-
-                    <button class="save-button" id="force-save-btn">💾 Сохранить прогресс</button>
-                </div>
-                <!-- Таблица лидеров (по балансу) -->
-                <div class="leaderboard-container" id="tap-leaderboard">
-                    <div class="leaderboard-header">
-                        <h3 class="leaderboard-title">🏆 Топ кликеров</h3>
-                        <button class="refresh-leaderboard" id="refresh-leaderboard-tap">🔄</button>
-                    </div>
-                    <div class="leaderboard-list" id="tap-leaderboard-list">
-                        <div class="leaderboard-loading">Загрузка...</div>
+                <div class="balance-panel">
+                    <div class="balance-title">BAUCHET</div>
+                    <div class="balance-value" id="balance">0.000</div>
+                    <div class="kurs-row">
+                        <button class="kurs-btn" id="kurs-btn">Курс 1.00 ₽</button>
+                        <button class="transfer-btn" id="transfer-btn">Ton Перевести</button>
                     </div>
                 </div>
+
+                <div class="coin-area">
+                    <div class="coin" id="coin-tap">
+                        <span>🪙</span>
+                    </div>
+                </div>
+
+                <!-- Ускорение (клики) -->
+                <div class="upgrade-block">
+                    <div class="block-title">
+                        <span>⚡</span> Ускорение
+                    </div>
+                    <div id="click-upgrades-list"></div>
+                </div>
+
+                <!-- Автоматический -->
+                <div class="upgrade-block">
+                    <div class="block-title">
+                        <span>🤖</span> Автоматический
+                    </div>
+                    <div id="auto-upgrades-list"></div>
+                </div>
+
+                <button class="share-vk-btn" id="share-telegram-btn">
+                    <span>📱</span> Поделиться ВКонтакте
+                </button>
             </section>
 
-            <!-- ЗАДАНИЯ: игры + биржи -->
+            <!-- ЗАДАНИЯ (игры + биржи) -->
             <section id="tasks-section" class="content-section">
                 <div class="section-header">
                     <h2>Задания</h2>
-                    <span class="section-subtitle">Игры и биржи для заработка</span>
+                    <span class="section-subtitle">Игры и биржи</span>
                 </div>
-
-                <!-- Игры -->
                 <div class="tasks-block">
                     <h3 class="tasks-block-title">🎮 Игры</h3>
                     <div class="games-grid" id="games-grid"></div>
                 </div>
-
-                <!-- Биржи -->
                 <div class="tasks-block">
                     <h3 class="tasks-block-title">📊 Крипто-биржи</h3>
                     <div class="exchanges-list" id="exchanges-list"></div>
                 </div>
+                <!-- Таблица лидеров (баланс) -->
+                <div class="leaderboard-container" style="margin-top: 24px;">
+                    <div class="leaderboard-header">
+                        <h3>🏆 Топ по балансу</h3>
+                        <button id="refresh-leaderboard" style="background: none; border: none; font-size: 20px;">🔄</button>
+                    </div>
+                    <div id="tap-leaderboard-list" class="leaderboard-list">Загрузка...</div>
+                </div>
             </section>
 
-            <!-- Profile Section -->
+            <!-- ПРОФИЛЬ -->
             <section id="profile-section" class="content-section">
                 <div class="profile-header">
                     <div class="profile-avatar" id="user-avatar">
-                        <img src="" alt="User Avatar" id="avatar-img" style="display: none;">
-                        <span id="avatar-fallback">T</span>
+                        <span id="avatar-fallback">U</span>
                     </div>
                     <div class="profile-info">
                         <h2 id="user-name">Пользователь</h2>
-                        <p id="user-username">Открой в Telegram</p>
+                        <p id="user-username">Telegram</p>
                     </div>
                 </div>
-                <div class="profile-actions">
-                    <button class="share-friends-button" id="share-friends-button">
-                        <div class="share-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                <path d="M18 8C19.6569 8 21 6.65685 21 5C21 3.34315 19.6569 2 18 2C16.3431 2 15 3.34315 15 5C15 6.65685 16.3431 8 18 8Z" stroke="currentColor" stroke-width="2"/>
-                                <path d="M6 15C7.65685 15 9 13.6569 9 12C9 10.3431 7.65685 9 6 9C4.34315 9 3 10.3431 3 12C3 13.6569 4.34315 15 6 15Z" stroke="currentColor" stroke-width="2"/>
-                                <path d="M18 22C19.6569 22 21 20.6569 21 19C21 17.3431 19.6569 16 18 16C16.3431 16 15 17.3431 15 19C15 20.6569 16.3431 22 18 22Z" stroke="currentColor" stroke-width="2"/>
-                                <path d="M8.59 13.51L15.42 17.49" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                <path d="M15.41 6.51L8.59 10.49" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            </svg>
-                        </div>
-                        <span>Поделиться с друзьями</span>
-                    </button>
-                </div>
+                <button class="share-vk-btn" id="share-profile-btn">📤 Пригласить друзей</button>
             </section>
         </main>
 
-        <!-- Bottom Navigation (новый порядок) -->
         <nav class="bottom-nav">
             <button class="nav-item active" data-section="tap-section">
                 <span class="nav-icon">🪙</span>
@@ -151,9 +290,358 @@
             </button>
         </nav>
 
-        <div id="notification" class="notification">Ссылка скопирована!</div>
+        <div id="notification" class="notification">Готово!</div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        // ---------- КОНФИГ ----------
+        const BOT_USERNAME = 'khadron_bot';
+        const WORKER_URL = 'https://gamesverse-bot.scarneb.workers.dev';
+        let currentUserId = null;
+        let passiveInterval = null;
+        let throttleSave = null;
+
+        // ---------- ДАННЫЕ КЛИКЕРА ----------
+        let state = {
+            balance: 0,
+            clickPower: 1.0,
+            passiveIncome: 0.0,
+            upgrades: {
+                click: [false, false, false, false],
+                auto: [false, false, false, false]
+            }
+        };
+
+        const CLICK_UPGRADES = [
+            { name: "+0.001/сек", cost: 0.195, effect: 0.001, bought: false },
+            { name: "+0.003/сек", cost: 0.286, effect: 0.003, bought: false },
+            { name: "+0.01/сек", cost: 1.300, effect: 0.01, bought: false },
+            { name: "+0.03/сек", cost: 50.000, effect: 0.03, bought: false }
+        ];
+        const AUTO_UPGRADES = [
+            { name: "+0.001/сек", cost: 0.195, effect: 0.001, bought: false },
+            { name: "+0.003/сек", cost: 0.286, effect: 0.003, bought: false },
+            { name: "+0.01/сек", cost: 1.300, effect: 0.01, bought: false },
+            { name: "+0.03/сек", cost: 50.000, effect: 0.03, bought: false }
+        ];
+
+        // Загрузка из localStorage
+        function loadState() {
+            const saved = localStorage.getItem('bauchet_state');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    state.balance = data.balance || 0;
+                    state.clickPower = data.clickPower || 1.0;
+                    state.passiveIncome = data.passiveIncome || 0.0;
+                    if (data.upgrades) {
+                        state.upgrades = data.upgrades;
+                    }
+                    for (let i = 0; i < CLICK_UPGRADES.length; i++) {
+                        CLICK_UPGRADES[i].bought = state.upgrades.click[i] || false;
+                    }
+                    for (let i = 0; i < AUTO_UPGRADES.length; i++) {
+                        AUTO_UPGRADES[i].bought = state.upgrades.auto[i] || false;
+                    }
+                } catch(e) {}
+            }
+            updateUI();
+        }
+
+        function saveState() {
+            state.upgrades.click = CLICK_UPGRADES.map(u => u.bought);
+            state.upgrades.auto = AUTO_UPGRADES.map(u => u.bought);
+            localStorage.setItem('bauchet_state', JSON.stringify(state));
+        }
+
+        function updateUI() {
+            document.getElementById('balance').innerText = state.balance.toFixed(3);
+            document.getElementById('click-power')?.remove(); // не нужен, но оставим на всякий
+            // рендер улучшений
+            renderUpgrades('click-upgrades-list', CLICK_UPGRADES, 'click');
+            renderUpgrades('auto-upgrades-list', AUTO_UPGRADES, 'auto');
+        }
+
+        function renderUpgrades(containerId, upgrades, type) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = upgrades.map((up, idx) => `
+                <div class="upgrade-item">
+                    <div class="upgrade-left">
+                        <h4>+${up.effect.toFixed(3)}/сек</h4>
+                        <p>Купить за ${up.cost.toFixed(3)}</p>
+                    </div>
+                    <div class="upgrade-right">
+                        <span class="price">${up.cost.toFixed(3)}</span>
+                        <button class="buy-btn" data-type="${type}" data-idx="${idx}" ${up.bought ? 'disabled' : ''}>${up.bought ? 'Куплено' : 'Купить'}</button>
+                    </div>
+                </div>
+            `).join('');
+            // вешаем обработчики
+            document.querySelectorAll('.buy-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const typeBtn = btn.dataset.type;
+                    const idx = parseInt(btn.dataset.idx);
+                    buyUpgrade(typeBtn, idx);
+                });
+            });
+        }
+
+        function buyUpgrade(type, idx) {
+            let upgrade = type === 'click' ? CLICK_UPGRADES[idx] : AUTO_UPGRADES[idx];
+            if (upgrade.bought) return;
+            if (state.balance >= upgrade.cost) {
+                state.balance -= upgrade.cost;
+                upgrade.bought = true;
+                if (type === 'click') {
+                    state.clickPower += upgrade.effect;
+                } else {
+                    state.passiveIncome += upgrade.effect;
+                }
+                saveState();
+                updateUI();
+                sendScoreToLeaderboard(false);
+                showNotification(`Куплено: +${upgrade.effect.toFixed(3)}/сек`);
+            } else {
+                showNotification("Не хватает монет!");
+            }
+        }
+
+        function handleTap() {
+            const gain = state.clickPower;
+            state.balance += gain;
+            saveState();
+            updateUI();
+            // анимация
+            const coin = document.getElementById('coin-tap');
+            coin.style.transform = 'scale(0.92)';
+            setTimeout(() => coin.style.transform = '', 80);
+            sendScoreToLeaderboard(false);
+        }
+
+        function startPassiveIncome() {
+            if (passiveInterval) clearInterval(passiveInterval);
+            passiveInterval = setInterval(() => {
+                if (state.passiveIncome > 0) {
+                    state.balance += state.passiveIncome;
+                    saveState();
+                    updateUI();
+                    sendScoreToLeaderboard(false);
+                }
+            }, 1000);
+        }
+
+        // Отправка баланса на сервер (лидерборд)
+        function sendScoreToLeaderboard(force = false) {
+            if (!currentUserId) return;
+            const now = Date.now();
+            if (!force && throttleSave && now - throttleSave < 3000) return;
+            throttleSave = now;
+            const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
+            if (!user) return;
+            fetch(WORKER_URL + '/submit-score', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: currentUserId.toString(),
+                    firstName: user.first_name || 'Игрок',
+                    username: user.username || '',
+                    score: Math.floor(state.balance),
+                    avatarUrl: user.photo_url || ''
+                })
+            }).catch(e => console.warn);
+        }
+
+        async function fetchLeaderboard() {
+            const listDiv = document.getElementById('tap-leaderboard-list');
+            if (!listDiv) return;
+            listDiv.innerHTML = '<div class="leaderboard-loading">Загрузка...</div>';
+            try {
+                const res = await fetch(WORKER_URL + '/leaderboard');
+                const data = await res.json();
+                const leaderboard = data.leaderboard || [];
+                if (!leaderboard.length) { listDiv.innerHTML = '<div>Пока нет результатов</div>'; return; }
+                let html = '';
+                leaderboard.slice(0, 20).forEach((p, i) => {
+                    const isCurrent = currentUserId && p.userId.toString() === currentUserId.toString();
+                    html += `
+                        <div class="leaderboard-item" style="${isCurrent ? 'background: #ffd96620; border-left: 3px solid #ffd966;' : ''}">
+                            <div class="leaderboard-rank">#${i+1}</div>
+                            <div class="leaderboard-avatar">${(p.firstName?.charAt(0) || '?').toUpperCase()}</div>
+                            <div class="leaderboard-info"><div class="leaderboard-name">${escapeHtml(p.firstName)}</div></div>
+                            <div class="leaderboard-score">${Math.floor(p.score)}</div>
+                        </div>
+                    `;
+                });
+                listDiv.innerHTML = html;
+            } catch(e) { listDiv.innerHTML = '<div>Ошибка загрузки</div>'; }
+        }
+
+        function escapeHtml(str) { return String(str).replace(/[&<>]/g, function(m){ return m==='&'?'&amp;':m==='<'?'&lt;':'&gt;';}); }
+
+        // ---------- ЗАДАНИЯ (игры и биржи) ----------
+        const GAMES_DATA = [
+            { name: "Pixel World", link: "https://t.me/pixelworld/play?startapp=r6823288584", desc: "3D-шутер", icon: "🌍" },
+            { name: "Hamster GameDev", link: "https://t.me/Hamster_GAme_Dev_bot/start?startapp=kentId6823288584", desc: "Создай студию", icon: "🎮" },
+            { name: "Hamster King", link: "https://t.me/hamsterking_game_bot?startapp=6823288584", desc: "Стань королём", icon: "👑" },
+            { name: "Hamster Fight Club", link: "https://t.me/hamster_fightclub_bot?startapp=NWE1YjA2YWUtZTAyMS01ZjA1LTg4ZTYtMGZmZjUwNDQwNjU5", desc: "Бойцовский клуб", icon: "🥊" },
+            { name: "BitQuest", link: "https://t.me/BitquestGameSBot/start?startapp=kentId_6823288584", desc: "Крипто-квест", icon: "💰" }
+        ];
+        const EXCHANGES_DATA = [
+            { name: "Bybit", link: "https://www.bybit.com/invite?ref=57KXPMO", desc: "Продвинутая биржа", icon: "💱" },
+            { name: "BingX", link: "https://bingxdao.com/referral-program/V2TZVA?activityId=g_1529293499868241925", desc: "Социальная торговля", icon: "📈" },
+            { name: "Bitget", link: "https://www.bitgetapps.com/ru/referral/register?clacCode=40FSP70H", desc: "Инновации", icon: "⚡" },
+            { name: "MEXC", link: "https://promote.mexc.com/r/aTSLfdm54W", desc: "Низкие комиссии", icon: "🌍" }
+        ];
+
+        function renderTasks() {
+            const gamesGrid = document.getElementById('games-grid');
+            if (gamesGrid) {
+                gamesGrid.innerHTML = GAMES_DATA.map(g => `
+                    <div class="game-card">
+                        <div class="game-image">${g.icon}</div>
+                        <div class="game-info"><h3>${g.name}</h3><p>${g.desc}</p></div>
+                        <button class="play-button" data-link="${g.link}">Играть</button>
+                    </div>
+                `).join('');
+                document.querySelectorAll('.play-button').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const link = btn.dataset.link;
+                        if (link) window.Telegram?.WebApp?.openTelegramLink(link) || window.open(link, '_blank');
+                    });
+                });
+            }
+            const exchangesDiv = document.getElementById('exchanges-list');
+            if (exchangesDiv) {
+                exchangesDiv.innerHTML = EXCHANGES_DATA.map(e => `
+                    <div class="exchange-card">
+                        <div class="exchange-logo">${e.icon}</div>
+                        <div class="exchange-info"><h3>${e.name}</h3><p>${e.desc}</p></div>
+                        <button class="exchange-button" data-url="${e.link}">Перейти</button>
+                    </div>
+                `).join('');
+                document.querySelectorAll('.exchange-button').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const url = btn.dataset.url;
+                        if (url) window.Telegram?.WebApp?.openLink(url) || window.open(url, '_blank');
+                    });
+                });
+            }
+        }
+
+        // ---------- ПРОФИЛЬ И ТЕЛЕГРАМ ----------
+        function initTelegram() {
+            if (window.Telegram?.WebApp) {
+                const tg = window.Telegram.WebApp;
+                tg.ready();
+                tg.expand();
+                const user = tg.initDataUnsafe?.user;
+                if (user) {
+                    currentUserId = user.id;
+                    document.getElementById('user-name').innerText = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+                    document.getElementById('user-username').innerText = user.username ? '@' + user.username : 'Telegram';
+                    const avatarSpan = document.getElementById('avatar-fallback');
+                    if (avatarSpan) avatarSpan.innerText = user.first_name?.charAt(0).toUpperCase() || 'U';
+                    // отправить событие открытия
+                    fetch(WORKER_URL + '/track', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId: user.id.toString(), firstName: user.first_name, username: user.username, ref: null })
+                    }).catch(e => console.warn);
+                } else {
+                    document.getElementById('user-name').innerText = 'Гость';
+                }
+            } else {
+                document.getElementById('user-name').innerText = 'Demo User';
+            }
+        }
+
+        // ---------- НАВИГАЦИЯ ----------
+        function setupNavigation() {
+            const navs = document.querySelectorAll('.nav-item');
+            const sections = document.querySelectorAll('.content-section');
+            navs.forEach(nav => {
+                nav.addEventListener('click', () => {
+                    const target = nav.dataset.section;
+                    navs.forEach(n => n.classList.remove('active'));
+                    nav.classList.add('active');
+                    sections.forEach(sec => sec.classList.remove('active'));
+                    document.getElementById(target).classList.add('active');
+                    if (target === 'tasks-section') {
+                        fetchLeaderboard();
+                    }
+                });
+            });
+        }
+
+        // ---------- НАСТРОЙКИ, ТЕМА ----------
+        function setupSettings() {
+            const settingsBtn = document.getElementById('settings-button');
+            const panel = document.getElementById('settings-panel');
+            const closeBtn = document.getElementById('close-settings');
+            settingsBtn.onclick = () => panel.classList.add('active');
+            closeBtn.onclick = () => panel.classList.remove('active');
+            panel.onclick = (e) => { if (e.target === panel) panel.classList.remove('active'); };
+            const themeOptions = document.querySelectorAll('.theme-option');
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.body.classList.toggle('dark-theme', savedTheme === 'dark');
+            themeOptions.forEach(opt => {
+                if (opt.dataset.theme === savedTheme) opt.classList.add('active');
+                opt.onclick = () => {
+                    const theme = opt.dataset.theme;
+                    document.body.classList.toggle('dark-theme', theme === 'dark');
+                    localStorage.setItem('theme', theme);
+                    themeOptions.forEach(o => o.classList.remove('active'));
+                    opt.classList.add('active');
+                };
+            });
+        }
+
+        function showNotification(msg) {
+            const notif = document.getElementById('notification');
+            notif.innerText = msg;
+            notif.classList.add('show');
+            setTimeout(() => notif.classList.remove('show'), 2000);
+        }
+
+        // ---------- ЗАПУСК ----------
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('splash-screen')?.remove();
+            initTelegram();
+            loadState();
+            renderTasks();
+            setupNavigation();
+            setupSettings();
+            startPassiveIncome();
+
+            document.getElementById('coin-tap')?.addEventListener('click', handleTap);
+            document.getElementById('kurs-btn')?.addEventListener('click', () => showNotification('Курс: 1 BAUCHET = 1 ₽'));
+            document.getElementById('transfer-btn')?.addEventListener('click', () => showNotification('Перевод в разработке'));
+            document.getElementById('share-telegram-btn')?.addEventListener('click', () => {
+                const refLink = `https://t.me/${BOT_USERNAME}?start=ref_${currentUserId || ''}`;
+                if (window.Telegram?.WebApp) {
+                    window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=Зарабатывай BAUCHET тапая по монете!`);
+                } else {
+                    navigator.clipboard.writeText(refLink);
+                    showNotification('Ссылка скопирована');
+                }
+            });
+            document.getElementById('share-profile-btn')?.addEventListener('click', () => {
+                const refLink = `https://t.me/${BOT_USERNAME}?start=ref_${currentUserId || ''}`;
+                if (window.Telegram?.WebApp) {
+                    window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=Присоединяйся к BAUCHET!`);
+                } else {
+                    navigator.clipboard.writeText(refLink);
+                    showNotification('Ссылка скопирована');
+                }
+            });
+            document.getElementById('refresh-leaderboard')?.addEventListener('click', fetchLeaderboard);
+            fetchLeaderboard();
+            // подгрузка лидеров при активной вкладке заданий
+            setInterval(() => {
+                if (document.getElementById('tasks-section').classList.contains('active')) fetchLeaderboard();
+            }, 15000);
+        });
+    </script>
 </body>
 </html>
