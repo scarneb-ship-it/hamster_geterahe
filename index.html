@@ -43,7 +43,56 @@
         <main class="main-content">
             <!-- Игра (главная) -->
             <section id="game-section" class="content-section active">
-                <div class="game-2048-container">
+                <!-- Карточки переключения внутри игры -->
+                <div class="game-tabs">
+                    <button class="game-tab active" data-game-tab="leaderboard">🏆 Топ</button>
+                    <button class="game-tab" data-game-tab="transfer">💸 Перевести</button>
+                    <button class="game-tab" data-game-tab="boost">⚡ Ускорение</button>
+                </div>
+
+                <!-- Контейнеры под каждую вкладку -->
+                <div class="game-tab-content active" id="game-tab-leaderboard">
+                    <div class="leaderboard-container">
+                        <div class="leaderboard-header">
+                            <h3 class="leaderboard-title">🏆 Таблица лидеров</h3>
+                            <button class="refresh-leaderboard" id="refresh-leaderboard">🔄</button>
+                        </div>
+                        <div class="leaderboard-list" id="leaderboard-list">
+                            <div class="leaderboard-loading">Загрузка...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="game-tab-content" id="game-tab-transfer">
+                    <div class="transfer-panel">
+                        <h3>💸 Перевод очков</h3>
+                        <div class="user-balance" id="user-balance-display">Ваш баланс: 0 очк.</div>
+                        <div class="transfer-form">
+                            <label>Никнейм получателя (без @)</label>
+                            <input type="text" id="transfer-username-input" placeholder="username" />
+                            <label>Количество очков</label>
+                            <input type="number" id="transfer-amount-input" min="1" placeholder="Сумма" />
+                            <small id="transfer-max-hint"></small>
+                            <button class="btn-transfer-submit" id="btn-transfer-submit">Перевести</button>
+                            <div id="transfer-result-message" class="result-message"></div>
+                            <!-- Fallback: кнопка «Поделиться ссылкой» -->
+                            <div id="transfer-fallback" style="display:none; margin-top:12px;">
+                                <p class="fallback-text">Пользователь не найден. Отправьте другу ссылку, чтобы он получил очки.</p>
+                                <button class="btn-share-fallback" id="btn-share-fallback">📤 Поделиться ссылкой</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="game-tab-content" id="game-tab-boost">
+                    <div class="boost-placeholder">
+                        <span>⚡</span>
+                        <p>Ускорение появится позже</p>
+                    </div>
+                </div>
+
+                <!-- Сама игра 2048 (всегда видна под карточками) -->
+                <div class="game-2048-container" style="margin-top: 16px;">
                     <div class="game-header-2048">
                         <h3 class="game-title-2048">2048</h3>
                         <div class="game-scores">
@@ -63,28 +112,6 @@
                         <div class="game-status" id="game-status"></div>
                     </div>
                     <div class="swipe-hint">👆 Свайпайте пальцем или используйте стрелки</div>
-                </div>
-
-                <!-- Таблица лидеров -->
-                <div class="leaderboard-container" style="margin-top: 20px;">
-                    <div class="leaderboard-header">
-                        <h3 class="leaderboard-title">🏆 Таблица лидеров</h3>
-                        <button class="refresh-leaderboard" id="refresh-leaderboard">🔄</button>
-                    </div>
-                    <div class="leaderboard-list" id="leaderboard-list">
-                        <div class="leaderboard-loading">Загрузка...</div>
-                    </div>
-                </div>
-
-                <!-- Перевод очков -->
-                <div class="transfer-section" style="margin-top: 20px;">
-                    <div class="transfer-header">
-                        <h3>💸 Перевод очков</h3>
-                        <div class="user-balance" id="user-balance-display">Ваш баланс: 0 очк.</div>
-                    </div>
-                    <div class="transfer-list" id="transfer-list">
-                        <div class="leaderboard-loading">Загрузка...</div>
-                    </div>
                 </div>
             </section>
 
@@ -155,16 +182,16 @@
         <div id="notification" class="notification">Ссылка скопирована в буфер обмена!</div>
     </div>
 
-    <!-- Модальное окно перевода -->
-    <div class="transfer-modal" id="transfer-modal">
+    <!-- Модальное окно перевода (старое, больше не используется, но оставлено на всякий случай) -->
+    <div class="transfer-modal" id="transfer-modal" style="display:none;">
         <div class="modal-backdrop"></div>
         <div class="modal-content">
             <h4>Перевести очки</h4>
             <p id="transfer-target-name"></p>
             <div class="modal-input-group">
                 <label>Количество очков</label>
-                <input type="number" id="transfer-amount-input" min="1" placeholder="Введите сумму" />
-                <small id="transfer-max-hint"></small>
+                <input type="number" id="transfer-amount-input-modal" min="1" placeholder="Введите сумму" />
+                <small id="transfer-max-hint-modal"></small>
             </div>
             <div class="modal-actions">
                 <button class="btn-cancel" id="transfer-cancel">Отмена</button>
