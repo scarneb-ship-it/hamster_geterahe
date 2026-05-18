@@ -16,12 +16,11 @@ const EXCHANGES_DATA = [
     { id:4, name:"MEXC", url:"https://promote.mexc.com/r/aTSLfdm54W", description:"Глобальная биржа", image:"images/mexc.jpg", fallback:"🌍" }
 ];
 
-// Замените массив SKINS в script.js на следующий, добавив элитный скин:
 const SKINS = [
     { id: 'classic', name: 'Классический', price: 0, preview: '2' },
     { id: 'golden', name: 'Золотой', price: 0, preview: '🪙' },
     { id: 'neon', name: 'Неоновый', price: 0, preview: '💠' },
-    { id: 'elite', name: 'Элитный', price: 0, preview: '👑' }  // новый премиальный стиль
+    { id: 'elite', name: 'Элитный', price: 0, preview: '👑' }
 ];
 
 function vibrate() { if (navigator.vibrate) navigator.vibrate(50); }
@@ -182,7 +181,7 @@ function renderTasks() {
     }));
 }
 
-// ==================== ИГРА 2048 ====================
+// ==================== ИГРА 2048 (ЛОГИКА НЕИЗМЕННА) ====================
 class Game2048 {
     constructor(boardEl, scoreEl, bestEl, statusEl) {
         this.boardEl = boardEl;
@@ -346,11 +345,9 @@ function setupGameTabs() {
         tab.addEventListener('click', () => {
             const target = tab.dataset.gameTab;
             const isActive = tab.classList.contains('active');
-            // Закрываем все
             tabs.forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.game-tab-content').forEach(c => c.classList.remove('active'));
             if (!isActive) {
-                // Открываем выбранную
                 tab.classList.add('active');
                 const content = document.getElementById(`game-tab-${target}`);
                 if (content) content.classList.add('active');
@@ -454,36 +451,25 @@ function getCurrentBalanceFromDisplay() {
 }
 
 // ==================== МАГАЗИН СКИНОВ (БЕСПЛАТНЫЙ) ====================
-function setupShop() {
-    renderSkins();
-}
+function setupShop() { renderSkins(); }
 function renderSkins() {
     const grid = document.getElementById('skins-grid');
     if (!grid) return;
     const currentSkin = localStorage.getItem('selectedSkin') || 'classic';
-    // Все скины теперь доступны без покупки, поэтому список купленных игнорируем
     grid.innerHTML = SKINS.map(skin => {
         const isActive = currentSkin === skin.id;
-        let btnHtml = '';
-        if (isActive) {
-            btnHtml = '<button class="active-skin" disabled>Выбрано</button>';
-        } else {
-            btnHtml = `<button class="apply-skin" data-skin="${skin.id}">Применить</button>`;
-        }
         return `<div class="skin-card">
             <div class="skin-preview">${skin.preview}</div>
             <div class="skin-info"><div class="skin-name">${skin.name}</div><div class="skin-price">Бесплатно</div></div>
-            <div class="skin-action">${btnHtml}</div>
+            <div class="skin-action">${isActive ? '<button class="active-skin" disabled>Выбрано</button>' : `<button class="apply-skin" data-skin="${skin.id}">Применить</button>`}</div>
         </div>`;
     }).join('');
-
-    // Обработчики кнопок "Применить"
     document.querySelectorAll('.apply-skin').forEach(btn => {
         btn.addEventListener('click', function() {
             const skinId = this.dataset.skin;
             if (game2048) game2048.applySkin(skinId);
             showNotification('Скин применён');
-            renderSkins(); // обновить список, чтобы показать "Выбрано"
+            renderSkins();
         });
     });
 }
