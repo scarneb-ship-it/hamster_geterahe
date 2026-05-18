@@ -3,63 +3,110 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-    <title>LAST VOTE</title>
+    <title>LAST VOTE — голосование дня</title>
     <link rel="stylesheet" href="style.css" />
 </head>
 <body>
     <div id="app">
         <!-- Главный экран -->
         <div id="main-screen" class="screen active">
-            <div class="user-bar">
-                <img id="user-avatar" src="" alt="Аватар" class="avatar" />
-                <div>
-                    <h2 id="user-name"></h2>
-                    <div class="level">Уровень <span id="user-level">1</span></div>
+            <div class="profile-card glass">
+                <div class="avatar-level">
+                    <img id="user-avatar" src="" alt="Аватар" class="avatar" />
+                    <div class="level-badge"><span id="user-level">1</span></div>
+                </div>
+                <h2 id="user-name"></h2>
+                <div class="points">🔹 <span id="user-points">0</span> очков</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="xp-bar"></div>
+                </div>
+                <div class="shield-info">🛡 Щитов: <span id="shield-count">0</span></div>
+            </div>
+
+            <div class="timer-card glass">
+                <div class="timer-label">До нового голосования</div>
+                <div class="timer-ring">
+                    <svg viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="45" class="timer-bg" />
+                        <circle cx="50" cy="50" r="45" class="timer-progress" id="timer-circle" />
+                    </svg>
+                    <div class="timer-value" id="vote-timer">00:00:00</div>
                 </div>
             </div>
-            <div class="timer-box">
-                <div class="timer-label">До следующего голосования</div>
-                <div id="vote-timer" class="timer-value">--:--:--</div>
+
+            <button id="vote-btn" class="btn-neon">
+                <span id="vote-btn-text">ГОЛОСОВАТЬ</span>
+                <span class="btn-glow"></span>
+            </button>
+
+            <div class="event-banner glass" id="event-banner">
+                <span id="event-icon">🔥</span>
+                <span id="event-text"></span>
             </div>
-            <button id="vote-btn" class="btn-primary">ГОЛОСОВАТЬ</button>
+
             <div class="nav-grid">
-                <button class="nav-btn" data-screen="leaderboard">🏆 Таблица</button>
+                <button class="nav-btn" data-screen="leaderboard">🏆 Лидеры</button>
                 <button class="nav-btn" data-screen="rewards">🎁 Награды</button>
-                <button class="nav-btn" id="invite-btn">📨 Пригласить</button>
+                <button class="nav-btn" id="invite-btn">📨 Друзья</button>
+                <button class="nav-btn" data-screen="profile">👤 Профиль</button>
             </div>
         </div>
 
         <!-- Экран голосования -->
         <div id="vote-screen" class="screen">
-            <h2>Кого удалить сегодня?</h2>
+            <h2 id="vote-title">Кого удалить?</h2>
             <div id="candidates-list"></div>
-            <button id="back-from-vote" class="btn-back">← Назад</button>
+            <button class="btn-back" data-screen="main">← Назад</button>
         </div>
 
         <!-- Лидерборд -->
         <div id="leaderboard-screen" class="screen">
-            <h2>🏆 Лидеры</h2>
-            <ol id="leaders-list"></ol>
+            <h2>🏆 Топ-10 игроков</h2>
+            <div id="leaders-list"></div>
             <button class="btn-back" data-screen="main">← Назад</button>
         </div>
 
-        <!-- Награды -->
+        <!-- Награды и рефералы -->
         <div id="rewards-screen" class="screen">
-            <h2>🎁 Ежедневные награды</h2>
-            <div class="reward-card">
-                <span>День входа: <strong id="streak-days">1</strong></span>
-                <span>Бонус: <strong id="streak-bonus">+10</strong> очков</span>
-                <button id="claim-reward-btn" class="btn-primary">Забрать</button>
+            <h2>🎁 Ежедневный бонус</h2>
+            <div class="reward-card glass">
+                <div class="streak-info">
+                    <span>Дней подряд: <strong id="streak-days">1</strong></span>
+                    <span>Сегодня: <strong id="streak-bonus">+10</strong> очков</span>
+                </div>
+                <button id="claim-reward-btn" class="btn-neon">Забрать награду</button>
                 <p class="note" id="reward-status"></p>
             </div>
-            <div class="ref-info">
-                <h3>Рефералы</h3>
+            <div class="ref-card glass">
+                <h3>📨 Рефералы</h3>
                 <p>Приглашено: <span id="ref-count">0</span></p>
-                <p>За каждого друга: +2 очка и щит на день</p>
+                <p>Каждый друг даёт <strong>+2 очка</strong> и <strong>+1 щит</strong></p>
+            </div>
+            <div class="revive-card glass" id="revive-section" style="display:none;">
+                <h3>💀 Вы выбыли!</h3>
+                <p>Потратьте 100 очков, чтобы воскреснуть</p>
+                <button id="revive-btn" class="btn-neon">Воскреснуть (100 🔹)</button>
+            </div>
+            <button class="btn-back" data-screen="main">← Назад</button>
+        </div>
+
+        <!-- Профиль (расширенный) -->
+        <div id="profile-screen" class="screen">
+            <h2>👤 Профиль</h2>
+            <div class="profile-detail glass">
+                <p><strong>ID:</strong> <span id="profile-id"></span></p>
+                <p><strong>Уровень:</strong> <span id="profile-level"></span></p>
+                <p><strong>Очки:</strong> <span id="profile-points"></span></p>
+                <p><strong>Щиты:</strong> <span id="profile-shields"></span></p>
+                <p><strong>Дней подряд:</strong> <span id="profile-streak"></span></p>
+                <p><strong>Статус:</strong> <span id="profile-status"></span></p>
             </div>
             <button class="btn-back" data-screen="main">← Назад</button>
         </div>
     </div>
+
+    <!-- Canvas для конфетти -->
+    <canvas id="confetti-canvas"></canvas>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="script.js"></script>
