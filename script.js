@@ -1,767 +1,773 @@
-// ================= НАСТРОЙКИ =================
-const TILE_SIZE = 32;
-const MAP_COLS = 21;
-const MAP_ROWS = 15;
-const SPRITE_SIZE = 16;    // эталонный размер спрайта, будем увеличивать
+// ==================== КОНФИГУРАЦИЯ ====================
+const BOT_USERNAME = 'khadron_bot';
+let currentUserId = null;
+const WORKER_URL = 'https://gamesverse-bot.scarneb.workers.dev';
 
-// ================= Telegram Web App =================
-const isTelegram = (typeof Telegram !== 'undefined' && Telegram.WebApp);
-const tg = isTelegram ? Telegram.WebApp : null;
-if (tg) {
+// ==================== ДАННЫЕ ====================
+const GAMES_DATA = [
+    {
+        id: 'internal_2048',
+        name: "2048",
+        fullLink: null,
+        description: "Классическая головоломка прямо здесь",
+        rating: 4.8,
+        players: "∞",
+        image: "",
+        fallback: "🔢",
+        badge: "Внутри",
+        highlight: true,
+        isInternal: true
+    },
+    {
+        id: 0,
+        name: "Pixel World",
+        fullLink: "https://t.me/pixelworld/play?startapp=r6823288584",
+        description: "Первый 3D-шутер в Telegram",
+        rating: 4.9,
+        players: "34K",
+        image: "images/photo_2026-02-17_13-44-55.jpg",
+        fallback: "🌍",
+        badge: "Beta",
+        highlight: true
+    },
+    {
+        id: 1,
+        name: "Hamster GameDev",
+        fullLink: "https://t.me/Hamster_GAme_Dev_bot/start?startapp=kentId6823288584",
+        description: "Создай свою студию",
+        rating: 4.7,
+        players: "368K",
+        image: "images/hamster-gamedev.jpg",
+        fallback: "🎮"
+    },
+    {
+        id: 2,
+        name: "Hamster King",
+        fullLink: "https://t.me/hamsterking_game_bot?startapp=6823288584",
+        description: "Стань королем хомяков",
+        rating: 4.2,
+        players: "188K",
+        image: "images/hamster-king.jpg",
+        fallback: "👑"
+    },
+    {
+        id: 3,
+        name: "Hamster Fight Club",
+        fullLink: "https://t.me/hamster_fightclub_bot?startapp=NWE1YjA2YWUtZTAyMS01ZjA1LTg4ZTYtMGZmZjUwNDQwNjU5",
+        description: "Бойцовский клуб хомяков",
+        rating: 4.9,
+        players: "85K",
+        image: "images/hamster-fightclub.jpg",
+        fallback: "🥊"
+    },
+    {
+        id: 4,
+        name: "BitQuest",
+        fullLink: "https://t.me/BitquestGameSBot/start?startapp=kentId_6823288584",
+        description: "Приключения в мире крипты",
+        rating: 3.8,
+        players: "281K",
+        image: "images/bitquest.jpg",
+        fallback: "💰"
+    }
+];
+
+const EXCHANGES_DATA = [
+    { id: 1, name: "Bybit", url: "https://www.bybit.com/invite?ref=57KXPMO", description: "Продвинутая торговая платформа", image: "images/bybit.jpg", fallback: "💱" },
+    { id: 2, name: "BingX", url: "https://bingxdao.com/referral-program/V2TZVA?activityId=g_1529293499868241925", description: "Социальная торговля и копирование", image: "images/bingx.jpg", fallback: "📈" },
+    { id: 3, name: "Bitget", url: "https://www.bitgetapps.com/ru/referral/register?clacCode=40FSP70H&from=%2Fru%2Fevents%2Freferral-all-program&source=events&utmSource=PremierInviter", description: "Инновационная торговая платформа", image: "images/bitget.jpg", fallback: "⚡" },
+    { id: 4, name: "MEXC", url: "https://promote.mexc.com/r/aTSLfdm54W", description: "Глобальная биржа с низкими комиссиями", image: "images/mexc.jpg", fallback: "🌍" }
+];
+
+// ==================== ГЛОБАЛЬНОЕ СОСТОЯНИЕ ====================
+let isGameActive = false;
+let game2048 = null;
+let userCoins = parseInt(localStorage.getItem('userCoins')) || 0;
+let dailyTasks = JSON.parse(localStorage.getItem('dailyTasks')) || [];
+
+const DEFAULT_TASKS = [
+    { id: 'play_3', name: 'Сыграть 3 партии', icon: '🎮', target: 3, progress: 0, reward: 50 },
+    { id: 'score_1000', name: 'Набрать 1000 очков', icon: '⭐', target: 1000, progress: 0, reward: 100 },
+    { id: 'win_1', name: 'Достигнуть 2048', icon: '🏆', target: 1, progress: 0, reward: 200 },
+    { id: 'invite_1', name: 'Пригласить друга', icon: '👥', target: 1, progress: 0, reward: 150 }
+];
+
+// ==================== УТИЛИТЫ ====================
+function vibrate() { if (navigator.vibrate) navigator.vibrate(50); }
+function saveCoins() { localStorage.setItem('userCoins', userCoins); }
+function saveTasks() { localStorage.setItem('dailyTasks', JSON.stringify(dailyTasks)); }
+function resetDailyTasks() { dailyTasks = DEFAULT_TASKS.map(t => ({...t, progress: 0})); saveTasks(); }
+function updateProfileCoins() {
+    const el = document.getElementById('profile-coins-amount');
+    if (el) el.textContent = userCoins;
+}
+
+// ==================== ИНИЦИАЛИЗАЦИЯ ====================
+document.addEventListener('DOMContentLoaded', () => {
+    const splash = document.getElementById('splash-screen');
+    if (splash) splash.style.display = 'none';
+    document.body.style.opacity = '1';
+    initializeApp();
+});
+
+function applySavedTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    if (savedTheme === 'dark') document.body.classList.add('dark-theme');
+}
+
+function initializeApp() {
+    initializeTelegramWebApp();
+    applySavedTheme();
+    setupNavigation();
+    initializeGames();
+    setupShareButton();
+    initGame2048();
+    setupLeaderboardRefresh();
+    setupProfileThemeSwitcher();
+
+    // Задания
+    const lastReset = localStorage.getItem('lastTaskReset');
+    const today = new Date().toDateString();
+    if (lastReset !== today) {
+        resetDailyTasks();
+        localStorage.setItem('lastTaskReset', today);
+    }
+    renderDailyQuests();
+    updateProfileCoins();
+}
+
+function initializeTelegramWebApp() {
+    if (!window.Telegram?.WebApp) return;
+    const tg = window.Telegram.WebApp;
     tg.ready();
     tg.expand();
-    tg.disableVerticalSwipes();
-}
-
-// ================= Хранилище =================
-const storage = {
-    async get(key) {
-        if (tg?.CloudStorage) {
-            try { return await new Promise((res, rej) => tg.CloudStorage.getItem(key, (err, val) => err ? rej(err) : res(val))); }
-            catch (e) {}
-        }
-        return localStorage.getItem(key);
-    },
-    async set(key, value) {
-        if (tg?.CloudStorage) {
-            try { await new Promise((res, rej) => tg.CloudStorage.setItem(key, value, (err, val) => err ? rej(err) : res(val))); return; }
-            catch (e) {}
-        }
-        localStorage.setItem(key, value);
-    },
-    async remove(key) {
-        if (tg?.CloudStorage) {
-            try { await new Promise((res, rej) => tg.CloudStorage.removeItem(key, (err, val) => err ? rej(err) : res(val))); return; }
-            catch (e) {}
-        }
-        localStorage.removeItem(key);
-    }
-};
-
-// ================= Звуки (Web Audio) =================
-let audioCtx;
-function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-function playTone(freq, dur, type = 'square', vol = 0.08) {
-    if (!audioCtx) return;
-    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-    o.type = type; o.frequency.setValueAtTime(freq, audioCtx.currentTime);
-    g.gain.setValueAtTime(vol, audioCtx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
-    o.connect(g); g.connect(audioCtx.destination);
-    o.start(); o.stop(audioCtx.currentTime + dur);
-}
-const SFX = {
-    step: () => playTone(100, 0.06, 'triangle'),
-    hit: () => { playTone(70, 0.12, 'sawtooth', 0.1); playTone(55, 0.1, 'square', 0.08); },
-    pickup: () => { playTone(500, 0.08); playTone(700, 0.08); },
-    levelup: () => { playTone(400, 0.1); playTone(600, 0.1); playTone(800, 0.15); },
-    death: () => { playTone(50, 0.3, 'sawtooth', 0.15); }
-};
-
-// ================= ГРАФИКА (пиксельная, рисуется на canvas) =================
-// Генерация текстур спрайтов (16x16) в оффскрин-канвасе
-
-function createSpriteSheet() {
-    const sheet = document.createElement('canvas');
-    sheet.width = SPRITE_SIZE * 6; // 6 кадров: игрок, слайм, скелет, зелье, меч, выход
-    sheet.height = SPRITE_SIZE;
-    const ctx = sheet.getContext('2d');
-
-    function sprite(index, drawFunc) {
-        ctx.save();
-        ctx.translate(index * SPRITE_SIZE, 0);
-        drawFunc(ctx);
-        ctx.restore();
-    }
-
-    // 0 - Рыцарь (анимированный)
-    sprite(0, ctx => {
-        // Тело
-        ctx.fillStyle = '#2b4f8c';
-        ctx.fillRect(5, 5, 6, 8);            // туловище
-        // Голова
-        ctx.fillStyle = '#d4b98c';
-        ctx.fillRect(6, 1, 4, 5);           // лицо
-        ctx.fillStyle = '#2b4f8c';
-        ctx.fillRect(5, 0, 6, 2);           // шлем верх
-        // Глаза
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(7, 3, 1, 1);
-        ctx.fillRect(9, 3, 1, 1);
-        // Меч
-        ctx.fillStyle = '#c0c0c0';
-        ctx.fillRect(11, 4, 2, 8);
-        ctx.fillRect(12, 12, 4, 1);
-        // Ноги
-        ctx.fillStyle = '#3a3a3a';
-        ctx.fillRect(5, 13, 2, 3);
-        ctx.fillRect(9, 13, 2, 3);
-        // Щит (левый бок)
-        ctx.fillStyle = '#8b4513';
-        ctx.fillRect(2, 6, 3, 5);
-    });
-
-    // 1 - Слизень
-    sprite(1, ctx => {
-        ctx.fillStyle = '#a03030';
-        ctx.fillRect(4, 7, 8, 6);         // тело
-        ctx.fillRect(5, 5, 6, 2);         // верх
-        ctx.fillStyle = '#ff8888';
-        ctx.fillRect(7, 5, 2, 1);         // глаз
-        ctx.fillStyle = '#700000';
-        ctx.fillRect(6, 12, 4, 2);        // тень
-    });
-
-    // 2 - Скелет
-    sprite(2, ctx => {
-        ctx.fillStyle = '#d4d4c8';
-        ctx.fillRect(6, 2, 4, 4);         // череп
-        ctx.fillStyle = '#b0b0a0';
-        ctx.fillRect(7, 3, 2, 1);         // глаза
-        ctx.fillRect(5, 7, 6, 5);         // туловище
-        ctx.fillStyle = '#d4d4c8';
-        ctx.fillRect(5, 7, 1, 5);         // ребра
-        ctx.fillRect(10, 7, 1, 5);
-        // Руки
-        ctx.fillStyle = '#b0b0a0';
-        ctx.fillRect(3, 8, 2, 5);
-        ctx.fillRect(11, 8, 2, 5);
-        // Ноги
-        ctx.fillStyle = '#b0b0a0';
-        ctx.fillRect(5, 13, 2, 3);
-        ctx.fillRect(9, 13, 2, 3);
-    });
-
-    // 3 - Зелье
-    sprite(3, ctx => {
-        ctx.fillStyle = '#ff3355';
-        ctx.fillRect(7, 3, 2, 5);         // горлышко
-        ctx.fillStyle = '#cc2233';
-        ctx.fillRect(6, 8, 4, 6);         // колба
-        ctx.fillStyle = '#ff8899';
-        ctx.fillRect(7, 4, 1, 2);          // блик
-        ctx.fillStyle = '#550000';
-        ctx.fillRect(7, 12, 2, 2);        // пробка
-    });
-
-    // 4 - Меч (предмет)
-    sprite(4, ctx => {
-        ctx.fillStyle = '#c0c0c0';
-        ctx.fillRect(7, 1, 2, 11);        // лезвие
-        ctx.fillStyle = '#777777';
-        ctx.fillRect(8, 1, 1, 11);        // тень лезвия
-        ctx.fillStyle = '#8b4513';
-        ctx.fillRect(5, 12, 6, 3);        // рукоять
-        ctx.fillStyle = '#ffcc00';
-        ctx.fillRect(6, 13, 4, 1);        // гарда
-    });
-
-    // 5 - Выход (портал)
-    sprite(5, ctx => {
-        ctx.fillStyle = '#22ff88';
-        ctx.fillRect(6, 4, 4, 8);         // столб
-        ctx.fillStyle = '#00cc66';
-        ctx.fillRect(7, 5, 2, 6);
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(7, 6, 1, 2);          // свечение
-        ctx.fillStyle = '#004422';
-        ctx.fillRect(6, 12, 4, 2);        // основание
-    });
-
-    return sheet;
-}
-
-// Генерация тайлов (пол и стена)
-function createTileSheet() {
-    const sheet = document.createElement('canvas');
-    sheet.width = SPRITE_SIZE * 2; // 0 - пол, 1 - стена
-    sheet.height = SPRITE_SIZE;
-    const ctx = sheet.getContext('2d');
-
-    // Пол
-    ctx.save();
-    ctx.fillStyle = '#3a3a2a';
-    ctx.fillRect(0, 0, 16, 16);
-    // трещинки/камни
-    ctx.fillStyle = '#4a4a3a';
-    ctx.fillRect(0, 0, 2, 2);
-    ctx.fillRect(14, 14, 2, 2);
-    ctx.fillRect(7, 2, 1, 3);
-    ctx.fillStyle = '#2a2a1a';
-    ctx.fillRect(3, 11, 4, 1);
-    ctx.fillRect(12, 5, 2, 1);
-    ctx.restore();
-
-    // Стена
-    ctx.save();
-    ctx.translate(16, 0);
-    ctx.fillStyle = '#4a3520';
-    ctx.fillRect(0, 0, 16, 16);
-    // кирпичи
-    ctx.fillStyle = '#5a4530';
-    ctx.fillRect(0, 0, 8, 7);
-    ctx.fillRect(8, 0, 8, 7);
-    ctx.fillRect(0, 8, 5, 8);
-    ctx.fillRect(6, 8, 5, 8);
-    ctx.fillRect(12, 8, 4, 8);
-    ctx.fillStyle = '#3a2510';
-    ctx.fillRect(0, 7, 16, 1);
-    ctx.fillRect(0, 15, 16, 1);
-    ctx.restore();
-
-    return sheet;
-}
-
-const spriteSheet = createSpriteSheet();
-const tileSheet = createTileSheet();
-
-// ================= МОДЕЛЬ ДАННЫХ =================
-class GameState {
-    constructor() {
-        this.floor = 1;
-        this.player = { hp: 20, maxHp: 20, atk: 4, def: 1, items: [] };
-        this.dungeon = null;
-        this.gameOver = false;
-    }
-    toJSON() {
-        return { floor: this.floor, player: this.player, dungeon: this.dungeon?.toJSON() };
-    }
-    static fromJSON(data) {
-        const gs = new GameState();
-        gs.floor = data.floor;
-        gs.player = data.player;
-        if (data.dungeon) gs.dungeon = Dungeon.fromJSON(data.dungeon);
-        return gs;
+    const tp = tg.themeParams;
+    if (tp) {
+        if (tp.bg_color) document.documentElement.style.setProperty('--tg-theme-bg-color', tp.bg_color);
+        if (tp.text_color) document.documentElement.style.setProperty('--tg-theme-text-color', tp.text_color);
     }
 }
 
-class Dungeon {
-    constructor(map, rooms, playerPos, exitPos, enemies, items) {
-        this.map = map;
-        this.rooms = rooms;
-        this.playerPos = playerPos;
-        this.exitPos = exitPos;
-        this.enemies = enemies || [];
-        this.items = items || [];
-    }
-    toJSON() {
-        return {
-            map: this.map, rooms: this.rooms, playerPos: this.playerPos,
-            exitPos: this.exitPos, enemies: this.enemies, items: this.items
-        };
-    }
-    static fromJSON(d) {
-        return new Dungeon(d.map, d.rooms, d.playerPos, d.exitPos, d.enemies, d.items);
-    }
-}
+// ==================== НАВИГАЦИЯ ====================
+const headerElement = document.querySelector('.header');
+const mainContent = document.querySelector('.main-content');
 
-// ================= ГЕНЕРАТОР ПОДЗЕМЕЛИЙ =================
-function generateDungeon(floorNumber) {
-    const width = MAP_COLS, height = MAP_ROWS;
-    const map = Array(height).fill().map(() => Array(width).fill(0));
-    const numRooms = 5 + Math.floor(floorNumber / 2);
-    const minSize = 3, maxSize = 6;
-    const enemyCount = 2 + Math.floor(floorNumber * 1.2);
-    const itemCount = 2 + Math.floor(floorNumber / 2);
-    const rooms = [];
+function setupNavigation() {
+    const navItems = document.querySelectorAll('.nav-item');
+    const sections = document.querySelectorAll('.content-section');
+    navItems.forEach(item => {
+        item.addEventListener('click', function() {
+            vibrate();
+            if (isGameActive) closeInternalGame(false);
+            const targetSection = this.getAttribute('data-section');
+            navItems.forEach(n => n.classList.remove('active'));
+            this.classList.add('active');
+            sections.forEach(s => s.classList.remove('active'));
+            const target = document.getElementById(targetSection);
+            if (target) target.classList.add('active');
 
-    for (let i = 0; i < numRooms * 3; i++) {
-        const w = randInt(minSize, maxSize);
-        const h = randInt(minSize, maxSize);
-        const x = randInt(1, width - w - 2);
-        const y = randInt(1, height - h - 2);
-        const newRoom = { x, y, w, h };
-        if (!rooms.some(r => intersect(r, newRoom))) {
-            rooms.push(newRoom);
-            for (let row = y; row < y + h; row++) {
-                for (let col = x; col < x + w; col++) {
-                    map[row][col] = 1;
-                }
+            if (targetSection === 'leaderboard-section') fetchLeaderboard();
+            if (targetSection === 'profile-section') {
+                loadProfileStats();
+                initializeExchanges();
+                if (headerElement) headerElement.style.display = 'none';
+                if (mainContent) mainContent.style.paddingTop = '8px';
+            } else {
+                if (headerElement) headerElement.style.display = 'block';
+                if (mainContent) mainContent.style.paddingTop = '';
             }
-        }
-        if (rooms.length >= numRooms) break;
-    }
-
-    for (let i = 1; i < rooms.length; i++) {
-        const prev = rooms[i - 1], curr = rooms[i];
-        const x1 = Math.floor(prev.x + prev.w / 2);
-        const y1 = Math.floor(prev.y + prev.h / 2);
-        const x2 = Math.floor(curr.x + curr.w / 2);
-        const y2 = Math.floor(curr.y + curr.h / 2);
-        if (Math.random() > 0.5) {
-            createHTunnel(map, x1, x2, y1);
-            createVTunnel(map, y1, y2, x2);
-        } else {
-            createVTunnel(map, y1, y2, x1);
-            createHTunnel(map, x1, x2, y2);
-        }
-    }
-
-    const startRoom = rooms[0];
-    const playerPos = { x: Math.floor(startRoom.x + startRoom.w / 2), y: Math.floor(startRoom.y + startRoom.h / 2) };
-    const lastRoom = rooms[rooms.length - 1];
-    const exitPos = { x: Math.floor(lastRoom.x + lastRoom.w / 2), y: Math.floor(lastRoom.y + lastRoom.h / 2) };
-
-    const enemies = [];
-    const enemyTypes = ['slime', 'skeleton'];
-    for (let i = 0; i < enemyCount; i++) {
-        const type = enemyTypes[randInt(0, enemyTypes.length - 1)];
-        let pos = null;
-        for (let a = 0; a < 50; a++) {
-            const r = rooms[randInt(0, rooms.length - 1)];
-            const ex = randInt(r.x + 1, r.x + r.w - 2);
-            const ey = randInt(r.y + 1, r.y + r.h - 2);
-            if (map[ey][ex] === 1 &&
-                !(ex === playerPos.x && ey === playerPos.y) &&
-                !(ex === exitPos.x && ey === exitPos.y) &&
-                !enemies.some(e => e.x === ex && e.y === ey)) {
-                pos = { x: ex, y: ey };
-                break;
-            }
-        }
-        if (pos) {
-            const stats = type === 'slime' ?
-                { hp: 8, maxHp: 8, atk: 3, def: 0 } :
-                { hp: 15, maxHp: 15, atk: 5, def: 1 };
-            enemies.push({ ...pos, type, ...stats });
-        }
-    }
-
-    const items = [];
-    const itemTypes = ['potion', 'sword'];
-    for (let i = 0; i < itemCount; i++) {
-        let pos = null;
-        for (let a = 0; a < 30; a++) {
-            const r = rooms[randInt(0, rooms.length - 1)];
-            const ix = randInt(r.x + 1, r.x + r.w - 2);
-            const iy = randInt(r.y + 1, r.y + r.h - 2);
-            if (map[iy][ix] === 1 &&
-                !(ix === playerPos.x && iy === playerPos.y) &&
-                !(ix === exitPos.x && iy === exitPos.y) &&
-                !enemies.some(e => e.x === ix && e.y === iy) &&
-                !items.some(it => it.x === ix && it.y === iy)) {
-                pos = { x: ix, y: iy };
-                break;
-            }
-        }
-        if (pos) items.push({ ...pos, type: itemTypes[randInt(0, itemTypes.length - 1)] });
-    }
-
-    return new Dungeon(map, rooms, playerPos, exitPos, enemies, items);
-}
-
-function intersect(a, b) { return !(b.x >= a.x + a.w || b.x + b.w <= a.x || b.y >= a.y + a.h || b.y + b.h <= a.y); }
-function createHTunnel(m, x1, x2, y) { for (let x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) if (y >= 0 && y < m.length && x >= 0 && x < m[0].length) m[y][x] = 1; }
-function createVTunnel(m, y1, y2, x) { for (let y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) if (y >= 0 && y < m.length && x >= 0 && x < m[0].length) m[y][x] = 1; }
-function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-
-// ================= ОТРИСОВКА ИГРЫ =================
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-canvas.width = MAP_COLS * TILE_SIZE;
-canvas.height = MAP_ROWS * TILE_SIZE;
-
-let animationFrame = 0; // для легкой анимации (покачивание, мерцание)
-
-function resizeCanvas() {
-    const maxWidth = window.innerWidth - 20;
-    const maxHeight = window.innerHeight - 220; // учёт места под UI и джойстик
-    const scale = Math.min(maxWidth / (MAP_COLS * TILE_SIZE), maxHeight / (MAP_ROWS * TILE_SIZE));
-    canvas.style.width = `${MAP_COLS * TILE_SIZE * scale}px`;
-    canvas.style.height = `${MAP_ROWS * TILE_SIZE * scale}px`;
-}
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
-
-function drawMap() {
-    const d = gameState.dungeon;
-    if (!d) return;
-    for (let row = 0; row < d.map.length; row++) {
-        for (let col = 0; col < d.map[row].length; col++) {
-            const x = col * TILE_SIZE, y = row * TILE_SIZE;
-            const tileIndex = d.map[row][col] === 0 ? 1 : 0; // стена или пол
-            ctx.drawImage(tileSheet, tileIndex * SPRITE_SIZE, 0, SPRITE_SIZE, SPRITE_SIZE, x, y, TILE_SIZE, TILE_SIZE);
-        }
-    }
-}
-
-function drawSprite(index, tileX, tileY, scaleX = 1, scaleY = 1, offsetX = 0, offsetY = 0) {
-    const srcX = index * SPRITE_SIZE;
-    const srcY = 0;
-    const w = SPRITE_SIZE * scaleX;
-    const h = SPRITE_SIZE * scaleY;
-    const destX = tileX * TILE_SIZE + offsetX;
-    const destY = tileY * TILE_SIZE + offsetY;
-    ctx.drawImage(spriteSheet, srcX, srcY, SPRITE_SIZE, SPRITE_SIZE, destX, destY, w, h);
-}
-
-function drawGame() {
-    if (!gameState || !gameState.dungeon) return;
-    animationFrame++;
-    const d = gameState.dungeon;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    drawMap();
-
-    // Предметы
-    for (const item of d.items) {
-        const idx = item.type === 'potion' ? 3 : 4;
-        drawSprite(idx, item.x, item.y);
-    }
-
-    // Выход с пульсацией
-    const pulse = 1 + Math.sin(animationFrame * 0.1) * 0.1;
-    drawSprite(5, d.exitPos.x, d.exitPos.y, pulse, pulse,
-        (TILE_SIZE - TILE_SIZE * pulse) / 2, (TILE_SIZE - TILE_SIZE * pulse) / 2);
-
-    // Враги
-    for (const enemy of d.enemies) {
-        const idx = enemy.type === 'slime' ? 1 : 2;
-        drawSprite(idx, enemy.x, enemy.y);
-        // HP-бар
-        const hpRatio = enemy.hp / enemy.maxHp;
-        if (hpRatio < 1) {
-            ctx.fillStyle = '#300';
-            ctx.fillRect(enemy.x * TILE_SIZE, enemy.y * TILE_SIZE - 6, TILE_SIZE, 4);
-            ctx.fillStyle = '#0a0';
-            ctx.fillRect(enemy.x * TILE_SIZE, enemy.y * TILE_SIZE - 6, TILE_SIZE * hpRatio, 4);
-        }
-    }
-
-    // Игрок (с легким покачиванием)
-    const playerBounce = Math.sin(animationFrame * 0.15) * 0.5;
-    drawSprite(0, d.playerPos.x, d.playerPos.y, 1, 1,
-        (TILE_SIZE - SPRITE_SIZE * 1.5) / 2, (TILE_SIZE - SPRITE_SIZE * 1.5) / 2 + playerBounce);
-    // Щит игрока (свечение)
-    ctx.shadowColor = '#aaccff';
-    ctx.shadowBlur = 3;
-    drawSprite(0, d.playerPos.x, d.playerPos.y, 1, 1,
-        (TILE_SIZE - SPRITE_SIZE * 1.5) / 2, (TILE_SIZE - SPRITE_SIZE * 1.5) / 2 + playerBounce);
-    ctx.shadowBlur = 0;
-    ctx.shadowColor = 'transparent';
-}
-
-// ================= ИГРОВАЯ ЛОГИКА =================
-let gameState = null;
-let turnInProgress = false;
-
-function updateUI() {
-    const p = gameState.player;
-    document.getElementById('hp').textContent = p.hp;
-    document.getElementById('maxhp').textContent = p.maxHp;
-    document.getElementById('atk').textContent = p.atk;
-    document.getElementById('def').textContent = p.def;
-    document.getElementById('floor').textContent = gameState.floor;
-    document.getElementById('inv-list').textContent = p.items.length ? p.items.join(', ') : 'пусто';
-}
-
-function showLog(text, dur = 2000) {
-    const el = document.getElementById('log');
-    el.textContent = text;
-    el.style.opacity = '1';
-    clearTimeout(el._timeout);
-    el._timeout = setTimeout(() => el.style.opacity = '0', dur);
-}
-
-function movePlayer(dx, dy) {
-    if (!gameState || gameState.gameOver || turnInProgress) return;
-    turnInProgress = true;
-    initAudio();
-    const d = gameState.dungeon;
-    const nx = d.playerPos.x + dx, ny = d.playerPos.y + dy;
-    if (nx < 0 || nx >= MAP_COLS || ny < 0 || ny >= MAP_ROWS || d.map[ny][nx] === 0) {
-        turnInProgress = false;
-        return;
-    }
-
-    const enemyIdx = d.enemies.findIndex(e => e.x === nx && e.y === ny);
-    if (enemyIdx !== -1) {
-        attackEnemy(enemyIdx);
-        endTurn();
-        return;
-    }
-
-    d.playerPos.x = nx;
-    d.playerPos.y = ny;
-    SFX.step();
-
-    const itemIdx = d.items.findIndex(it => it.x === nx && it.y === ny);
-    if (itemIdx !== -1) {
-        const item = d.items[itemIdx];
-        if (item.type === 'potion') {
-            gameState.player.hp = Math.min(gameState.player.hp + 10, gameState.player.maxHp);
-            showLog('Выпил зелье +10 HP');
-            SFX.pickup();
-        } else if (item.type === 'sword') {
-            gameState.player.atk += 2;
-            gameState.player.items.push('меч');
-            showLog('Поднят меч! АТК +2');
-            SFX.pickup();
-        }
-        d.items.splice(itemIdx, 1);
-    }
-
-    if (nx === d.exitPos.x && ny === d.exitPos.y) {
-        nextFloor();
-        turnInProgress = false;
-        return;
-    }
-
-    endTurn();
-}
-
-function attackEnemy(enemyIdx) {
-    const enemy = gameState.dungeon.enemies[enemyIdx];
-    const dmg = Math.max(1, gameState.player.atk - enemy.def);
-    enemy.hp -= dmg;
-    SFX.hit();
-    showLog(`Атака! ${dmg} урона`);
-    if (enemy.hp <= 0) {
-        gameState.dungeon.enemies.splice(enemyIdx, 1);
-        showLog('Враг повержен!');
-        SFX.levelup();
-    } else {
-        const enemyDmg = Math.max(1, enemy.atk - gameState.player.def);
-        gameState.player.hp -= enemyDmg;
-        showLog(`Враг бьёт в ответ! -${enemyDmg} HP`);
-        if (gameState.player.hp <= 0) {
-            gameState.player.hp = 0;
-            gameState.gameOver = true;
-            showLog('Вы погибли...');
-            SFX.death();
-        }
-    }
-}
-
-function moveEnemies() {
-    if (!gameState || gameState.gameOver) return;
-    const d = gameState.dungeon;
-    for (const enemy of d.enemies) {
-        const dx = d.playerPos.x - enemy.x;
-        const dy = d.playerPos.y - enemy.y;
-        if (Math.abs(dx) <= 5 && Math.abs(dy) <= 5) {
-            let mx = 0, my = 0;
-            if (Math.abs(dx) > Math.abs(dy)) mx = dx > 0 ? 1 : -1;
-            else my = dy > 0 ? 1 : -1;
-            const nx = enemy.x + mx, ny = enemy.y + my;
-            if (d.map[ny] && d.map[ny][nx] === 1 &&
-                !(nx === d.playerPos.x && ny === d.playerPos.y) &&
-                !d.enemies.some(e => e !== enemy && e.x === nx && e.y === ny)) {
-                enemy.x = nx;
-                enemy.y = ny;
-            }
-            // Если вплотную — атака
-            if (enemy.x === d.playerPos.x && enemy.y === d.playerPos.y) {
-                const dmg = Math.max(1, enemy.atk - gameState.player.def);
-                gameState.player.hp -= dmg;
-                showLog(`Враг атакует! -${dmg} HP`);
-                if (gameState.player.hp <= 0) {
-                    gameState.player.hp = 0;
-                    gameState.gameOver = true;
-                    showLog('Вы погибли...');
-                    SFX.death();
-                }
-            }
-        }
-    }
-}
-
-function endTurn() {
-    if (!gameState || gameState.gameOver) { turnInProgress = false; return; }
-    moveEnemies();
-    updateUI();
-    drawGame();
-    saveGame();
-    turnInProgress = false;
-}
-
-function nextFloor() {
-    gameState.floor++;
-    gameState.dungeon = generateDungeon(gameState.floor);
-    updateUI();
-    drawGame();
-    saveGame();
-    showLog(`Спуск на этаж ${gameState.floor}!`);
-    SFX.levelup();
-}
-
-// ================= СОХРАНЕНИЯ =================
-const SAVE_KEY = 'dark_pixel_dungeon_save';
-async function saveGame() {
-    if (!gameState || gameState.gameOver) await storage.remove(SAVE_KEY);
-    else await storage.set(SAVE_KEY, JSON.stringify(gameState.toJSON()));
-}
-async function loadGame() {
-    const data = await storage.get(SAVE_KEY);
-    if (data) {
-        try { gameState = GameState.fromJSON(JSON.parse(data)); return true; }
-        catch (e) {}
-    }
-    return false;
-}
-async function startNewGame() {
-    gameState = new GameState();
-    gameState.dungeon = generateDungeon(1);
-    gameState.gameOver = false;
-    updateUI();
-    drawGame();
-    await saveGame();
-    document.getElementById('menu-screen').style.display = 'none';
-    document.getElementById('game-screen').style.display = 'flex';
-}
-
-// ================= УПРАВЛЕНИЕ (клавиатура + мобильный джойстик) =================
-function setupControls() {
-    // Клавиатура
-    window.addEventListener('keydown', e => {
-        if (gameState?.gameOver) return;
-        switch (e.key) {
-            case 'ArrowUp': case 'w': case 'W': e.preventDefault(); movePlayer(0, -1); break;
-            case 'ArrowDown': case 's': case 'S': e.preventDefault(); movePlayer(0, 1); break;
-            case 'ArrowLeft': case 'a': case 'A': e.preventDefault(); movePlayer(-1, 0); break;
-            case 'ArrowRight': case 'd': case 'D': e.preventDefault(); movePlayer(1, 0); break;
-        }
-    });
-
-    // Виртуальный джойстик
-    const joystickBase = document.getElementById('joystick-base');
-    const joystickThumb = document.getElementById('joystick-thumb');
-    let joystickActive = false;
-    let joystickId = null;
-
-    function handleJoystickStart(e) {
-        e.preventDefault();
-        joystickActive = true;
-        joystickId = e.touches ? e.touches[0].identifier : null;
-    }
-
-    function handleJoystickMove(e) {
-        if (!joystickActive) return;
-        e.preventDefault();
-        const touch = e.touches ? (joystickId !== null ? [...e.touches].find(t => t.identifier === joystickId) : e.touches[0]) : null;
-        if (!touch) return;
-        const rect = joystickBase.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-        let dx = touch.clientX - centerX;
-        let dy = touch.clientY - centerY;
-        const maxDist = rect.width / 2 - 24;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist > maxDist) {
-            dx = dx / dist * maxDist;
-            dy = dy / dist * maxDist;
-        }
-        joystickThumb.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
-
-        // Определяем направление
-        const threshold = 10;
-        if (dist > threshold) {
-            const angle = Math.atan2(dy, dx);
-            let moveX = 0, moveY = 0;
-            if (angle >= -Math.PI * 3 / 4 && angle < -Math.PI / 4) moveY = -1;          // вверх
-            else if (angle >= -Math.PI / 4 && angle < Math.PI / 4) moveX = 1;             // вправо
-            else if (angle >= Math.PI / 4 && angle < Math.PI * 3 / 4) moveY = 1;          // вниз
-            else if (angle >= Math.PI * 3 / 4 || angle < -Math.PI * 3 / 4) moveX = -1;    // влево
-
-            if ((moveX !== 0 || moveY !== 0) && !turnInProgress) {
-                movePlayer(moveX, moveY);
-            }
-        }
-    }
-
-    function handleJoystickEnd(e) {
-        joystickActive = false;
-        joystickId = null;
-        joystickThumb.style.transform = 'translate(-50%, -50%)';
-    }
-
-    joystickBase.addEventListener('touchstart', handleJoystickStart);
-    joystickBase.addEventListener('touchmove', handleJoystickMove);
-    joystickBase.addEventListener('touchend', handleJoystickEnd);
-    joystickBase.addEventListener('touchcancel', handleJoystickEnd);
-
-    // Кнопка действия (атака / подобрать)
-    document.getElementById('action-btn').addEventListener('click', () => {
-        // Можно реализовать проверку: если перед игроком враг — атака, иначе подобрать предмет под ногами
-        if (!gameState || gameState.gameOver || turnInProgress) return;
-        const p = gameState.dungeon.playerPos;
-        // Проверим клетку перед игроком (направление последнего движения неизвестно, упростим: интеракция с клеткой игрока)
-        const item = gameState.dungeon.items.find(it => it.x === p.x && it.y === p.y);
-        if (item) {
-            // имитируем шаг на месте, чтобы подобрать
-            movePlayer(0, 0); // не сработает, т.к. логика завязана на перемещение
-            // лучше явно: перепишем обработку предмета в отдельную функцию
-            pickupItem();
-        }
-        // Можно также атаковать соседнего врага, если есть
-        else {
-            const dirs = [{ x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 }];
-            for (const dir of dirs) {
-                const enemy = gameState.dungeon.enemies.find(e => e.x === p.x + dir.x && e.y === p.y + dir.y);
-                if (enemy) {
-                    movePlayer(dir.x, dir.y);
-                    return;
-                }
-            }
-        }
-    });
-}
-
-function pickupItem() {
-    if (!gameState || gameState.gameOver) return;
-    const p = gameState.dungeon.playerPos;
-    const itemIdx = gameState.dungeon.items.findIndex(it => it.x === p.x && it.y === p.y);
-    if (itemIdx !== -1) {
-        const item = gameState.dungeon.items[itemIdx];
-        if (item.type === 'potion') {
-            gameState.player.hp = Math.min(gameState.player.hp + 10, gameState.player.maxHp);
-            showLog('Выпил зелье +10 HP');
-            SFX.pickup();
-        } else if (item.type === 'sword') {
-            gameState.player.atk += 2;
-            gameState.player.items.push('меч');
-            showLog('Поднят меч! АТК +2');
-            SFX.pickup();
-        }
-        gameState.dungeon.items.splice(itemIdx, 1);
-        updateUI();
-        drawGame();
-        saveGame();
-    }
-}
-
-// ================= ЗАПУСК ПРИЛОЖЕНИЯ =================
-async function initApp() {
-    setupControls();
-    const loaded = await loadGame();
-    const menuDiv = document.getElementById('menu-screen');
-    const menuBtns = document.getElementById('menu-buttons');
-
-    if (loaded && !gameState.gameOver) {
-        menuBtns.innerHTML = `
-            <button id="continueBtn">Продолжить (этаж ${gameState.floor})</button>
-            <button id="newGameBtn">Новая игра</button>
-        `;
-        document.getElementById('continueBtn').addEventListener('click', () => {
-            updateUI();
-            drawGame();
-            menuDiv.style.display = 'none';
-            document.getElementById('game-screen').style.display = 'flex';
-            resizeCanvas();
         });
+    });
+
+    const activeSection = document.querySelector('.content-section.active');
+    if (activeSection) {
+        if (activeSection.id === 'leaderboard-section') fetchLeaderboard();
+        if (activeSection.id === 'profile-section') {
+            if (headerElement) headerElement.style.display = 'none';
+        }
+    }
+}
+
+// ==================== ИГРЫ (КАРТОЧКИ) ====================
+function initializeGames() {
+    const grid = document.getElementById('games-grid');
+    if (!grid) return;
+    grid.innerHTML = GAMES_DATA.map(game => `
+        <div class="card ${game.highlight ? 'highlight' : ''}" data-game-id="${game.id}">
+            <div class="card__image">
+                <img src="${game.image}" alt="${game.name}" class="card__img" onerror="this.style.display='none'">
+                <div class="card__fallback">${game.fallback}</div>
+            </div>
+            <div class="card__info">
+                <div class="card__title">
+                    ${game.name}
+                    ${game.badge ? `<span class="card__badge">${game.badge}</span>` : ''}
+                </div>
+                <p class="card__description">${game.description}</p>
+                <div class="card__stats">
+                    <div class="rating">
+                        <div class="stars">${generateStars(game.rating)}</div>
+                        <span class="rating-value">${game.rating}</span>
+                    </div>
+                    <div class="players">
+                        <span class="players-icon">👥</span>
+                        <span class="players-count">${game.players}</span>
+                    </div>
+                </div>
+            </div>
+            <button class="play-button" data-link="${game.fullLink || ''}">${game.isInternal ? 'Играть' : 'Запустить'}</button>
+        </div>
+    `).join('');
+    setupGameButtons();
+}
+
+function generateStars(rating) {
+    const full = Math.floor(rating);
+    const half = rating % 1 >= 0.5;
+    let stars = '';
+    for (let i = 0; i < full; i++) stars += '<span class="star filled">★</span>';
+    if (half) stars += '<span class="star half">★</span>';
+    for (let i = 0; i < 5 - full - (half ? 1 : 0); i++) stars += '<span class="star">★</span>';
+    return stars;
+}
+
+function setupGameButtons() {
+    document.querySelectorAll('.play-button').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            vibrate();
+            const card = this.closest('.card');
+            if (!card) return;
+            const gameId = card.getAttribute('data-game-id');
+            const game = GAMES_DATA.find(g => g.id.toString() === gameId);
+            if (game && game.isInternal) {
+                openInternalGame(game);
+            } else {
+                const link = this.getAttribute('data-link');
+                if (link) {
+                    if (window.Telegram?.WebApp) {
+                        if (link.startsWith('https://t.me/')) window.Telegram.WebApp.openTelegramLink(link);
+                        else window.Telegram.WebApp.openLink(link);
+                    } else window.open(link, '_blank');
+                }
+            }
+        });
+    });
+}
+
+// ==================== ВНУТРЕННЯЯ ИГРА ====================
+function openInternalGame(gameData) {
+    document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+    const gameSection = document.getElementById('game-section');
+    if (gameSection) gameSection.classList.add('active');
+    const bottomNav = document.querySelector('.bottom-nav');
+    if (bottomNav) bottomNav.style.display = 'none';
+    if (headerElement) headerElement.style.display = 'none';
+    if (!game2048) initGame2048();
+    isGameActive = true;
+}
+
+function closeInternalGame(showGamesSection = true) {
+    if (showGamesSection) {
+        document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+        const gamesSection = document.getElementById('games-section');
+        if (gamesSection) gamesSection.classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        const gamesNav = document.querySelector('.nav-item[data-section="games-section"]');
+        if (gamesNav) gamesNav.classList.add('active');
+    }
+    const bottomNav = document.querySelector('.bottom-nav');
+    if (bottomNav) bottomNav.style.display = '';
+    if (headerElement) headerElement.style.display = '';
+    isGameActive = false;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const backBtn = document.getElementById('back-from-game');
+    if (backBtn) backBtn.addEventListener('click', () => { vibrate(); closeInternalGame(true); });
+});
+
+// ==================== 2048 GAME ====================
+class Game2048 {
+    constructor(board, scoreEl, bestEl, statusEl) {
+        this.board = board;
+        this.scoreEl = scoreEl;
+        this.bestEl = bestEl;
+        this.statusEl = statusEl;
+        this.size = 4;
+        this.grid = [];
+        this.score = 0;
+        this.bestScore = parseInt(localStorage.getItem('bestScore2048')) || 0;
+        this.updateBestUI();
+        this.init();
+        this.bindEvents();
+    }
+    init() {
+        this.grid = Array(this.size).fill().map(() => Array(this.size).fill(0));
+        this.score = 0;
+        this.scoreEl.textContent = '0';
+        this.statusEl.textContent = '';
+        this.addRandomTile();
+        this.addRandomTile();
+        this.render();
+    }
+    addRandomTile() {
+        const empty = [];
+        for (let i = 0; i < this.size; i++)
+            for (let j = 0; j < this.size; j++)
+                if (this.grid[i][j] === 0) empty.push({x:i, y:j});
+        if (empty.length) {
+            const {x,y} = empty[Math.floor(Math.random() * empty.length)];
+            this.grid[x][y] = Math.random() < 0.9 ? 2 : 4;
+            return true;
+        }
+        return false;
+    }
+    move(dir) {
+        const old = JSON.parse(JSON.stringify(this.grid));
+        let gained = 0;
+        const vectors = { left:{x:0,y:-1}, right:{x:0,y:1}, up:{x:-1,y:0}, down:{x:1,y:0} };
+        const v = vectors[dir];
+        const traversals = this.buildTraversals(v);
+        const merged = Array(this.size).fill().map(() => Array(this.size).fill(false));
+
+        traversals.x.forEach(i => {
+            traversals.y.forEach(j => {
+                if (this.grid[i][j] === 0) return;
+                let curX = i, curY = j;
+                while (true) {
+                    const nextX = curX + v.x, nextY = curY + v.y;
+                    if (nextX < 0 || nextX >= this.size || nextY < 0 || nextY >= this.size) break;
+                    if (this.grid[nextX][nextY] === 0) {
+                        this.grid[nextX][nextY] = this.grid[curX][curY];
+                        this.grid[curX][curY] = 0;
+                        curX = nextX; curY = nextY;
+                    } else if (this.grid[nextX][nextY] === this.grid[curX][curY] && !merged[nextX][nextY]) {
+                        this.grid[nextX][nextY] *= 2;
+                        gained += this.grid[nextX][nextY];
+                        this.grid[curX][curY] = 0;
+                        merged[nextX][nextY] = true;
+                        break;
+                    } else break;
+                }
+            });
+        });
+
+        if (gained > 0) {
+            this.score += gained;
+            this.scoreEl.textContent = this.score;
+            if (this.score > this.bestScore) {
+                this.bestScore = this.score;
+                localStorage.setItem('bestScore2048', this.bestScore);
+                this.updateBestUI();
+            }
+        }
+        if (!this.equals(old)) {
+            this.addRandomTile();
+            this.render();
+            if (this.hasWon()) {
+                this.statusEl.textContent = 'Вы победили! 🎉';
+                updateTaskProgress('win_', 1);
+                this.submitScore();
+            } else if (this.isGameOver()) {
+                this.statusEl.textContent = 'Игра окончена! 😔';
+                this.submitScore();
+            }
+        }
+    }
+    buildTraversals(v) {
+        const x = Array.from({length:this.size}, (_,i)=>i);
+        const y = Array.from({length:this.size}, (_,i)=>i);
+        if (v.x === 1) x.reverse();
+        if (v.y === 1) y.reverse();
+        return {x, y};
+    }
+    equals(old) {
+        for (let i=0;i<this.size;i++) for (let j=0;j<this.size;j++) if (this.grid[i][j] !== old[i][j]) return false;
+        return true;
+    }
+    hasWon() { return this.grid.some(row => row.includes(2048)); }
+    isGameOver() {
+        for (let i=0;i<this.size;i++) for (let j=0;j<this.size;j++) if (this.grid[i][j] === 0) return false;
+        for (let i=0;i<this.size;i++) for (let j=0;j<this.size-1;j++) if (this.grid[i][j] === this.grid[i][j+1]) return false;
+        for (let j=0;j<this.size;j++) for (let i=0;i<this.size-1;i++) if (this.grid[i][j] === this.grid[i+1][j]) return false;
+        return true;
+    }
+    render() {
+        this.board.innerHTML = '';
+        for (let i=0;i<this.size;i++) {
+            for (let j=0;j<this.size;j++) {
+                const val = this.grid[i][j];
+                const tile = document.createElement('div');
+                tile.className = 'tile-cell';
+                if (val) {
+                    let cls = `tile-${val}`;
+                    if (val > 2048) cls = 'tile-super';
+                    tile.classList.add(cls);
+                    tile.textContent = val;
+                }
+                this.board.appendChild(tile);
+            }
+        }
+    }
+    updateBestUI() { this.bestEl.textContent = this.bestScore; }
+    bindEvents() {
+        let touchStartX=0,touchStartY=0;
+        this.board.addEventListener('touchstart', e => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            e.preventDefault();
+        });
+        this.board.addEventListener('touchend', e => {
+            const dx = e.changedTouches[0].clientX - touchStartX;
+            const dy = e.changedTouches[0].clientY - touchStartY;
+            if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return;
+            if (Math.abs(dx) > Math.abs(dy)) this.move(dx > 0 ? 'right' : 'left');
+            else this.move(dy > 0 ? 'down' : 'up');
+            vibrate();
+        });
+        window.addEventListener('keydown', e => {
+            if (!document.querySelector('#game-section.active')) return;
+            const map = { ArrowLeft:'left', ArrowRight:'right', ArrowUp:'up', ArrowDown:'down' };
+            if (map[e.key]) { this.move(map[e.key]); e.preventDefault(); vibrate(); }
+        });
+    }
+    submitScore() {
+        if (!currentUserId) return;
+        const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
+        if (!user) return;
+        const taskUpdates = {};
+        dailyTasks.forEach(t => { if (t.progress > 0 && t.id !== 'invite_1') taskUpdates[t.id] = t.progress; });
+        fetch(WORKER_URL + '/submit-score', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({
+                userId: currentUserId.toString(),
+                firstName: user.first_name || 'Игрок',
+                username: user.username || '',
+                score: this.score,
+                avatarUrl: user.photo_url || '',
+                taskUpdates
+            })
+        }).then(() => {
+            fetchLeaderboard();
+            dailyTasks.forEach(t => { if (t.id !== 'invite_1') t.progress = 0; });
+            saveTasks();
+        }).catch(() => {});
+    }
+}
+
+function initGame2048() {
+    const board = document.getElementById('game-board-2048');
+    const scoreEl = document.getElementById('game-score');
+    const bestEl = document.getElementById('best-score');
+    const statusEl = document.getElementById('game-status');
+    if (!board || !scoreEl || !bestEl || !statusEl) return;
+    game2048 = new Game2048(board, scoreEl, bestEl, statusEl);
+    const newBtn = document.getElementById('new-game-btn');
+    if (newBtn) {
+        newBtn.addEventListener('click', () => {
+            vibrate();
+            updateTaskProgress('play_', 1);
+            game2048.init();
+        });
+    }
+}
+
+// ==================== ЗАДАНИЯ ====================
+function renderDailyQuests() {
+    const list = document.getElementById('quests-list');
+    const coinsEl = document.getElementById('quests-coins');
+    if (!list || !coinsEl) return;
+    coinsEl.innerHTML = `🪙 ${userCoins}`;
+    list.innerHTML = dailyTasks.map(task => {
+        const pct = Math.min((task.progress / task.target)*100, 100);
+        const done = task.progress >= task.target;
+        return `<div class="quest-item">
+            <div class="quest-icon">${task.icon}</div>
+            <div class="quest-info">
+                <div class="quest-name">${task.name}</div>
+                <div class="quest-progress"><div class="quest-progress-fill" style="width:${pct}%"></div></div>
+            </div>
+            <div class="quest-reward">+${task.reward} 🪙</div>
+            <button class="quest-claim" data-task-id="${task.id}" ${!done?'disabled':''}>
+                ${done?'Забрать':`${task.progress}/${task.target}`}
+            </button>
+        </div>`;
+    }).join('');
+    document.querySelectorAll('.quest-claim').forEach(btn => {
+        btn.addEventListener('click', () => claimTaskReward(btn.dataset.taskId));
+    });
+}
+
+function updateTaskProgress(type, value) {
+    let changed = false;
+    dailyTasks.forEach(task => {
+        if (task.progress >= task.target) return;
+        if (task.id.startsWith(type)) {
+            task.progress = Math.min(task.progress + value, task.target);
+            changed = true;
+        }
+    });
+    if (changed) { saveTasks(); renderDailyQuests(); }
+}
+
+async function claimTaskReward(taskId) {
+    if (!currentUserId) return;
+    const task = dailyTasks.find(t => t.id === taskId);
+    if (!task || task.progress < task.target) return;
+    try {
+        const res = await fetch(WORKER_URL + '/claim-task', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ userId: currentUserId.toString(), taskId })
+        });
+        if (res.ok) {
+            const data = await res.json();
+            userCoins = data.coins;
+            saveCoins();
+            task.progress = 0;
+            saveTasks();
+            renderDailyQuests();
+            updateProfileCoins();
+            showNotification(`Получено ${task.reward} монет!`);
+        }
+    } catch {
+        // fallback
+        userCoins += task.reward;
+        saveCoins();
+        task.progress = 0;
+        saveTasks();
+        renderDailyQuests();
+        updateProfileCoins();
+        showNotification(`Получено ${task.reward} монет!`);
+    }
+}
+
+// ==================== ПРОФИЛЬ ====================
+function loadUserData() {
+    if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
+        const user = window.Telegram.WebApp.initDataUnsafe.user;
+        updateProfileDisplay(user);
+        currentUserId = user.id;
+        sendMiniAppStat(user);
     } else {
-        menuBtns.innerHTML = '<button id="newGameBtn">Новая игра</button>';
+        showFallbackProfile();
+        currentUserId = null;
     }
-    document.getElementById('newGameBtn').addEventListener('click', startNewGame);
 }
 
-initApp();
-
-// Анимация (requestAnimationFrame для постоянной перерисовки, если нужна плавность)
-function gameLoop() {
-    if (gameState && !gameState.gameOver && document.getElementById('game-screen').style.display !== 'none') {
-        drawGame();
+async function loadProfileStats() {
+    if (!currentUserId) {
+        document.getElementById('stat-rank').textContent = '—';
+        document.getElementById('stat-score').textContent = '—';
+        document.getElementById('stat-invites').textContent = '—';
+        return;
     }
-    requestAnimationFrame(gameLoop);
+    try {
+        const res = await fetch(`${WORKER_URL}/user-stats?userId=${currentUserId}`);
+        const data = await res.json();
+        document.getElementById('stat-rank').textContent = data.rank || '—';
+        document.getElementById('stat-score').textContent = data.bestScore || 0;
+        document.getElementById('stat-invites').textContent = data.inviteCount || 0;
+        userCoins = data.coins || 0;
+        saveCoins();
+        updateProfileCoins();
+    } catch {
+        const best = localStorage.getItem('bestScore2048') || '0';
+        document.getElementById('stat-score').textContent = best;
+        document.getElementById('stat-rank').textContent = '—';
+        document.getElementById('stat-invites').textContent = localStorage.getItem('inviteCount') || '0';
+    }
 }
-gameLoop();
+
+async function sendMiniAppStat(user) {
+    if (!user?.id) return;
+    let ref = null;
+    try {
+        const startParam = window.Telegram?.WebApp?.initDataUnsafe?.start_param;
+        if (startParam) ref = startParam;
+    } catch {}
+    if (ref && ref.startsWith('ref_')) {
+        const referrerId = ref.replace('ref_', '');
+        if (referrerId !== user.id.toString() && !localStorage.getItem('invitedBy')) {
+            localStorage.setItem('invitedBy', referrerId);
+            try {
+                await fetch(WORKER_URL + '/invite', {
+                    method: 'POST',
+                    headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify({ newUserId: user.id.toString(), referrerId })
+                });
+            } catch {}
+            if (currentUserId && currentUserId.toString() === referrerId) {
+                let invites = parseInt(localStorage.getItem('inviteCount')) || 0;
+                invites++;
+                localStorage.setItem('inviteCount', invites);
+                userCoins += 150;
+                saveCoins();
+                updateTaskProgress('invite_', 1);
+                showNotification('🎉 Вы пригласили друга! +150 монет');
+            }
+        }
+    }
+    try {
+        await fetch(WORKER_URL + '/track', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ userId: user.id.toString(), firstName: user.first_name, username: user.username, ref })
+        });
+    } catch {}
+}
+
+function updateProfileDisplay(user) {
+    document.getElementById('user-name').textContent = user.first_name + (user.last_name ? ' '+user.last_name : '');
+    document.getElementById('user-username').textContent = user.username ? '@'+user.username : 'Telegram User';
+    const avatarImg = document.getElementById('avatar-img');
+    const fallback = document.getElementById('avatar-fallback');
+    if (user.photo_url) {
+        avatarImg.src = user.photo_url;
+        avatarImg.style.display = 'block';
+        fallback.style.display = 'none';
+    } else {
+        avatarImg.style.display = 'none';
+        fallback.textContent = user.first_name?.charAt(0).toUpperCase() || 'T';
+        fallback.style.display = 'flex';
+    }
+    if (user.is_premium) {
+        const info = document.querySelector('.profile-info');
+        if (info && !document.querySelector('.premium-badge')) {
+            const badge = document.createElement('div');
+            badge.className = 'premium-badge';
+            badge.innerHTML = '⭐ Premium';
+            info.appendChild(badge);
+        }
+    }
+}
+
+function showFallbackProfile() {
+    document.getElementById('user-name').textContent = 'Telegram User';
+    document.getElementById('user-username').textContent = 'Открой в Telegram';
+    const fb = document.getElementById('avatar-fallback');
+    fb.textContent = 'T'; fb.style.display = 'flex';
+}
+
+function setupProfileThemeSwitcher() {
+    const sw = document.getElementById('profile-theme-switcher');
+    if (!sw) return;
+    const saved = localStorage.getItem('theme') || 'light';
+    sw.querySelectorAll('.theme-option').forEach(o => o.classList.remove('active'));
+    const activeBtn = sw.querySelector(`[data-theme="${saved}"]`);
+    if (activeBtn) activeBtn.classList.add('active');
+    sw.addEventListener('click', e => {
+        const btn = e.target.closest('.theme-option');
+        if (!btn) return;
+        vibrate();
+        const theme = btn.dataset.theme;
+        sw.querySelectorAll('.theme-option').forEach(o => o.classList.remove('active'));
+        btn.classList.add('active');
+        document.body.classList.toggle('dark-theme', theme === 'dark');
+        localStorage.setItem('theme', theme);
+    });
+}
+
+// ==================== ОБМЕННИКИ (партнёры) ====================
+function initializeExchanges() {
+    const list = document.getElementById('exchanges-list');
+    if (!list) return;
+    list.innerHTML = EXCHANGES_DATA.map(ex => `
+        <div class="card">
+            <div class="card__image">
+                <img src="${ex.image}" alt="${ex.name}" class="card__img" onerror="this.style.display='none'">
+                <div class="card__fallback">${ex.fallback}</div>
+            </div>
+            <div class="card__info">
+                <h3 class="card__title">${ex.name}</h3>
+                <p class="card__description">${ex.description}</p>
+            </div>
+            <button class="exchange-button" data-url="${ex.url}">Перейти</button>
+        </div>
+    `).join('');
+    document.querySelectorAll('.exchange-button').forEach(btn => {
+        btn.addEventListener('click', e => {
+            vibrate();
+            const url = btn.dataset.url;
+            if (url) {
+                if (window.Telegram?.WebApp) window.Telegram.WebApp.openLink(url);
+                else window.open(url, '_blank');
+            }
+        });
+    });
+}
+
+// ==================== ЛИДЕРБОРД ====================
+async function fetchLeaderboard() {
+    const list = document.getElementById('leaderboard-list');
+    if (!list) return;
+    list.innerHTML = '<div class="leaderboard-loading">Загрузка...</div>';
+    try {
+        const res = await fetch(WORKER_URL + '/leaderboard');
+        const data = await res.json();
+        const lb = data.leaderboard || [];
+        if (!lb.length) {
+            list.innerHTML = '<div class="leaderboard-loading">Пока нет результатов</div>';
+            return;
+        }
+        list.innerHTML = lb.map((p,i) => {
+            const isMe = currentUserId && p.userId.toString() === currentUserId.toString();
+            const avatar = p.avatarUrl
+                ? `<img src="${p.avatarUrl}" alt="${p.firstName}">`
+                : p.firstName.charAt(0).toUpperCase();
+            return `<div class="leaderboard-item ${isMe?'current-user':''}">
+                <div class="leaderboard-rank">#${i+1}</div>
+                <div class="leaderboard-avatar">${avatar}</div>
+                <div class="leaderboard-info"><div class="leaderboard-name">${escapeHtml(p.firstName)}</div></div>
+                <div class="leaderboard-score">${p.score} <span>очк.</span></div>
+            </div>`;
+        }).join('');
+    } catch {
+        list.innerHTML = '<div class="leaderboard-loading">Не удалось загрузить таблицу</div>';
+    }
+}
+function escapeHtml(text) { return text.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
+function setupLeaderboardRefresh() {
+    const btn = document.getElementById('refresh-leaderboard');
+    if (btn) btn.addEventListener('click', () => { vibrate(); fetchLeaderboard(); });
+}
+
+// ==================== ШАРИНГ ====================
+function setupShareButton() {
+    const btn = document.getElementById('share-friends-button');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+        vibrate();
+        const refCode = currentUserId ? `ref_${currentUserId}` : '';
+        const url = `https://t.me/${BOT_USERNAME}?start=${refCode}`;
+        const text = 'Играй в лучшие мини-игры Telegram вместе с HADRON! 🎮';
+        if (window.Telegram?.WebApp) {
+            const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
+            try { window.Telegram.WebApp.openTelegramLink(shareUrl); }
+            catch { fallbackCopy(url); }
+        } else {
+            if (navigator.share) navigator.share({title:'Games Verse',text,url}).catch(()=>fallbackCopy(url));
+            else fallbackCopy(url);
+        }
+    });
+}
+function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    showNotification('Ссылка скопирована!');
+}
+function showNotification(msg = 'Ссылка скопирована в буфер обмена!') {
+    const el = document.getElementById('notification');
+    if (!el) return;
+    el.textContent = msg; el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+// Инициализация данных пользователя при старте
+window.addEventListener('load', () => {
+    loadUserData();
+});
