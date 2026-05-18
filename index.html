@@ -2,96 +2,123 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Хомяк AI – Крипто Империя</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Russo+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Фоновые частицы -->
+    <canvas id="particles-canvas"></canvas>
+
     <div id="app" class="phone-frame">
         <!-- Шапка -->
-        <header class="top-bar">
-            <div class="resource"><span class="icon">🪙</span> <span id="coins">0</span></div>
-            <div class="resource"><span class="icon">💎</span> <span id="crystals">0</span></div>
-            <div class="resource"><span class="icon">⚡</span> <span id="energy">100/100</span></div>
-            <div class="resource level">Ур. <span id="level">1</span></div>
+        <header class="top-bar glass">
+            <div class="resource"><span class="icon coin-icon"></span> <span id="coins">0</span></div>
+            <div class="resource"><span class="icon crystal-icon"></span> <span id="crystals">0</span></div>
+            <div class="resource"><span class="icon energy-icon"></span> <span id="energy">100/100</span></div>
+            <div class="resource level-badge">Ур. <span id="level">1</span></div>
         </header>
 
-        <!-- Основной контент (переключаемые экраны) -->
+        <!-- Основной контент -->
         <main class="content">
             <!-- Экран 1: Главный -->
             <section id="screen-main" class="screen active">
-                <div class="main-hamster" id="hamster-tap">
-                    <span>🐹</span>
-                    <div class="tap-effect" id="tap-effect">+1</div>
+                <div class="main-hamster-wrapper">
+                    <div class="main-hamster" id="hamster-tap">
+                        <svg viewBox="0 0 120 120" class="hamster-svg">
+                            <circle cx="60" cy="55" r="40" fill="#FFB347" stroke="#FF6B6B" stroke-width="4"/>
+                            <circle cx="42" cy="42" r="5" fill="#2E2E2E"/>
+                            <circle cx="78" cy="42" r="5" fill="#2E2E2E"/>
+                            <ellipse cx="60" cy="65" rx="15" ry="8" fill="#FF8C8C"/>
+                            <circle cx="42" cy="42" r="2" fill="white"/>
+                            <circle cx="78" cy="42" r="2" fill="white"/>
+                            <path d="M 60 75 Q 50 85, 60 85 Q 70 85, 60 75" fill="#2E2E2E"/>
+                            <!-- Уши -->
+                            <circle cx="35" cy="25" r="12" fill="#FFB347" stroke="#FF6B6B" stroke-width="3"/>
+                            <circle cx="85" cy="25" r="12" fill="#FFB347" stroke="#FF6B6B" stroke-width="3"/>
+                        </svg>
+                        <div class="tap-effect" id="tap-effect">+1</div>
+                    </div>
+                    <div class="hamster-glow"></div>
                 </div>
-                <div class="income-bar">💰 Доход: <span id="income-hour">0</span>/час</div>
-                <div class="xp-bar"><progress id="xp-progress" value="0" max="100"></progress> Опыт: <span id="xp-text">0/100</span></div>
-                <button class="btn" id="btn-collect">Собрать доход</button>
+                <div class="income-bar glass">💰 Доход: <span id="income-hour">0</span>/час</div>
+                <div class="xp-bar-container">
+                    <div class="xp-bar-bg">
+                        <div class="xp-bar-fill" id="xp-fill"></div>
+                    </div>
+                    <span class="xp-text">Опыт: <span id="xp-text">0/100</span></span>
+                </div>
+                <button class="btn neon-btn" id="btn-collect">Собрать доход</button>
                 <div class="boost-buttons">
-                    <button class="btn small" id="boost-energy">⚡Энергия x2 (30м)</button>
-                    <button class="btn small" id="boost-income">💰Доход x2 (1ч)</button>
+                    <button class="btn small neon-btn" id="boost-energy">⚡Энергия x2 (30м)</button>
+                    <button class="btn small neon-btn" id="boost-income">💰Доход x2 (1ч)</button>
                 </div>
-                <button class="btn small" id="btn-daily-reward">🎁 Ежедневная награда</button>
-                <button class="btn small" id="btn-cases">📦 Кейсы</button>
+                <button class="btn small neon-btn" id="btn-daily-reward">🎁 Ежедневная награда</button>
+                <button class="btn small neon-btn" id="btn-cases">📦 Кейсы</button>
             </section>
 
             <!-- Экран 2: База -->
             <section id="screen-base" class="screen">
-                <h3>🏗️ Моя база</h3>
+                <h3 class="screen-title">🏗️ Моя база</h3>
                 <div id="buildings-container"></div>
             </section>
 
             <!-- Экран 3: Задания -->
             <section id="screen-tasks" class="screen">
-                <h3>📋 Задания</h3>
+                <h3 class="screen-title">📋 Задания</h3>
                 <div id="tasks-container"></div>
             </section>
 
             <!-- Экран 4: AI-помощник -->
             <section id="screen-ai" class="screen">
-                <h3>🤖 AI-наставник</h3>
-                <div id="chat-window"></div>
+                <h3 class="screen-title">🤖 AI-наставник</h3>
+                <div id="chat-window" class="glass"></div>
                 <div class="chat-input">
-                    <input type="text" id="ai-input" placeholder="Спроси о крипте...">
-                    <button id="ai-send">➤</button>
+                    <input type="text" id="ai-input" placeholder="Спроси о крипте..." class="glass">
+                    <button id="ai-send" class="neon-btn">➤</button>
                 </div>
             </section>
 
             <!-- Экран 5: Рейтинг -->
             <section id="screen-leader" class="screen">
-                <h3>🏆 Рейтинг игроков</h3>
-                <ol id="leaders-list"></ol>
-                <p>👥 Приглашено друзей: <span id="ref-count">0</span></p>
-                <button class="btn" id="btn-invite">📤 Пригласить друга</button>
-                <p id="ref-bonus"></p>
+                <h3 class="screen-title">🏆 Рейтинг игроков</h3>
+                <ol id="leaders-list" class="leaders-glass"></ol>
+                <p class="ref-info">👥 Приглашено друзей: <span id="ref-count">0</span></p>
+                <button class="btn neon-btn" id="btn-invite">📤 Пригласить друга</button>
+                <p id="ref-bonus" class="bonus-text"></p>
             </section>
         </main>
 
         <!-- Нижняя навигация -->
-        <nav class="bottom-nav">
-            <button class="nav-btn active" data-screen="main">🏠</button>
-            <button class="nav-btn" data-screen="base">🏗️</button>
-            <button class="nav-btn" data-screen="tasks">📋</button>
-            <button class="nav-btn" data-screen="ai">🤖</button>
-            <button class="nav-btn" data-screen="leader">🏆</button>
+        <nav class="bottom-nav glass">
+            <button class="nav-btn active" data-screen="main"><span>🏠</span></button>
+            <button class="nav-btn" data-screen="base"><span>🏗️</span></button>
+            <button class="nav-btn" data-screen="tasks"><span>📋</span></button>
+            <button class="nav-btn" data-screen="ai"><span>🤖</span></button>
+            <button class="nav-btn" data-screen="leader"><span>🏆</span></button>
         </nav>
     </div>
 
     <!-- Модальные окна -->
     <div id="modal-daily" class="modal">
-        <div class="modal-content">
+        <div class="modal-content glass">
             <span class="close">&times;</span>
             <h3>🎁 Ежедневные награды</h3>
             <div id="daily-rewards"></div>
         </div>
     </div>
     <div id="modal-cases" class="modal">
-        <div class="modal-content">
+        <div class="modal-content glass">
             <span class="close">&times;</span>
             <h3>📦 Кейсы</h3>
-            <p>Обычный кейс: <button id="open-common-case">Открыть</button></p>
-            <p>Редкий кейс: <button id="open-rare-case">Открыть (💎5)</button></p>
-            <p id="case-result"></p>
+            <div class="case-actions">
+                <button class="btn neon-btn" id="open-common-case">Обычный кейс</button>
+                <button class="btn neon-btn" id="open-rare-case">Редкий (💎5)</button>
+            </div>
+            <p id="case-result" class="case-result"></p>
         </div>
     </div>
 
