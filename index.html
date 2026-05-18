@@ -2,124 +2,190 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Хомяк AI – Крипто Империя</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Russo+One&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#667eea">
+    <title>Games Verse</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <!-- Фоновые частицы -->
-    <canvas id="particles-canvas"></canvas>
+    <!-- Splash Screen -->
+    <div id="splash-screen">
+        <img src="oblochka.jpg" alt="Загрузка..." id="splash-img">
+    </div>
 
-    <div id="app" class="phone-frame">
-        <!-- Шапка -->
-        <header class="top-bar glass">
-            <div class="resource"><span class="icon coin-icon"></span> <span id="coins">0</span></div>
-            <div class="resource"><span class="icon crystal-icon"></span> <span id="crystals">0</span></div>
-            <div class="resource"><span class="icon energy-icon"></span> <span id="energy">100/100</span></div>
-            <div class="resource level-badge">Ур. <span id="level">1</span></div>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="app-title">Games Verse</h1>
+                <button class="settings-button" id="settings-button" aria-label="Настройки">⚙️</button>
+            </div>
         </header>
 
-        <!-- Основной контент -->
-        <main class="content">
-            <!-- Экран 1: Главный -->
-            <section id="screen-main" class="screen active">
-                <div class="main-hamster-wrapper">
-                    <div class="main-hamster" id="hamster-tap">
-                        <svg viewBox="0 0 120 120" class="hamster-svg">
-                            <circle cx="60" cy="55" r="40" fill="#FFB347" stroke="#FF6B6B" stroke-width="4"/>
-                            <circle cx="42" cy="42" r="5" fill="#2E2E2E"/>
-                            <circle cx="78" cy="42" r="5" fill="#2E2E2E"/>
-                            <ellipse cx="60" cy="65" rx="15" ry="8" fill="#FF8C8C"/>
-                            <circle cx="42" cy="42" r="2" fill="white"/>
-                            <circle cx="78" cy="42" r="2" fill="white"/>
-                            <path d="M 60 75 Q 50 85, 60 85 Q 70 85, 60 75" fill="#2E2E2E"/>
-                            <!-- Уши -->
-                            <circle cx="35" cy="25" r="12" fill="#FFB347" stroke="#FF6B6B" stroke-width="3"/>
-                            <circle cx="85" cy="25" r="12" fill="#FFB347" stroke="#FF6B6B" stroke-width="3"/>
-                        </svg>
-                        <div class="tap-effect" id="tap-effect">+1</div>
+        <!-- Settings Panel -->
+        <div class="settings-panel" id="settings-panel">
+            <div class="settings-content">
+                <h3 class="settings-title">Настройки</h3>
+                <div class="setting-item">
+                    <span class="setting-label">Тема</span>
+                    <div class="theme-switcher">
+                        <button class="theme-option active" data-theme="light">Светлая</button>
+                        <button class="theme-option" data-theme="dark">Темная</button>
                     </div>
-                    <div class="hamster-glow"></div>
                 </div>
-                <div class="income-bar glass">💰 Доход: <span id="income-hour">0</span>/час</div>
-                <div class="xp-bar-container">
-                    <div class="xp-bar-bg">
-                        <div class="xp-bar-fill" id="xp-fill"></div>
+                <button class="close-settings" id="close-settings">Готово</button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Games Section -->
+            <section id="games-section" class="content-section active">
+                <div class="section-header">
+                    <h2>Игры</h2>
+                    <span class="section-subtitle">Лучшие игры Telegram</span>
+                </div>
+                <div class="games-grid" id="games-grid"></div>
+            </section>
+
+            <!-- Exchanges Section -->
+            <section id="exchanges-section" class="content-section">
+                <div class="section-header">
+                    <h2>Крипто-биржи</h2>
+                    <span class="section-subtitle">Торгуйте криптовалютами безопасно</span>
+                </div>
+                <div class="gamefi-banner">
+                    <img src="images/gamefi.jpg" alt="GameFi Trading" class="gamefi-image">
+                    <div class="gamefi-overlay">
+                        <div class="gamefi-content">
+                            <h3 class="gamefi-title">Торгуйте монетами GameFi</h3>
+                            <p class="gamefi-description">На популярных криптобиржах с лучшими условиями</p>
+                            <div class="gamefi-stats">
+                                <div class="stat">
+                                    <span class="stat-number">100+</span>
+                                    <span class="stat-label">GameFi токенов</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-number">24/7</span>
+                                    <span class="stat-label">Торговля</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <span class="xp-text">Опыт: <span id="xp-text">0/100</span></span>
                 </div>
-                <button class="btn neon-btn" id="btn-collect">Собрать доход</button>
-                <div class="boost-buttons">
-                    <button class="btn small neon-btn" id="boost-energy">⚡Энергия x2 (30м)</button>
-                    <button class="btn small neon-btn" id="boost-income">💰Доход x2 (1ч)</button>
+                <div class="exchanges-list" id="exchanges-list"></div>
+            </section>
+
+            <!-- Tap Game Section (бывшая 2048) -->
+            <section id="game-section" class="content-section game-fullscreen">
+                <div class="tap-game-container">
+                    <div class="tap-balance-display">
+                        <span class="balance-amount" id="tap-balance">0</span>
+                        <span class="balance-label">монет</span>
+                    </div>
+                    <div class="tap-energy-bar">
+                        <div class="energy-fill" id="tap-energy-fill"></div>
+                        <span class="energy-text" id="tap-energy-text">100/100</span>
+                    </div>
+                    <div class="tap-button-area">
+                        <button class="tap-main-button" id="tap-main-button">
+                            <span class="tap-emoji">💎</span>
+                            <span class="tap-hint">ЖМИ!</span>
+                        </button>
+                    </div>
+                    <div class="tap-floating-text" id="tap-floating-text"></div>
+                    <div class="tap-upgrades">
+                        <h4 class="upgrades-title">🚀 Улучшения</h4>
+                        <div class="upgrade-item">
+                            <span>💪 Сила тапа (Ур. <span id="tap-power-level">1</span>)</span>
+                            <span class="upgrade-desc">+1 за тап</span>
+                            <button class="upgrade-button" id="upgrade-tap-power">
+                                Купить (<span id="tap-power-cost">10</span>💰)
+                            </button>
+                        </div>
+                        <div class="upgrade-item">
+                            <span>⚡ Макс. энергия (Ур. <span id="max-energy-level">1</span>)</span>
+                            <span class="upgrade-desc">+10</span>
+                            <button class="upgrade-button" id="upgrade-max-energy">
+                                Купить (<span id="max-energy-cost">20</span>💰)
+                            </button>
+                        </div>
+                        <div class="upgrade-item">
+                            <span>⏱️ Авто-тап (Ур. <span id="auto-tap-level">0</span>)</span>
+                            <span class="upgrade-desc">+<span id="auto-tap-income">0</span>/с</span>
+                            <button class="upgrade-button" id="upgrade-auto-tap">
+                                Купить (<span id="auto-tap-cost">50</span>💰)
+                            </button>
+                        </div>
+                    </div>
+                    <div class="daily-reward">
+                        <button id="daily-reward-button">🎁 Ежедневная награда</button>
+                    </div>
                 </div>
-                <button class="btn small neon-btn" id="btn-daily-reward">🎁 Ежедневная награда</button>
-                <button class="btn small neon-btn" id="btn-cases">📦 Кейсы</button>
-            </section>
-
-            <!-- Экран 2: База -->
-            <section id="screen-base" class="screen">
-                <h3 class="screen-title">🏗️ Моя база</h3>
-                <div id="buildings-container"></div>
-            </section>
-
-            <!-- Экран 3: Задания -->
-            <section id="screen-tasks" class="screen">
-                <h3 class="screen-title">📋 Задания</h3>
-                <div id="tasks-container"></div>
-            </section>
-
-            <!-- Экран 4: AI-помощник -->
-            <section id="screen-ai" class="screen">
-                <h3 class="screen-title">🤖 AI-наставник</h3>
-                <div id="chat-window" class="glass"></div>
-                <div class="chat-input">
-                    <input type="text" id="ai-input" placeholder="Спроси о крипте..." class="glass">
-                    <button id="ai-send" class="neon-btn">➤</button>
+                <!-- Таблица лидеров -->
+                <div class="leaderboard-container" id="leaderboard-container">
+                    <div class="leaderboard-header">
+                        <h3 class="leaderboard-title">🏆 Таблица лидеров</h3>
+                        <button class="refresh-leaderboard" id="refresh-leaderboard">🔄</button>
+                    </div>
+                    <div class="leaderboard-list" id="leaderboard-list">
+                        <div class="leaderboard-loading">Загрузка...</div>
+                    </div>
                 </div>
             </section>
 
-            <!-- Экран 5: Рейтинг -->
-            <section id="screen-leader" class="screen">
-                <h3 class="screen-title">🏆 Рейтинг игроков</h3>
-                <ol id="leaders-list" class="leaders-glass"></ol>
-                <p class="ref-info">👥 Приглашено друзей: <span id="ref-count">0</span></p>
-                <button class="btn neon-btn" id="btn-invite">📤 Пригласить друга</button>
-                <p id="ref-bonus" class="bonus-text"></p>
+            <!-- Profile Section -->
+            <section id="profile-section" class="content-section">
+                <div class="profile-header">
+                    <div class="profile-avatar" id="user-avatar">
+                        <img src="" alt="User Avatar" id="avatar-img" style="display: none;">
+                        <span id="avatar-fallback">T</span>
+                    </div>
+                    <div class="profile-info">
+                        <h2 id="user-name">Пользователь</h2>
+                        <p id="user-username">Открой в Telegram</p>
+                    </div>
+                </div>
+                <div class="profile-actions">
+                    <button class="share-friends-button" id="share-friends-button">
+                        <div class="share-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                <path d="M18 8C19.6569 8 21 6.65685 21 5C21 3.34315 19.6569 2 18 2C16.3431 2 15 3.34315 15 5C15 6.65685 16.3431 8 18 8Z" stroke="currentColor" stroke-width="2"/>
+                                <path d="M6 15C7.65685 15 9 13.6569 9 12C9 10.3431 7.65685 9 6 9C4.34315 9 3 10.3431 3 12C3 13.6569 4.34315 15 6 15Z" stroke="currentColor" stroke-width="2"/>
+                                <path d="M18 22C19.6569 22 21 20.6569 21 19C21 17.3431 19.6569 16 18 16C16.3431 16 15 17.3431 15 19C15 20.6569 16.3431 22 18 22Z" stroke="currentColor" stroke-width="2"/>
+                                <path d="M8.59 13.51L15.42 17.49" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                <path d="M15.41 6.51L8.59 10.49" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <span>Поделиться с друзьями</span>
+                    </button>
+                </div>
             </section>
         </main>
 
-        <!-- Нижняя навигация -->
-        <nav class="bottom-nav glass">
-            <button class="nav-btn active" data-screen="main"><span>🏠</span></button>
-            <button class="nav-btn" data-screen="base"><span>🏗️</span></button>
-            <button class="nav-btn" data-screen="tasks"><span>📋</span></button>
-            <button class="nav-btn" data-screen="ai"><span>🤖</span></button>
-            <button class="nav-btn" data-screen="leader"><span>🏆</span></button>
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" data-section="games-section">
+                <span class="nav-icon">🎮</span>
+                <span class="nav-label">Игры</span>
+            </button>
+            <button class="nav-item" data-section="exchanges-section">
+                <span class="nav-icon">📊</span>
+                <span class="nav-label">Биржи</span>
+            </button>
+            <button class="nav-item" data-section="game-section">
+                <span class="nav-icon">👆</span>
+                <span class="nav-label">Тапалка</span>
+            </button>
+            <button class="nav-item" data-section="profile-section">
+                <span class="nav-icon">👤</span>
+                <span class="nav-label">Профиль</span>
+            </button>
         </nav>
-    </div>
 
-    <!-- Модальные окна -->
-    <div id="modal-daily" class="modal">
-        <div class="modal-content glass">
-            <span class="close">&times;</span>
-            <h3>🎁 Ежедневные награды</h3>
-            <div id="daily-rewards"></div>
-        </div>
-    </div>
-    <div id="modal-cases" class="modal">
-        <div class="modal-content glass">
-            <span class="close">&times;</span>
-            <h3>📦 Кейсы</h3>
-            <div class="case-actions">
-                <button class="btn neon-btn" id="open-common-case">Обычный кейс</button>
-                <button class="btn neon-btn" id="open-rare-case">Редкий (💎5)</button>
-            </div>
-            <p id="case-result" class="case-result"></p>
-        </div>
+        <div id="notification" class="notification">Ссылка скопирована в буфер обмена!</div>
     </div>
 
     <script src="script.js"></script>
