@@ -43,15 +43,15 @@
         <main class="main-content">
             <!-- Игра (главная) -->
             <section id="game-section" class="content-section active">
-                <!-- Карточки переключения внутри игры -->
+                <!-- Карточки переключения внутри игры (аккордеон) -->
                 <div class="game-tabs">
-                    <button class="game-tab active" data-game-tab="leaderboard">🏆 Топ</button>
+                    <button class="game-tab" data-game-tab="leaderboard">🏆 Топ</button>
                     <button class="game-tab" data-game-tab="transfer">💸 Перевести</button>
                     <button class="game-tab" data-game-tab="boost">⚡ Ускорение</button>
                 </div>
 
-                <!-- Контейнеры под каждую вкладку -->
-                <div class="game-tab-content active" id="game-tab-leaderboard">
+                <!-- Контейнеры под каждую вкладку (скрыты по умолчанию) -->
+                <div class="game-tab-content" id="game-tab-leaderboard">
                     <div class="leaderboard-container">
                         <div class="leaderboard-header">
                             <h3 class="leaderboard-title">🏆 Таблица лидеров</h3>
@@ -65,19 +65,18 @@
 
                 <div class="game-tab-content" id="game-tab-transfer">
                     <div class="transfer-panel">
-                        <h3>💸 Перевод очков</h3>
-                        <div class="user-balance" id="user-balance-display">Ваш баланс: 0 очк.</div>
+                        <h3>💸 Перевод коинов</h3>
+                        <div class="user-balance" id="user-balance-display">Ваш баланс: 0 коин.</div>
                         <div class="transfer-form">
                             <label>Никнейм получателя (без @)</label>
                             <input type="text" id="transfer-username-input" placeholder="username" />
-                            <label>Количество очков</label>
+                            <label>Количество коинов</label>
                             <input type="number" id="transfer-amount-input" min="1" placeholder="Сумма" />
                             <small id="transfer-max-hint"></small>
                             <button class="btn-transfer-submit" id="btn-transfer-submit">Перевести</button>
                             <div id="transfer-result-message" class="result-message"></div>
-                            <!-- Fallback: кнопка «Поделиться ссылкой» -->
                             <div id="transfer-fallback" style="display:none; margin-top:12px;">
-                                <p class="fallback-text">Пользователь не найден. Отправьте другу ссылку, чтобы он получил очки.</p>
+                                <p class="fallback-text">Пользователь не найден. Отправьте другу ссылку, чтобы он получил коины.</p>
                                 <button class="btn-share-fallback" id="btn-share-fallback">📤 Поделиться ссылкой</button>
                             </div>
                         </div>
@@ -97,11 +96,11 @@
                         <h3 class="game-title-2048">2048</h3>
                         <div class="game-scores">
                             <div class="score-box">
-                                <div class="score-label">Счёт</div>
+                                <div class="score-label">Коины</div>
                                 <div class="score-value" id="game-score">0</div>
                             </div>
                             <div class="score-box">
-                                <div class="score-label">Лучший</div>
+                                <div class="score-label">Рекорд</div>
                                 <div class="score-value" id="best-score">0</div>
                             </div>
                         </div>
@@ -115,11 +114,12 @@
                 </div>
             </section>
 
-            <!-- Улучшения -->
+            <!-- Улучшения (магазин скинов) -->
             <section id="upgrades-section" class="content-section">
-                <div class="upgrades-placeholder">
-                    <span>✨</span>
-                    <p>Улучшения появятся позже</p>
+                <div class="upgrades-shop">
+                    <h2>✨ Скины плиток</h2>
+                    <div class="shop-balance" id="shop-balance-display">Ваш баланс: 0 коин.</div>
+                    <div class="skins-grid" id="skins-grid"></div>
                 </div>
             </section>
 
@@ -180,24 +180,6 @@
         </nav>
 
         <div id="notification" class="notification">Ссылка скопирована в буфер обмена!</div>
-    </div>
-
-    <!-- Модальное окно перевода (старое, больше не используется, но оставлено на всякий случай) -->
-    <div class="transfer-modal" id="transfer-modal" style="display:none;">
-        <div class="modal-backdrop"></div>
-        <div class="modal-content">
-            <h4>Перевести очки</h4>
-            <p id="transfer-target-name"></p>
-            <div class="modal-input-group">
-                <label>Количество очков</label>
-                <input type="number" id="transfer-amount-input-modal" min="1" placeholder="Введите сумму" />
-                <small id="transfer-max-hint-modal"></small>
-            </div>
-            <div class="modal-actions">
-                <button class="btn-cancel" id="transfer-cancel">Отмена</button>
-                <button class="btn-confirm" id="transfer-confirm">Перевести</button>
-            </div>
-        </div>
     </div>
 
     <script src="script.js"></script>
