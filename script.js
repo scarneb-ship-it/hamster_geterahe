@@ -1,6 +1,7 @@
 // ==================== КОНФИГУРАЦИЯ ====================
 const BOT_USERNAME = 'khadron_bot';
 let currentUserId = null;
+
 const WORKER_URL = 'https://gamesverse-bot.scarneb.workers.dev';
 
 const GAMES_DATA = [
@@ -92,7 +93,7 @@ const EXCHANGES_DATA = [
     }
 ];
 
-// ==================== ПЕРЕВОДЫ (только русский) ====================
+// ==================== ПЕРЕВОДЫ ====================
 const translations = {
     appTitle: "Games Verse",
     settings: "Настройки",
@@ -110,13 +111,12 @@ const translations = {
     profile: "Профиль",
     linkCopied: "Ссылка скопирована в буфер обмена!",
     go: "Перейти",
-    game2048: "2048",
-    score: "Счёт",
-    best: "Лучший",
-    newGame: "Новая игра",
-    swipeHint: "👆 Свайпайте пальцем или используйте стрелки",
-    gameWin: "Вы победили! 🎉",
-    gameLose: "Игра окончена! 😔"
+    tapGame: "Таполка",
+    coins: "Монеты",
+    perClick: "За клик",
+    swipeHint: "Тапай по монете!",
+    autoTap: "Авто-клик",
+    regen: "Восстановление",
 };
 
 // ==================== ОСНОВНЫЕ ФУНКЦИИ ====================
@@ -129,7 +129,6 @@ function vibrate() {
 }
 
 function initializeApp() {
-    // Мгновенно скрываем splash screen
     const splash = document.getElementById('splash-screen');
     if (splash) splash.style.display = 'none';
     document.body.style.opacity = '1';
@@ -356,12 +355,10 @@ function setupNavigation() {
             // Загружаем лидеров при заходе во вкладку игры
             if (targetSection === 'game-section') {
                 fetchLeaderboard();
-                if (tapGame) tapGame.syncState();
             }
         });
     });
 
-    // Сразу подгружаем лидеров, если вкладка активна по умолчанию
     const activeSection = document.querySelector('.content-section.active');
     if (activeSection && activeSection.id === 'game-section') {
         fetchLeaderboard();
@@ -497,199 +494,224 @@ function showNotification(customMessage) {
     setTimeout(() => notification.classList.remove('show'), 2000);
 }
 
-// ==================== TAP GAME (вместо 2048) ====================
+// ==================== TAP GAME ====================
 class TapGame {
     constructor() {
-        this.state = this.loadState();
-        this.lastUpdate = this.state.lastUpdate || Date.now();
-        this.lastScoreSubmit = 0;
-        this.syncState(); // применяем оффлайн-реген
-        this.updateUI();
-        this.startIntervals();
-        this.bindEvents();
-    }
-
-    loadState() {
-        const defaultState = {
-            balance: 0,
-            tapPower: 1,
-            maxEnergy: 100,
-            currentEnergy: 100,
-            autoTapLevel: 0,
-            autoTapIncome: 0,
-            lastUpdate: Date.now(),
-            lastClaimDate: null,
-            lastSubmittedBalance: 0
+        this.coins = 0;
+        this.totalCoinsEarned = 0;
+        this.perClick = 1;
+        this.autoTapPerSec = 0;
+        this.energy = 500;
+        this.maxEnergy = 500;
+        this.energyRegenPerSec = 1;
+        
+        // Уровни улучшений
+        this.upgrades = {
+            click: { level: 0, name: 'Усиление клика', baseCost: 10, costMultiplier: 1.5, effect: 1 },
+            maxEnergy: { level: 0, name: 'Макс. энергия', baseCost: 20, costMultiplier: 1.6, effect: 100 },
+            autoTap: { level: 0, name: 'Авто-тап', baseCost: 50, costMultiplier: 2.0, effect: 1 },
+            regen: { level: 0, name: 'Восстановление', baseCost: 30, costMultiplier: 1.7, effect: 0.5 }
         };
-        try {
-            const saved = JSON.parse(localStorage.getItem('tapGameState'));
-            return { ...defaultState, ...saved };
-        } catch(e) { return defaultState; }
-    }
 
-    saveState() {
-        this.state.lastUpdate = Date.now();
-        localStorage.setItem('tapGameState', JSON.stringify(this.state));
-    }
-
-    syncState() {
-        const now = Date.now();
-        const elapsed = Math.floor((now - this.lastUpdate) / 1000);
-        if (elapsed <= 0) return;
-        // Регенерация энергии
-        const regenRate = 2; // энергии в секунду
-        const energyRegen = Math.min(elapsed * regenRate, this.state.maxEnergy - this.state.currentEnergy);
-        if (energyRegen > 0) this.state.currentEnergy += energyRegen;
-        // Авто-тап доход
-        const autoIncome = this.state.autoTapIncome * elapsed;
-        if (autoIncome > 0) this.state.balance += autoIncome;
-        this.lastUpdate = now;
-        this.saveState();
+        this.loadProgress();
+        this.startIntervals();
         this.updateUI();
+        this.renderUpgrades();
+        this.setupCoinTap();
     }
 
-    updateUI() {
-        document.getElementById('tap-balance').textContent = this.state.balance;
-        const energyPercent = (this.state.currentEnergy / this.state.maxEnergy) * 100;
-        document.getElementById('tap-energy-fill').style.width = energyPercent + '%';
-        document.getElementById('tap-energy-text').textContent = `${this.state.currentEnergy}/${this.state.maxEnergy}`;
-        document.getElementById('tap-power-level').textContent = this.state.tapPower;
-        document.getElementById('max-energy-level').textContent = Math.floor((this.state.maxEnergy - 100)/10) + 1;
-        document.getElementById('auto-tap-level').textContent = this.state.autoTapLevel;
-        document.getElementById('auto-tap-income').textContent = this.state.autoTapIncome;
+    loadProgress() {
+        const saved = JSON.parse(localStorage.getItem('tapGameProgress'));
+        if (saved) {
+            this.coins = saved.coins || 0;
+            this.totalCoinsEarned = saved.totalCoinsEarned || 0;
+            this.perClick = saved.perClick || 1;
+            this.autoTapPerSec = saved.autoTapPerSec || 0;
+            this.energy = saved.energy ?? 500;
+            this.maxEnergy = saved.maxEnergy || 500;
+            this.energyRegenPerSec = saved.energyRegenPerSec || 1;
+            if (saved.upgrades) {
+                for (const key in saved.upgrades) {
+                    if (this.upgrades[key]) {
+                        this.upgrades[key].level = saved.upgrades[key].level || 0;
+                    }
+                }
+            }
+        }
+    }
 
-        // Стоимость улучшений
-        const tapPowerCost = 10 * (this.state.tapPower + 1);
-        const maxEnergyCost = 20 * (Math.floor((this.state.maxEnergy - 100)/10) + 2);
-        const autoTapCost = 50 * (this.state.autoTapLevel + 1);
-        document.getElementById('tap-power-cost').textContent = tapPowerCost;
-        document.getElementById('max-energy-cost').textContent = maxEnergyCost;
-        document.getElementById('auto-tap-cost').textContent = autoTapCost;
+    saveProgress() {
+        const data = {
+            coins: this.coins,
+            totalCoinsEarned: this.totalCoinsEarned,
+            perClick: this.perClick,
+            autoTapPerSec: this.autoTapPerSec,
+            energy: this.energy,
+            maxEnergy: this.maxEnergy,
+            energyRegenPerSec: this.energyRegenPerSec,
+            upgrades: {}
+        };
+        for (const key in this.upgrades) {
+            data.upgrades[key] = { level: this.upgrades[key].level };
+        }
+        localStorage.setItem('tapGameProgress', JSON.stringify(data));
+    }
 
-        // Кнопки активны, если хватает баланса
-        document.getElementById('upgrade-tap-power').disabled = this.state.balance < tapPowerCost;
-        document.getElementById('upgrade-max-energy').disabled = this.state.balance < maxEnergyCost;
-        document.getElementById('upgrade-auto-tap').disabled = this.state.balance < autoTapCost;
+    getUpgradeCost(type) {
+        const u = this.upgrades[type];
+        return Math.floor(u.baseCost * Math.pow(u.costMultiplier, u.level));
+    }
 
-        // Ежедневная награда
-        const today = new Date().toDateString();
-        const rewardBtn = document.getElementById('daily-reward-button');
-        if (rewardBtn) {
-            rewardBtn.disabled = this.state.lastClaimDate === today;
-            rewardBtn.textContent = this.state.lastClaimDate === today ? '🎁 Награда получена' : '🎁 Ежедневная награда';
+    buyUpgrade(type) {
+        const u = this.upgrades[type];
+        const cost = this.getUpgradeCost(type);
+        if (this.coins < cost) return false;
+
+        this.coins -= cost;
+        u.level++;
+
+        // Применяем эффект улучшения
+        switch (type) {
+            case 'click':
+                this.perClick += u.effect;
+                break;
+            case 'maxEnergy':
+                this.maxEnergy += u.effect;
+                this.energy = Math.min(this.energy + u.effect, this.maxEnergy);
+                break;
+            case 'autoTap':
+                this.autoTapPerSec += u.effect;
+                break;
+            case 'regen':
+                this.energyRegenPerSec += u.effect;
+                break;
+        }
+
+        this.saveProgress();
+        this.updateUI();
+        this.renderUpgrades();
+        this.submitScoreDebounced();
+        return true;
+    }
+
+    tap() {
+        if (this.energy < 1) return;
+        this.energy--;
+        const earned = this.perClick;
+        this.coins += earned;
+        this.totalCoinsEarned += earned;
+
+        this.showTapValue(earned);
+        this.updateUI();
+        this.saveProgress();
+        this.submitScoreDebounced();
+    }
+
+    showTapValue(value) {
+        const pop = document.getElementById('tap-pop');
+        if (pop) {
+            pop.textContent = '+' + value;
+            pop.classList.remove('active');
+            void pop.offsetWidth;
+            pop.classList.add('active');
+        }
+        // Добавляем небольшой эффект на монете
+        const coin = document.getElementById('main-coin');
+        if (coin) {
+            coin.style.transform = 'scale(0.95)';
+            setTimeout(() => { coin.style.transform = ''; }, 100);
         }
     }
 
     startIntervals() {
-        this.energyInterval = setInterval(() => {
-            if (document.querySelector('#game-section.active')) {
-                if (this.state.currentEnergy < this.state.maxEnergy) {
-                    this.state.currentEnergy = Math.min(this.state.maxEnergy, this.state.currentEnergy + 2);
-                    this.saveState(); this.updateUI();
+        // Авто-тап каждые 0.5 секунды
+        setInterval(() => {
+            if (this.autoTapPerSec > 0) {
+                this.coins += this.autoTapPerSec * 0.5;
+                this.totalCoinsEarned += this.autoTapPerSec * 0.5;
+                this.updateUI();
+                this.saveProgress();
+            }
+        }, 500);
+
+        // Регенерация энергии каждую секунду
+        setInterval(() => {
+            if (this.energy < this.maxEnergy) {
+                this.energy = Math.min(this.energy + this.energyRegenPerSec, this.maxEnergy);
+                this.updateUI();
+                this.saveProgress();
+            }
+        }, 1000);
+
+        // Периодическая отправка счёта на сервер (раз в 10 секунд)
+        setInterval(() => {
+            this.submitScore();
+        }, 10000);
+    }
+
+    updateUI() {
+        document.getElementById('tap-coins').textContent = Math.floor(this.coins);
+        document.getElementById('tap-per-click').textContent = this.perClick;
+        document.getElementById('energy-text').textContent = `${Math.floor(this.energy)}/${this.maxEnergy}`;
+
+        const energyPercent = (this.energy / this.maxEnergy) * 100;
+        document.getElementById('energy-fill').style.width = energyPercent + '%';
+
+        document.getElementById('auto-tap-info').textContent = this.autoTapPerSec + '/сек';
+        document.getElementById('regen-info').textContent = this.energyRegenPerSec + '/сек';
+    }
+
+    renderUpgrades() {
+        const container = document.getElementById('upgrades-list');
+        if (!container) return;
+        
+        let html = '';
+        for (const type in this.upgrades) {
+            const u = this.upgrades[type];
+            const cost = this.getUpgradeCost(type);
+            const canBuy = this.coins >= cost;
+            html += `
+                <div class="upgrade-item">
+                    <div class="upgrade-info">
+                        <span class="upgrade-name">${u.name} (ур. ${u.level})</span>
+                        <span class="upgrade-description">Стоимость: ${cost} 🪙</span>
+                    </div>
+                    <button class="upgrade-buy" data-type="${type}" ${canBuy ? '' : 'disabled'}>Купить</button>
+                </div>
+            `;
+        }
+        container.innerHTML = html;
+
+        // Привязываем обработчики
+        container.querySelectorAll('.upgrade-buy').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                vibrate();
+                const type = btn.getAttribute('data-type');
+                if (this.buyUpgrade(type)) {
+                    // успешно
+                } else {
+                    showNotification('Недостаточно монет');
                 }
-            }
-        }, 1000);
-        this.autoTapInterval = setInterval(() => {
-            if (document.querySelector('#game-section.active') && this.state.autoTapIncome > 0) {
-                this.state.balance += this.state.autoTapIncome;
-                this.saveState(); this.updateUI();
-            }
-        }, 1000);
+            });
+        });
     }
 
-    bindEvents() {
-        const tapBtn = document.getElementById('tap-main-button');
-        const handleTap = (e) => {
-            e.preventDefault();
-            if (this.state.currentEnergy <= 0) return;
-            vibrate();
-            this.state.currentEnergy--;
-            this.state.balance += this.state.tapPower;
-            this.showFloatingText(`+${this.state.tapPower}`);
-            this.spawnParticles(e);
-            this.saveState();
-            this.updateUI();
-            this.trySubmitScore();
-        };
-        tapBtn.addEventListener('pointerdown', handleTap);
-
-        document.getElementById('upgrade-tap-power').addEventListener('click', () => {
-            const cost = 10 * (this.state.tapPower + 1);
-            if (this.state.balance >= cost) {
-                this.state.balance -= cost;
-                this.state.tapPower++;
-                this.saveState(); this.updateUI();
-                this.submitScore();
-            }
-        });
-        document.getElementById('upgrade-max-energy').addEventListener('click', () => {
-            const cost = 20 * (Math.floor((this.state.maxEnergy - 100)/10) + 2);
-            if (this.state.balance >= cost) {
-                this.state.balance -= cost;
-                this.state.maxEnergy += 10;
-                this.saveState(); this.updateUI();
-                this.submitScore();
-            }
-        });
-        document.getElementById('upgrade-auto-tap').addEventListener('click', () => {
-            const cost = 50 * (this.state.autoTapLevel + 1);
-            if (this.state.balance >= cost) {
-                this.state.balance -= cost;
-                this.state.autoTapLevel++;
-                this.state.autoTapIncome = this.state.autoTapLevel * 2;
-                this.saveState(); this.updateUI();
-                this.submitScore();
-            }
-        });
-
-        document.getElementById('daily-reward-button').addEventListener('click', () => {
-            const today = new Date().toDateString();
-            if (this.state.lastClaimDate !== today) {
-                this.state.lastClaimDate = today;
-                const reward = 500 + (this.state.autoTapLevel * 100);
-                this.state.balance += reward;
-                this.saveState(); this.updateUI();
-                this.submitScore();
-                showNotification(`Получено ${reward} монет!`);
-            }
-        });
-
-        // Сохранение при уходе
-        window.addEventListener('beforeunload', () => this.saveState());
-    }
-
-    showFloatingText(text) {
-        const area = document.getElementById('tap-floating-text');
-        if (!area) return;
-        const el = document.createElement('div');
-        el.className = 'floating-plus';
-        el.textContent = text;
-        area.appendChild(el);
-        el.addEventListener('animationend', () => el.remove());
-    }
-
-    spawnParticles(e) {
-        const btn = document.getElementById('tap-main-button');
-        const rect = btn.getBoundingClientRect();
-        const centerX = rect.left + rect.width/2;
-        const centerY = rect.top + rect.height/2;
-        const count = 5;
-        for (let i = 0; i < count; i++) {
-            const particle = document.createElement('div');
-            particle.className = 'tap-particle';
-            particle.style.left = centerX + 'px';
-            particle.style.top = centerY + 'px';
-            particle.style.setProperty('--tx', (Math.random() - 0.5) * 80 + 'px');
-            particle.style.setProperty('--ty', (Math.random() - 0.5) * 80 - 40 + 'px');
-            document.body.appendChild(particle);
-            particle.addEventListener('animationend', () => particle.remove());
+    setupCoinTap() {
+        const coin = document.getElementById('main-coin');
+        if (coin) {
+            coin.addEventListener('click', () => {
+                vibrate();
+                this.tap();
+            });
         }
     }
 
-    trySubmitScore() {
-        // Отправляем счёт не чаще раза в 10 секунд
-        if (Date.now() - this.lastScoreSubmit < 10000) return;
-        this.submitScore();
+    // Отправка счёта с дебаунсом
+    submitScoreDebounced() {
+        if (this._submitTimeout) clearTimeout(this._submitTimeout);
+        this._submitTimeout = setTimeout(() => {
+            this.submitScore();
+        }, 2000);
     }
 
     submitScore() {
@@ -700,7 +722,7 @@ class TapGame {
             userId: currentUserId.toString(),
             firstName: user.first_name || 'Игрок',
             username: user.username || '',
-            score: this.state.balance,
+            score: Math.floor(this.totalCoinsEarned),
             avatarUrl: user.photo_url || ''
         };
         fetch(WORKER_URL + '/submit-score', {
@@ -708,21 +730,19 @@ class TapGame {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         }).then(() => {
-            this.lastScoreSubmit = Date.now();
-            this.state.lastSubmittedBalance = this.state.balance;
-            fetchLeaderboard();
+            // после отправки можно обновить таблицу лидеров если она активна
+            if (document.querySelector('#game-section.active')) {
+                fetchLeaderboard();
+            }
         }).catch(err => console.error('Ошибка отправки счёта:', err));
-    }
-
-    destroy() {
-        clearInterval(this.energyInterval);
-        clearInterval(this.autoTapInterval);
     }
 }
 
 let tapGame = null;
 function initTapGame() {
-    if (!tapGame) tapGame = new TapGame();
+    if (!tapGame) {
+        tapGame = new TapGame();
+    }
 }
 
 // ==================== LEADERBOARD ====================
@@ -766,7 +786,7 @@ function renderLeaderboard(leaderboard) {
                     <div class="leaderboard-name">${escapeHtml(player.firstName)}</div>
                 </div>
                 <div class="leaderboard-score">
-                    ${player.score} <span>монет</span>
+                    ${player.score} <span>очк.</span>
                 </div>
             </div>
         `;
@@ -789,8 +809,7 @@ function setupLeaderboardRefresh() {
     if (refreshBtn) {
         refreshBtn.addEventListener('click', () => {
             vibrate();
-            if (tapGame) tapGame.submitScore();
-            else fetchLeaderboard();
+            fetchLeaderboard();
         });
     }
 }
