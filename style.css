@@ -1,4 +1,4 @@
-/* ==================== SPLASH SCREEN (заставка при загрузке) ==================== */
+/* ==================== SPLASH SCREEN ==================== */
 #splash-screen {
     position: fixed;
     top: 0;
@@ -322,7 +322,6 @@ body.dark-theme {
   box-shadow: var(--shadow-dark);
 }
 
-/* Выделенная карточка (Pixel World) - зелёная тема */
 .game-card.highlight {
   background: linear-gradient(135deg, rgba(0, 176, 155, 0.1), rgba(150, 201, 61, 0.1));
   border: 1px solid rgba(0, 176, 155, 0.5);
@@ -346,7 +345,6 @@ body.dark-theme {
   background: var(--highlight-gradient);
 }
 
-/* Заголовок игры с бейджем */
 .game-header {
   display: flex;
   align-items: center;
@@ -429,7 +427,6 @@ body.dark-theme {
   color: var(--text-secondary-dark);
 }
 
-/* Game Stats */
 .game-stats {
   display: flex;
   justify-content: space-between;
@@ -754,7 +751,6 @@ body.dark-theme {
   color: var(--text-secondary-dark);
 }
 
-/* Premium Badge */
 .premium-badge {
   background: linear-gradient(135deg, #FFD700, #FFA500);
   color: #000;
@@ -772,7 +768,6 @@ body.dark-theme {
   box-shadow: 0 2px 8px rgba(255, 215, 0, 0.4);
 }
 
-/* Profile Actions */
 .profile-actions {
   display: flex;
   flex-direction: column;
@@ -987,11 +982,14 @@ body.dark-theme {
     margin-top: 10px;
     background: var(--card-light);
     border-radius: 20px;
-    padding: 16px;
+    padding: 12px;
     border: 1px solid var(--border-light);
     width: 100%;
     box-sizing: border-box;
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
 }
 
 .dark-theme .tap-game-container {
@@ -999,210 +997,362 @@ body.dark-theme {
     border-color: var(--border-dark);
 }
 
-.tap-balance-display {
+.game-header-tap {
     display: flex;
-    align-items: baseline;
-    justify-content: center;
-    gap: 6px;
-    margin-bottom: 12px;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
-.balance-amount {
-    font-size: 36px;
+.game-title-tap {
+    font-size: 24px;
     font-weight: 800;
-    background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+    background: linear-gradient(135deg, #f59e0b, #d97706);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+    margin: 0;
 }
 
-.balance-label {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-secondary-light);
-}
-
-.tap-energy-bar {
-    height: 22px;
-    background: #e2e8f0;
-    border-radius: 11px;
-    overflow: hidden;
-    position: relative;
-    margin-bottom: 20px;
-}
-
-.energy-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #f6d365, #fda085);
-    width: 100%;
-    border-radius: 11px;
-    transition: width 0.2s;
-}
-
-.energy-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 11px;
-    font-weight: 700;
-    color: #2d3748;
-}
-
-.tap-button-area {
+.game-scores {
     display: flex;
-    justify-content: center;
-    margin-bottom: 20px;
+    gap: 10px;
 }
 
-.tap-main-button {
+.score-box {
+    background: var(--primary-gradient);
+    border-radius: 14px;
+    padding: 4px 12px;
+    text-align: center;
+    min-width: 60px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.score-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.8);
+    letter-spacing: 0.5px;
+}
+
+.score-value {
+    font-size: 18px;
+    font-weight: 800;
+    color: white;
+    line-height: 1.2;
+}
+
+.coin-container {
+    position: relative;
     width: 120px;
     height: 120px;
-    border-radius: 50%;
-    background: linear-gradient(145deg, #f093fb, #f5576c);
-    border: none;
-    box-shadow: 0 8px 25px rgba(240, 147, 251, 0.5);
-    cursor: pointer;
-    transition: transform 0.1s, box-shadow 0.1s;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 4px;
-    font-weight: 700;
-    color: white;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
 }
 
-.tap-main-button:active {
-    transform: scale(0.92);
-    box-shadow: 0 4px 15px rgba(240, 147, 251, 0.4);
-}
-
-.tap-emoji {
-    font-size: 36px;
-}
-
-.tap-hint {
-    font-size: 14px;
-    letter-spacing: 2px;
-}
-
-.tap-floating-text {
+.coin {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #fbbf24, #d97706);
+    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.1s ease-out;
     position: relative;
-    height: 30px;
-    margin-bottom: 10px;
+}
+
+.coin:active {
+    transform: scale(0.9);
+}
+
+.coin-icon {
+    font-size: 48px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+.tap-effect {
+    position: absolute;
     pointer-events: none;
 }
 
-.floating-plus {
+.coin-tap-value {
     position: absolute;
+    top: -30px;
     left: 50%;
     transform: translateX(-50%);
+    font-size: 18px;
     font-weight: 800;
-    font-size: 22px;
-    color: #f5576c;
-    animation: floatUp 0.8s ease-out forwards;
+    color: #f59e0b;
+    opacity: 0;
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.coin-tap-value.active {
+    animation: floatUp 0.6s ease-out forwards;
 }
 
 @keyframes floatUp {
     0% { opacity: 1; transform: translateX(-50%) translateY(0); }
-    100% { opacity: 0; transform: translateX(-50%) translateY(-40px); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-30px); }
 }
 
-.tap-particle {
-    position: fixed;
-    width: 8px;
-    height: 8px;
-    background: #f6d365;
-    border-radius: 50%;
-    pointer-events: none;
-    animation: particleBurst 0.5s ease-out forwards;
-    z-index: 9999;
+.energy-bar-container {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-@keyframes particleBurst {
-    0% { opacity: 1; transform: translate(0, 0) scale(1); }
-    100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0); }
+.energy-bar-bg {
+    flex: 1;
+    height: 12px;
+    background: #e2e8f0;
+    border-radius: 20px;
+    overflow: hidden;
 }
 
-.tap-upgrades {
-    text-align: left;
-    margin-top: 10px;
+.dark-theme .energy-bar-bg {
+    background: #2d3748;
 }
 
-.upgrades-title {
+.energy-bar-fill {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, #48bb78, #38a169);
+    transition: width 0.2s ease;
+    border-radius: 20px;
+}
+
+.energy-text {
+    font-size: 13px;
+    font-weight: 600;
+    min-width: 70px;
+    text-align: right;
+}
+
+.upgrades-panel {
+    width: 100%;
+    background: var(--surface-light);
+    border-radius: 16px;
+    padding: 12px;
+    border: 1px solid var(--border-light);
+}
+
+.dark-theme .upgrades-panel {
+    background: var(--surface-dark);
+    border-color: var(--border-dark);
+}
+
+.upgrades-panel h4 {
     font-size: 16px;
     font-weight: 700;
-    margin-bottom: 10px;
-    text-align: center;
+    margin-bottom: 12px;
+}
+
+.upgrades-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .upgrade-item {
-    background: rgba(0,0,0,0.03);
-    border-radius: 12px;
-    padding: 10px;
-    margin-bottom: 8px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 6px;
+    padding: 10px 12px;
+    background: var(--card-light);
+    border-radius: 12px;
+    border: 1px solid var(--border-light);
 }
 
 .dark-theme .upgrade-item {
-    background: rgba(255,255,255,0.05);
+    background: var(--card-dark);
+    border-color: var(--border-dark);
 }
 
-.upgrade-item span:first-child {
+.upgrade-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.upgrade-name {
     font-weight: 600;
-    font-size: 13px;
-    flex: 2;
+    font-size: 14px;
 }
 
-.upgrade-desc {
+.upgrade-description {
     font-size: 12px;
     color: var(--text-secondary-light);
 }
 
-.upgrade-button {
-    background: var(--primary-gradient);
+.dark-theme .upgrade-description {
+    color: var(--text-secondary-dark);
+}
+
+.upgrade-buy {
+    background: var(--success-color);
     color: white;
     border: none;
+    border-radius: 8px;
     padding: 6px 12px;
-    border-radius: 20px;
-    font-weight: 700;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.upgrade-buy:active {
+    transform: scale(0.95);
+}
+
+.upgrade-buy:disabled {
+    background: #a0aec0;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.tap-game-info {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary-light);
+}
+
+.dark-theme .tap-game-info {
+    color: var(--text-secondary-dark);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .app-container {
+    padding-bottom: 70px;
+  }
+  
+  .header {
+    padding: 16px 12px;
+  }
+  
+  .main-content {
+    padding: 16px 12px;
+  }
+  
+  .games-grid, .exchanges-list {
+    gap: 9px;
+  }
+  
+  .game-card, .exchange-card {
+    padding: 12px;
+  }
+  
+  .gamefi-banner {
+    height: 135px;
+    margin-bottom: 15px;
+  }
+  
+  .gamefi-overlay {
+    padding: 15px;
+  }
+  
+  .gamefi-title {
+    font-size: 17px;
+  }
+  
+  .gamefi-description {
     font-size: 12px;
-    cursor: pointer;
-    transition: 0.2s;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-}
-.upgrade-button:disabled {
-    opacity: 0.5;
-    pointer-events: none;
+  }
+  
+  .gamefi-stats {
+    gap: 15px;
+  }
+  
+  .stat-number {
+    font-size: 15px;
+  }
+  
+  .stat-label {
+    font-size: 9px;
+  }
+  
+  .profile-avatar {
+    width: 55px;
+    height: 55px;
+    font-size: 22px;
+  }
+  
+  .profile-info h2 {
+    font-size: 17px;
+  }
+  
+  .share-friends-button {
+    padding: 14px 18px;
+    font-size: 14px;
+  }
+  
+  .settings-content {
+    width: 260px;
+    padding: 16px;
+  }
+  
+  .settings-panel {
+    padding: 60px 12px 0 0;
+  }
+
+  .coin {
+    width: 80px;
+    height: 80px;
+  }
+  .coin-icon {
+    font-size: 36px;
+  }
 }
 
-.daily-reward {
-    margin-top: 20px;
-}
-#daily-reward-button {
-    background: linear-gradient(135deg, #f6d365, #fda085);
-    border: none;
-    padding: 10px 20px;
-    border-radius: 30px;
-    font-weight: 700;
-    color: white;
-    box-shadow: 0 4px 15px rgba(246,211,101,0.4);
-    cursor: pointer;
-    transition: 0.2s;
-}
-#daily-reward-button:disabled {
-    opacity: 0.6;
-    filter: grayscale(20%);
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-/* ==================== LEADERBOARD STYLES ==================== */
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+::selection {
+  background: var(--primary-light);
+  color: white;
+}
+
+.dark-theme ::selection {
+  background: var(--primary-dark);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+button:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+.dark-theme button:focus-visible {
+  outline-color: var(--primary-dark);
+}
+
+/* Leaderboard styles remain the same as before */
 .leaderboard-container {
     margin-top: 25px;
     background: var(--card-light);
@@ -1338,132 +1488,4 @@ body.dark-theme {
     text-align: center;
     padding: 20px;
     color: var(--text-secondary-light);
-}
-
-/* Responsive */
-@media (max-width: 480px) {
-  .app-container {
-    padding-bottom: 70px;
-  }
-  
-  .header {
-    padding: 16px 12px;
-  }
-  
-  .main-content {
-    padding: 16px 12px;
-  }
-  
-  .games-grid, .exchanges-list {
-    gap: 9px;
-  }
-  
-  .game-card, .exchange-card {
-    padding: 12px;
-  }
-  
-  .gamefi-banner {
-    height: 135px;
-    margin-bottom: 15px;
-  }
-  
-  .gamefi-overlay {
-    padding: 15px;
-  }
-  
-  .gamefi-title {
-    font-size: 17px;
-  }
-  
-  .gamefi-description {
-    font-size: 12px;
-  }
-  
-  .gamefi-stats {
-    gap: 15px;
-  }
-  
-  .stat-number {
-    font-size: 15px;
-  }
-  
-  .stat-label {
-    font-size: 9px;
-  }
-  
-  .profile-avatar {
-    width: 55px;
-    height: 55px;
-    font-size: 22px;
-  }
-  
-  .profile-info h2 {
-    font-size: 17px;
-  }
-  
-  .share-friends-button {
-    padding: 14px 18px;
-    font-size: 14px;
-  }
-  
-  .settings-content {
-    width: 260px;
-    padding: 16px;
-  }
-  
-  .settings-panel {
-    padding: 60px 12px 0 0;
-  }
-
-  .tap-main-button {
-    width: 100px;
-    height: 100px;
-  }
-  .balance-amount {
-    font-size: 30px;
-  }
-  .upgrade-item {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .upgrade-button {
-    align-self: flex-end;
-  }
-}
-
-/* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-::selection {
-  background: var(--primary-light);
-  color: white;
-}
-
-.dark-theme ::selection {
-  background: var(--primary-dark);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-button:focus-visible {
-  outline: 2px solid var(--primary-light);
-  outline-offset: 2px;
-}
-
-.dark-theme button:focus-visible {
-  outline-color: var(--primary-dark);
 }
