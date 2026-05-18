@@ -41,45 +41,8 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Games Section -->
-            <section id="games-section" class="content-section active">
-                <div class="section-header">
-                    <h2>Игры</h2>
-                    <span class="section-subtitle">Лучшие игры Telegram</span>
-                </div>
-                <div class="games-grid" id="games-grid"></div>
-            </section>
-
-            <!-- Exchanges Section -->
-            <section id="exchanges-section" class="content-section">
-                <div class="section-header">
-                    <h2>Крипто-биржи</h2>
-                    <span class="section-subtitle">Торгуйте криптовалютами безопасно</span>
-                </div>
-                <div class="gamefi-banner">
-                    <img src="images/gamefi.jpg" alt="GameFi Trading" class="gamefi-image">
-                    <div class="gamefi-overlay">
-                        <div class="gamefi-content">
-                            <h3 class="gamefi-title">Торгуйте монетами GameFi</h3>
-                            <p class="gamefi-description">На популярных криптобиржах с лучшими условиями</p>
-                            <div class="gamefi-stats">
-                                <div class="stat">
-                                    <span class="stat-number">100+</span>
-                                    <span class="stat-label">GameFi токенов</span>
-                                </div>
-                                <div class="stat">
-                                    <span class="stat-number">24/7</span>
-                                    <span class="stat-label">Торговля</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="exchanges-list" id="exchanges-list"></div>
-            </section>
-
-            <!-- 2048 Game Section (переработана) -->
-            <section id="game-section" class="content-section game-fullscreen">
+            <!-- Игра (главная) -->
+            <section id="game-section" class="content-section active">
                 <div class="game-2048-container">
                     <div class="game-header-2048">
                         <h3 class="game-title-2048">2048</h3>
@@ -102,100 +65,90 @@
                     <div class="swipe-hint">👆 Свайпайте пальцем или используйте стрелки</div>
                 </div>
 
-                <!-- Новые карточки-вкладки -->
-                <div class="game-tabs">
-                    <button class="game-tab active" data-tab="leaderboard">
-                        <span>🏆</span> Таблица лидеров
-                    </button>
-                    <button class="game-tab" data-tab="transfer">
-                        <span>💸</span> Перевести
-                    </button>
-                    <button class="game-tab" data-tab="upgrades">
-                        <span>✨</span> Улучшения
-                    </button>
-                </div>
-
-                <!-- Контент вкладки "Таблица лидеров" -->
-                <div class="game-tab-content active" id="tab-leaderboard">
-                    <div class="leaderboard-container">
-                        <div class="leaderboard-header">
-                            <h3 class="leaderboard-title">🏆 Таблица лидеров</h3>
-                            <button class="refresh-leaderboard" id="refresh-leaderboard">🔄</button>
-                        </div>
-                        <div class="leaderboard-list" id="leaderboard-list">
-                            <div class="leaderboard-loading">Загрузка...</div>
-                        </div>
+                <!-- Таблица лидеров -->
+                <div class="leaderboard-container" style="margin-top: 20px;">
+                    <div class="leaderboard-header">
+                        <h3 class="leaderboard-title">🏆 Таблица лидеров</h3>
+                        <button class="refresh-leaderboard" id="refresh-leaderboard">🔄</button>
+                    </div>
+                    <div class="leaderboard-list" id="leaderboard-list">
+                        <div class="leaderboard-loading">Загрузка...</div>
                     </div>
                 </div>
 
-                <!-- Контент вкладки "Перевести" -->
-                <div class="game-tab-content" id="tab-transfer">
-                    <div class="transfer-container">
-                        <div class="transfer-header">
-                            <h3>💸 Перевод очков</h3>
-                            <div class="user-balance" id="user-balance-display">Ваш баланс: 0 очк.</div>
-                        </div>
-                        <div class="transfer-list" id="transfer-list">
-                            <div class="leaderboard-loading">Загрузка...</div>
-                        </div>
+                <!-- Перевод очков -->
+                <div class="transfer-section" style="margin-top: 20px;">
+                    <div class="transfer-header">
+                        <h3>💸 Перевод очков</h3>
+                        <div class="user-balance" id="user-balance-display">Ваш баланс: 0 очк.</div>
                     </div>
-                </div>
-
-                <!-- Контент вкладки "Улучшения" -->
-                <div class="game-tab-content" id="tab-upgrades">
-                    <div class="upgrades-placeholder">
-                        <span>✨</span>
-                        <p>Улучшения появятся позже</p>
+                    <div class="transfer-list" id="transfer-list">
+                        <div class="leaderboard-loading">Загрузка...</div>
                     </div>
                 </div>
             </section>
 
-            <!-- Profile Section -->
-            <section id="profile-section" class="content-section">
-                <div class="profile-header">
-                    <div class="profile-avatar" id="user-avatar">
-                        <img src="" alt="User Avatar" id="avatar-img" style="display: none;">
-                        <span id="avatar-fallback">T</span>
+            <!-- Улучшения -->
+            <section id="upgrades-section" class="content-section">
+                <div class="upgrades-placeholder">
+                    <span>✨</span>
+                    <p>Улучшения появятся позже</p>
+                </div>
+            </section>
+
+            <!-- Рефералы -->
+            <section id="referrals-section" class="content-section">
+                <div class="referral-card">
+                    <h2>👥 Пригласи друзей</h2>
+                    <p>Делись ссылкой и получай бонусы</p>
+                    <div class="referral-link-box">
+                        <span id="referral-link-text">Загрузка...</span>
+                        <button id="copy-referral-link" class="btn-copy">📋</button>
                     </div>
-                    <div class="profile-info">
-                        <h2 id="user-name">Пользователь</h2>
-                        <p id="user-username">Открой в Telegram</p>
+                    <button class="share-referral-btn" id="share-referral-btn">
+                        <span>📤</span> Поделиться
+                    </button>
+                    <div class="referral-stats" style="margin-top: 16px;">
+                        <span>Приглашено друзей: </span>
+                        <strong id="referral-count">0</strong>
                     </div>
                 </div>
-                <div class="profile-actions">
-                    <button class="share-friends-button" id="share-friends-button">
-                        <div class="share-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                <path d="M18 8C19.6569 8 21 6.65685 21 5C21 3.34315 19.6569 2 18 2C16.3431 2 15 3.34315 15 5C15 6.65685 16.3431 8 18 8Z" stroke="currentColor" stroke-width="2"/>
-                                <path d="M6 15C7.65685 15 9 13.6569 9 12C9 10.3431 7.65685 9 6 9C4.34315 9 3 10.3431 3 12C3 13.6569 4.34315 15 6 15Z" stroke="currentColor" stroke-width="2"/>
-                                <path d="M18 22C19.6569 22 21 20.6569 21 19C21 17.3431 19.6569 16 18 16C16.3431 16 15 17.3431 15 19C15 20.6569 16.3431 22 18 22Z" stroke="currentColor" stroke-width="2"/>
-                                <path d="M8.59 13.51L15.42 17.49" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                <path d="M15.41 6.51L8.59 10.49" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            </svg>
-                        </div>
-                        <span>Поделиться с друзьями</span>
-                    </button>
+            </section>
+
+            <!-- Задания (игры и биржи упрощённо) -->
+            <section id="tasks-section" class="content-section">
+                <div class="section-header">
+                    <h2>🎯 Задания</h2>
+                    <span class="section-subtitle">Играйте и зарабатывайте</span>
+                </div>
+                <div class="tasks-subsection">
+                    <h3>🎮 Игры</h3>
+                    <div class="tasks-grid" id="tasks-games-grid"></div>
+                </div>
+                <div class="tasks-subsection" style="margin-top: 20px;">
+                    <h3>📊 Биржи</h3>
+                    <div class="tasks-grid" id="tasks-exchanges-grid"></div>
                 </div>
             </section>
         </main>
 
         <!-- Bottom Navigation -->
         <nav class="bottom-nav">
-            <button class="nav-item active" data-section="games-section">
-                <span class="nav-icon">🎮</span>
-                <span class="nav-label">Игры</span>
-            </button>
-            <button class="nav-item" data-section="exchanges-section">
-                <span class="nav-icon">📊</span>
-                <span class="nav-label">Биржи</span>
-            </button>
-            <button class="nav-item" data-section="game-section">
+            <button class="nav-item active" data-section="game-section">
                 <span class="nav-icon">🎲</span>
-                <span class="nav-label">2048</span>
+                <span class="nav-label">Игра</span>
             </button>
-            <button class="nav-item" data-section="profile-section">
-                <span class="nav-icon">👤</span>
-                <span class="nav-label">Профиль</span>
+            <button class="nav-item" data-section="upgrades-section">
+                <span class="nav-icon">✨</span>
+                <span class="nav-label">Улучшения</span>
+            </button>
+            <button class="nav-item" data-section="referrals-section">
+                <span class="nav-icon">👥</span>
+                <span class="nav-label">Рефералы</span>
+            </button>
+            <button class="nav-item" data-section="tasks-section">
+                <span class="nav-icon">🎯</span>
+                <span class="nav-label">Задания</span>
             </button>
         </nav>
 
