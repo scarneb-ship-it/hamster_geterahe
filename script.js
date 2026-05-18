@@ -1,416 +1,402 @@
-// Telegram Mini App инициализация
-const tg = window.Telegram.WebApp;
-tg.ready();
-tg.expand();
+// Игровое состояние
+const game = {
+    coins: 0,
+    crystals: 5,
+    energy: 100,
+    maxEnergy: 100,
+    level: 1,
+    xp: 0,
+    xpToLevel: 100,
+    incomePerHour: 10,
+    buildings: {
+        mining: { level: 1, name: '⛏️ Майнинг-ферма' },
+        data: { level: 0, name: '💾 Дата-центр' },
+        ai: { level: 0, name: '🧠 AI-лаборатория' },
+        trade: { level: 0, name: '📊 Торговая станция' },
+        analytics: { level: 0, name: '📈 Аналит. центр' }
+    },
+    tasks: [],
+    referrals: 0,
+    lastLogin: null,
+    streak: 0,
+    boostEnergyActive: false,
+    boostEnergyEnd: 0,
+    boostIncomeActive: false,
+    boostIncomeEnd: 0,
+    caseResult: ''
+};
 
-// Хранилище
-const STORAGE_KEY = 'last_vote_v2';
-const PLAYER_POOL = ['Алекс', 'Морган', 'Кира', 'Джейд', 'Тейлор', 'Райли', 'Скай', 'Дрю', 'Ривен', 'Зара'];
-
-// Игровые константы
-const VOTE_TYPES = ['vote_kick', 'vote_boost']; // удаление / усиление
-const CHAOS_EVENTS = [
-    { icon: '🔥', text: 'Огненный день: все голоса удваиваются', effect: 'double_votes' },
-    { icon: '🛡', text: 'День защиты: щиты не тратятся', effect: 'no_shield_loss' },
-    { icon: '💎', text: 'Кристальный дождь: +15 бонусных очков', effect: 'bonus_points' },
-    { icon: '🌪', text: 'Шторм: проигравший теряет 5 очков', effect: 'loser_penalty' },
-    { icon: '🎯', text: 'Меткость: шанс атаки на вас повышен', effect: 'high_threat' },
-];
-
-// Загрузка данных
-let game = JSON.parse(localStorage.getItem(STORAGE_KEY)) || createNewGame();
-
-function createNewGame() {
-    return {
-        user: null,
-        candidates: null,
-        leaderboard: [],
-        dailyEvent: null,
-        voteType: 'vote_kick',  // сегодняшний тип
-        lastEventDate: null,
-        threatActive: false,     // атака дня
-    };
-}
-
-function saveGame() { localStorage.setItem(STORAGE_KEY, JSON.stringify(game)); }
-
-// Инициализация пользователя
-function initUser() {
-    if (game.user) return game.user;
-    const webUser = tg.initDataUnsafe?.user || {};
-    const id = webUser.id || 'local_' + Math.random().toString(36).substr(2, 9);
-    const name = webUser.first_name || 'Игрок';
-    const user = {
-        id, username: webUser.username || '', firstName: name,
-        avatarUrl: webUser.photo_url || '',
-        points: 0, level: 1, xp: 0,
-        streak: 0, lastVoteDate: null, lastLoginDate: null,
-        shields: 0, alive: true,
-        referrerId: null, referralCount: 0,
-    };
-    game.user = user;
-    addToLeaderboard(user);
-    handleReferral();
-    saveGame();
-    return user;
-}
-
-function addToLeaderboard(user) {
-    if (!game.leaderboard.find(u => u.id === user.id)) {
-        game.leaderboard.push({ id: user.id, name: user.firstName, points: user.points, avatar: user.avatarUrl });
+// Загрузка из localStorage
+function loadGame() {
+    const saved = localStorage.getItem('hamsterAiSave');
+    if (saved) {
+        const data = JSON.parse(saved);
+        Object.assign(game, data);
+        game.energy = Math.min(game.energy, game.maxEnergy);
     }
-    // Сортировка всегда
-    game.leaderboard.sort((a, b) => b.points - a.points);
+    if (!game.tasks.length) initTasks();
+    checkDailyReset();
 }
 
-// Рефералы
-function handleReferral() {
-    const startParam = tg.initDataUnsafe?.start_param;
-    if (!startParam || !startParam.startsWith('ref_')) return;
-    const refId = startParam.replace('ref_', '');
-    if (refId === game.user.id) return;
-    if (game.user.referrerId) return;
-    game.user.referrerId = refId;
-    game.user.points += 5;
-    const refUser = game.leaderboard.find(u => u.id === refId);
-    if (refUser) {
-        refUser.points += 2;
-        if (!refUser.referralCount) refUser.referralCount = 0;
-        refUser.referralCount++;
-        refUser.shields = (refUser.shields || 0) + 1;
-    }
-    game.user.shields = (game.user.shields || 0) + 1; // приглашённый тоже получает щит
-    addToLeaderboard(game.user);
-    saveGame();
+function saveGame() {
+    localStorage.setItem('hamsterAiSave', JSON.stringify(game));
 }
 
-// Ежедневная рутина
-function getToday() { return new Date().toISOString().slice(0, 10); }
-
-function dailyReset() {
-    const today = getToday();
-    if (game.lastEventDate !== today) {
-        // Новый тип голосования и событие
-        game.voteType = VOTE_TYPES[Math.floor(Math.random() * VOTE_TYPES.length)];
-        const event = CHAOS_EVENTS[Math.floor(Math.random() * CHAOS_EVENTS.length)];
-        game.dailyEvent = event;
-        game.lastEventDate = today;
-
-        // Генерация кандидатов (3 случайных из пула, но можно добавить логику)
-        const shuffled = [...PLAYER_POOL].sort(() => Math.random() - 0.5);
-        game.candidates = {
-            date: today,
-            list: shuffled.slice(0, 3).map(name => ({ name, alive: true }))
-        };
-
-        // Сброс угрозы
-        game.threatActive = Math.random() < 0.4; // 40% шанс, что вас атакуют
+// Ежедневный сброс заданий и проверка streak
+function checkDailyReset() {
+    const today = new Date().toDateString();
+    if (game.lastLogin !== today) {
+        if (game.lastLogin) {
+            const yesterday = new Date(Date.now() - 86400000).toDateString();
+            game.streak = (game.lastLogin === yesterday) ? game.streak + 1 : 1;
+        } else {
+            game.streak = 1;
+        }
+        game.lastLogin = today;
+        // Сброс ежедневных заданий
+        game.tasks = game.tasks.filter(t => t.period !== 'daily');
+        initDailyTasks();
         saveGame();
     }
 }
 
-// Таймер до полуночи UTC
-function getTimeUntilMidnight() {
-    const now = new Date();
-    const midnight = new Date(now);
-    midnight.setUTCHours(24, 0, 0, 0);
-    return midnight - now;
+// Инициализация заданий
+function initTasks() {
+    game.tasks = [
+        { id: 'daily_tap', desc: 'Сделать 50 тапов', period: 'daily', target: 50, progress: 0, reward: { coins: 100, xp: 20 }, claimed: false },
+        { id: 'daily_collect', desc: 'Собрать доход 1 раз', period: 'daily', target: 1, progress: 0, reward: { coins: 80, xp: 15 }, claimed: false },
+        { id: 'weekly_upgrade', desc: 'Улучшить 3 здания', period: 'weekly', target: 3, progress: 0, reward: { crystals: 2, xp: 100 }, claimed: false },
+        { id: 'invite_friend', desc: 'Пригласить друга', period: 'once', target: 1, progress: 0, reward: { coins: 500, crystals: 1 }, claimed: false }
+    ];
 }
 
-function formatTime(ms) {
-    if (ms <= 0) return '00:00:00';
-    const sec = Math.floor(ms / 1000) % 60;
-    const min = Math.floor(ms / 60000) % 60;
-    const hour = Math.floor(ms / 3600000);
-    return `${String(hour).padStart(2,'0')}:${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+function initDailyTasks() {
+    game.tasks.push(
+        { id: 'daily_tap', desc: 'Сделать 50 тапов', period: 'daily', target: 50, progress: 0, reward: { coins: 100, xp: 20 }, claimed: false },
+        { id: 'daily_collect', desc: 'Собрать доход 1 раз', period: 'daily', target: 1, progress: 0, reward: { coins: 80, xp: 15 }, claimed: false }
+    );
 }
 
-// Голосование
-function canVoteToday() {
-    if (!game.user || !game.user.alive) return false;
-    return game.user.lastVoteDate !== getToday();
-}
-
-function vote(candidateName) {
-    if (!canVoteToday()) return false;
-    const user = game.user;
-    const today = getToday();
-    user.lastVoteDate = today;
-
-    // Базовые очки
-    let pointsEarned = 10;
-    if (game.voteType === 'vote_boost') pointsEarned += 5;
-    if (game.dailyEvent?.effect === 'double_votes') pointsEarned *= 2;
-
-    user.points += pointsEarned;
-    user.streak += 1;
-    addXP(user, pointsEarned);
-
-    // Отметка кандидата
-    const cand = game.candidates.list.find(c => c.name === candidateName);
-    if (cand) cand.alive = false;
-
-    // Обработка атаки на игрока
-    if (game.threatActive) {
-        if (user.shields > 0) {
-            user.shields--;
-            tg.showPopup({ title: '🛡 Щит спас!', message: 'Вас пытались удалить, но щит защитил.' });
-        } else {
-            user.alive = false;
-            tg.showPopup({ title: '💀 Вы выбыли!', message: 'Ваш персонаж удалён голосованием. Воскресните в разделе Наград.' });
-        }
-        game.threatActive = false; // атака прошла
+// Увеличение опыта и уровня
+function addXP(amount) {
+    game.xp += amount;
+    while (game.xp >= game.xpToLevel) {
+        game.xp -= game.xpToLevel;
+        game.level++;
+        game.xpToLevel = Math.floor(game.xpToLevel * 1.5);
+        game.maxEnergy = 100 + (game.level - 1) * 10;
+        game.energy = game.maxEnergy;
+        alert(`🎉 Уровень ${game.level}! Макс. энергия увеличена.`);
     }
-
-    addToLeaderboard(user);
-    saveGame();
     updateUI();
-    return true;
 }
 
-function addXP(user, amount) {
-    user.xp = (user.xp || 0) + amount;
-    const needed = user.level * 50;
-    if (user.xp >= needed) {
-        user.xp -= needed;
-        user.level++;
-        tg.showPopup({ title: '⬆ Уровень повышен!', message: `Теперь вы ${user.level} уровня.` });
+// Обработка тапа
+document.getElementById('hamster-tap').addEventListener('click', (e) => {
+    if (game.energy <= 0) {
+        alert('Нет энергии! Подожди восстановления или используй буст.');
+        return;
     }
-}
-
-// Ежедневная награда
-function claimDailyReward() {
-    const user = game.user;
-    if (!user || !user.alive) return 0;
-    const today = getToday();
-    if (user.lastLoginDate === today) return 0;
-
-    user.lastLoginDate = today;
-    user.streak = (user.streak || 0) + 1;
-    const bonus = 5 + user.streak * 3;
-    user.points += bonus;
-    addXP(user, bonus);
-    addToLeaderboard(user);
-    saveGame();
-    return bonus;
-}
-
-// Воскрешение
-function revive() {
-    const user = game.user;
-    if (!user || user.alive) return false;
-    if (user.points < 100) {
-        tg.showPopup({ title: 'Недостаточно очков', message: 'Нужно 100 очков для воскрешения.' });
-        return false;
-    }
-    user.points -= 100;
-    user.alive = true;
-    user.shields = Math.max(0, user.shields); // щиты не восстанавливаются
-    addToLeaderboard(user);
-    saveGame();
+    game.energy--;
+    let coinsEarned = 1;
+    if (game.boostIncomeActive) coinsEarned *= 2;
+    game.coins += coinsEarned;
+    addXP(1);
+    
+    // Анимация
+    const effect = document.getElementById('tap-effect');
+    effect.textContent = `+${coinsEarned}`;
+    effect.classList.add('show');
+    setTimeout(() => effect.classList.remove('show'), 200);
+    
+    // Обновление заданий
+    game.tasks.forEach(task => {
+        if (task.id === 'daily_tap' && !task.claimed) task.progress = Math.min(task.target, task.progress + 1);
+    });
     updateUI();
-    return true;
+    saveGame();
+});
+
+// Сбор дохода
+document.getElementById('btn-collect').addEventListener('click', () => {
+    let income = game.incomePerHour;
+    if (game.boostIncomeActive) income *= 2;
+    game.coins += income;
+    game.tasks.forEach(task => {
+        if (task.id === 'daily_collect' && !task.claimed) task.progress = 1;
+    });
+    updateUI();
+    saveGame();
+});
+
+// Улучшение зданий
+function upgradeBuilding(type) {
+    const b = game.buildings[type];
+    const cost = (b.level + 1) * 50;
+    if (game.coins < cost) return alert('Недостаточно монет!');
+    game.coins -= cost;
+    b.level++;
+    // Бонус к доходу
+    game.incomePerHour += 10 * b.level;
+    game.tasks.forEach(task => {
+        if (task.id === 'weekly_upgrade' && !task.claimed) task.progress = Math.min(task.target, task.progress + 1);
+    });
+    addXP(20);
+    updateUI();
+    saveGame();
+    renderBase();
 }
 
-// UI обновление
-function updateUI() {
-    const user = game.user;
-    if (!user) return;
-
-    // Главный экран
-    document.getElementById('user-name').textContent = user.firstName;
-    document.getElementById('user-avatar').src = user.avatarUrl || 'data:image/svg+xml,...';
-    document.getElementById('user-level').textContent = user.level;
-    document.getElementById('user-points').textContent = user.points;
-    document.getElementById('shield-count').textContent = user.shields;
-    const xpPercent = Math.min(100, (user.xp / (user.level * 50)) * 100);
-    document.getElementById('xp-bar').style.width = xpPercent + '%';
-
-    const timerMs = getTimeUntilMidnight();
-    document.getElementById('vote-timer').textContent = formatTime(timerMs);
-    // Круг прогресса таймера
-    const totalSec = 86400;
-    const remainingSec = Math.ceil(timerMs / 1000);
-    const progress = (remainingSec / totalSec) * 282.74;
-    document.getElementById('timer-circle').style.strokeDashoffset = 282.74 - progress;
-
-    const voteBtn = document.getElementById('vote-btn');
-    const canVote = canVoteToday();
-    voteBtn.disabled = !canVote;
-    document.getElementById('vote-btn-text').textContent = canVote ? 'ГОЛОСОВАТЬ' : 'УЖЕ ГОЛОСОВАЛИ';
-
-    // Баннер события
-    if (game.dailyEvent) {
-        document.getElementById('event-icon').textContent = game.dailyEvent.icon;
-        document.getElementById('event-text').textContent = game.dailyEvent.text;
-    }
-
-    // Экран голосования (заголовок)
-    const voteTitle = game.voteType === 'vote_boost' ? 'Кого усилить?' : 'Кого удалить?';
-    document.getElementById('vote-title').textContent = voteTitle;
-
-    // Лидеры
-    renderLeaderboard();
-
-    // Награды
-    document.getElementById('streak-days').textContent = user.streak || 1;
-    const bonus = 5 + (user.streak || 1) * 3;
-    document.getElementById('streak-bonus').textContent = '+' + bonus;
-    document.getElementById('ref-count').textContent = user.referralCount || 0;
-    document.getElementById('reward-status').textContent = (user.lastLoginDate === getToday()) ? 'Сегодня уже получено' : '';
-
-    // Секция воскрешения
-    const reviveSection = document.getElementById('revive-section');
-    if (!user.alive) {
-        reviveSection.style.display = 'block';
-    } else {
-        reviveSection.style.display = 'none';
-    }
-
-    // Профиль
-    document.getElementById('profile-id').textContent = user.id;
-    document.getElementById('profile-level').textContent = user.level;
-    document.getElementById('profile-points').textContent = user.points;
-    document.getElementById('profile-shields').textContent = user.shields;
-    document.getElementById('profile-streak').textContent = user.streak || 1;
-    document.getElementById('profile-status').textContent = user.alive ? '🟢 Жив' : '💀 Выбыл';
-}
-
-function renderLeaderboard() {
-    const container = document.getElementById('leaders-list');
+// Рендер базы
+function renderBase() {
+    const container = document.getElementById('buildings-container');
     container.innerHTML = '';
-    const top = game.leaderboard.slice(0, 10);
-    top.forEach((entry, idx) => {
+    for (let key in game.buildings) {
+        const b = game.buildings[key];
+        const cost = (b.level + 1) * 50;
         const div = document.createElement('div');
-        div.className = 'leader-item';
+        div.className = 'building-card';
         div.innerHTML = `
-            <span class="leader-rank">${idx+1}</span>
-            <img class="leader-avatar" src="${entry.avatar || 'data:image/svg+xml,...'}" alt="">
-            <span class="leader-name">${entry.name}</span>
-            <span class="leader-points">${entry.points} 🔹</span>
-        `;
-        if (entry.id === game.user.id) div.style.background = 'rgba(233,68,96,0.1)';
+            <div class="building-info"><strong>${b.name}</strong><br>Ур. ${b.level}</div>
+            <div class="building-actions">
+                <button class="btn small" onclick="upgradeBuilding('${key}')">Улучшить за ${cost}🪙</button>
+            </div>`;
+        container.appendChild(div);
+    }
+}
+
+// Задания отрисовка
+function renderTasks() {
+    const container = document.getElementById('tasks-container');
+    container.innerHTML = '';
+    game.tasks.forEach(task => {
+        const div = document.createElement('div');
+        div.className = 'task-card';
+        const progressText = task.target ? `${task.progress}/${task.target}` : '';
+        div.innerHTML = `
+            <span>${task.desc} ${progressText}</span>
+            ${!task.claimed ? `<button onclick="claimTask('${task.id}')">Забрать</button>` : '<span>✅</span>'}`;
         container.appendChild(div);
     });
 }
 
-// Кандидаты на экране голосования
-function renderVoteScreen() {
-    const list = document.getElementById('candidates-list');
-    list.innerHTML = '';
-    game.candidates.list.forEach(c => {
-        const btn = document.createElement('button');
-        btn.className = 'candidate-btn';
-        const action = game.voteType === 'vote_boost' ? '⚡' : '💀';
-        btn.textContent = `${action} ${c.name}`;
-        btn.disabled = !c.alive || !canVoteToday();
-        btn.addEventListener('click', () => {
-            vote(c.name);
-            showScreen('main');
-        });
-        list.appendChild(btn);
-    });
-}
-
-// Навигация
-function showScreen(screenId) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(screenId).classList.add('active');
+function claimTask(taskId) {
+    const task = game.tasks.find(t => t.id === taskId);
+    if (!task || task.claimed) return;
+    if (task.target && task.progress < task.target) return alert('Не выполнено!');
+    task.claimed = true;
+    if (task.reward.coins) game.coins += task.reward.coins;
+    if (task.reward.crystals) game.crystals += task.reward.crystals;
+    if (task.reward.xp) addXP(task.reward.xp);
     updateUI();
-    if (screenId === 'vote-screen') renderVoteScreen();
+    saveGame();
+    renderTasks();
 }
 
-// Конфетти (простая реализация)
-function launchConfetti() {
-    const canvas = document.getElementById('confetti-canvas');
-    canvas.style.display = 'block';
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    const particles = [];
-    for (let i = 0; i < 100; i++) {
-        particles.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height - canvas.height,
-            size: Math.random() * 6 + 2,
-            color: `hsl(${Math.random() * 360}, 80%, 60%)`,
-            speedY: Math.random() * 3 + 2,
-            speedX: Math.random() * 2 - 1,
-        });
-    }
-    function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        particles.forEach(p => {
-            ctx.fillStyle = p.color;
-            ctx.fillRect(p.x, p.y, p.size, p.size);
-            p.y += p.speedY;
-            p.x += p.speedX;
-        });
-        if (particles.some(p => p.y < canvas.height)) requestAnimationFrame(draw);
-        else canvas.style.display = 'none';
-    }
-    draw();
+// AI чат (имитация)
+document.getElementById('ai-send').addEventListener('click', sendAiMessage);
+document.getElementById('ai-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendAiMessage(); });
+
+function sendAiMessage() {
+    const input = document.getElementById('ai-input');
+    const msg = input.value.trim();
+    if (!msg) return;
+    addChatMessage('user', msg);
+    input.value = '';
+    // Имитация ответа AI
+    setTimeout(() => {
+        const reply = getAiReply(msg);
+        addChatMessage('ai', reply);
+    }, 500);
 }
 
-// Обработчики событий
-document.getElementById('vote-btn').addEventListener('click', () => {
-    showScreen('vote-screen');
-});
+function addChatMessage(role, text) {
+    const window = document.getElementById('chat-window');
+    const div = document.createElement('div');
+    div.className = `chat-msg ${role}`;
+    div.textContent = text;
+    window.appendChild(div);
+    window.scrollTop = window.scrollHeight;
+}
 
-document.querySelectorAll('.btn-back').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        const target = e.target.dataset.screen || 'main';
-        showScreen(target);
-    });
-});
-document.querySelectorAll('.nav-btn[data-screen]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        showScreen(e.target.dataset.screen);
-    });
-});
+function getAiReply(question) {
+    const q = question.toLowerCase();
+    if (q.includes('биткоин') || q.includes('btc')) return 'Биткоин — первая криптовалюта. Сейчас его цена зависит от новостей и крупных инвесторов.';
+    if (q.includes('блокчейн')) return 'Блокчейн — это цепочка блоков, где хранятся все транзакции. Его нельзя подделать!';
+    if (q.includes('майнинг')) return 'Майнинг — процесс добычи криптовалют с помощью вычислений. В игре улучшай майнинг-ферму!';
+    if (q.includes('как улучшить') || q.includes('что делать')) return 'Попробуй улучшить Дата-центр и AI-лабораторию, чтобы увеличить доход и получить больше опыта.';
+    return 'Я пока учусь, но скоро смогу отвечать на сложные вопросы. Продолжай играть! 🐹';
+}
 
-document.getElementById('invite-btn').addEventListener('click', () => {
-    const botUsername = 'your_bot_username'; // ← замени на своего бота
-    const refCode = game.user.id;
-    const url = `https://t.me/${botUsername}/app?startapp=ref_${refCode}`;
-    tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=Присоединяйся к LAST VOTE — социальный эксперимент!`);
-});
-
-document.getElementById('claim-reward-btn').addEventListener('click', () => {
-    const bonus = claimDailyReward();
-    if (bonus) {
-        launchConfetti();
-        tg.showPopup({ title: '🎉 Награда!', message: `+${bonus} очков.` });
+// Ежедневные награды
+document.getElementById('btn-daily-reward').addEventListener('click', () => {
+    const modal = document.getElementById('modal-daily');
+    const container = document.getElementById('daily-rewards');
+    container.innerHTML = '';
+    const rewards = [50, 100, 150, 200, 300, 500, 1000]; // награды за дни
+    for (let i = 0; i < 7; i++) {
+        const div = document.createElement('div');
+        div.className = 'day-reward';
+        div.innerHTML = `День ${i+1}<br>${rewards[i]}🪙`;
+        if (i < game.streak) div.style.background = '#e94560';
+        container.appendChild(div);
+    }
+    modal.style.display = 'flex';
+    // Выдать награду за сегодня, если еще не получали
+    if (!game.dailyClaimed) {
+        game.coins += rewards[Math.min(game.streak-1, 6)];
+        game.dailyClaimed = true;
         updateUI();
-    } else {
-        tg.showPopup({ title: 'Уже получено', message: 'Заберите завтра.' });
+        saveGame();
+        alert(`Получено ${rewards[Math.min(game.streak-1, 6)]} монет за ${game.streak}-й день!`);
     }
 });
 
-document.getElementById('revive-btn')?.addEventListener('click', () => {
-    if (revive()) {
-        tg.showPopup({ title: '🙌 Вы воскресли!', message: 'Добро пожаловать обратно.' });
-        showScreen('main');
+// Кейсы
+document.getElementById('btn-cases').addEventListener('click', () => {
+    document.getElementById('modal-cases').style.display = 'flex';
+});
+
+document.getElementById('open-common-case').addEventListener('click', () => openCase('common'));
+document.getElementById('open-rare-case').addEventListener('click', () => {
+    if (game.crystals < 5) return alert('Нужно 5 кристаллов');
+    game.crystals -= 5;
+    openCase('rare');
+});
+
+function openCase(type) {
+    const commonLoot = [{coins: 200}, {coins: 500}, {crystals: 1}];
+    const rareLoot = [{coins: 1000}, {crystals: 3}, {coins: 500, crystals: 2}];
+    const loot = type === 'rare' ? rareLoot[Math.floor(Math.random()*rareLoot.length)] : commonLoot[Math.floor(Math.random()*commonLoot.length)];
+    if (loot.coins) game.coins += loot.coins;
+    if (loot.crystals) game.crystals += loot.crystals;
+    document.getElementById('case-result').textContent = `Вы получили: ${loot.coins ? loot.coins+'🪙' : ''} ${loot.crystals ? loot.crystals+'💎' : ''}`;
+    updateUI();
+    saveGame();
+}
+
+// Закрытие модальных окон
+document.querySelectorAll('.close').forEach(btn => btn.addEventListener('click', (e) => {
+    e.target.closest('.modal').style.display = 'none';
+}));
+window.onclick = (e) => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; };
+
+// Рейтинг (симуляция)
+function renderLeaders() {
+    const list = document.getElementById('leaders-list');
+    const fake = [
+        { name: 'CryptoKing', score: 5400 },
+        { name: 'HamsterGod', score: 3200 },
+        { name: 'Miner42', score: 2100 },
+        { name: 'Player1', score: 1800 },
+    ];
+    const me = { name: 'Вы', score: game.coins + game.incomePerHour * 10 };
+    const all = [...fake, me].sort((a,b) => b.score - a.score);
+    list.innerHTML = '';
+    all.forEach((p, i) => {
+        const li = document.createElement('li');
+        li.textContent = `${i+1}. ${p.name} — ${p.score} очков`;
+        if (p.name === 'Вы') li.style.color = '#f9c74f';
+        list.appendChild(li);
+    });
+    document.getElementById('ref-count').textContent = game.referrals;
+}
+
+// Приглашение друга
+document.getElementById('btn-invite').addEventListener('click', () => {
+    const refLink = `${window.location.origin}${window.location.pathname}?ref=${Date.now()}`;
+    navigator.clipboard.writeText(refLink).then(() => alert('Реферальная ссылка скопирована!'));
+    // Симуляция: если перешли по ref, увеличиваем счетчик
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('ref') && !sessionStorage.getItem('refApplied')) {
+        sessionStorage.setItem('refApplied', '1');
+        game.referrals++;
+        game.coins += 200; // бонус за приглашение
+        game.tasks.forEach(t => { if (t.id === 'invite_friend') t.progress = 1; });
+        updateUI();
+        saveGame();
+        document.getElementById('ref-bonus').textContent = '🎁 Получен бонус за переход по ссылке!';
     }
 });
 
-// Таймер обновления интерфейса
+// Бусты
+document.getElementById('boost-energy').addEventListener('click', () => {
+    if (game.boostEnergyActive) return alert('Буст уже активен');
+    game.boostEnergyActive = true;
+    game.boostEnergyEnd = Date.now() + 30*60000;
+    game.maxEnergy *= 2;
+    game.energy = game.maxEnergy;
+    alert('Энергия удвоена на 30 минут!');
+    updateUI();
+    saveGame();
+});
+document.getElementById('boost-income').addEventListener('click', () => {
+    if (game.boostIncomeActive) return alert('Буст уже активен');
+    game.boostIncomeActive = true;
+    game.boostIncomeEnd = Date.now() + 60*60000;
+    alert('Доход удвоен на 1 час!');
+    updateUI();
+    saveGame();
+});
+
+// Обновление UI
+function updateUI() {
+    document.getElementById('coins').textContent = game.coins;
+    document.getElementById('crystals').textContent = game.crystals;
+    document.getElementById('energy').textContent = `${game.energy}/${game.maxEnergy}`;
+    document.getElementById('level').textContent = game.level;
+    document.getElementById('income-hour').textContent = game.incomePerHour;
+    document.getElementById('xp-progress').value = game.xp;
+    document.getElementById('xp-progress').max = game.xpToLevel;
+    document.getElementById('xp-text').textContent = `${game.xp}/${game.xpToLevel}`;
+    // Бусты
+    if (game.boostEnergyActive && Date.now() > game.boostEnergyEnd) {
+        game.boostEnergyActive = false;
+        game.maxEnergy = 100 + (game.level - 1) * 10;
+        game.energy = Math.min(game.energy, game.maxEnergy);
+    }
+    if (game.boostIncomeActive && Date.now() > game.boostIncomeEnd) {
+        game.boostIncomeActive = false;
+    }
+    saveGame();
+}
+
+// Навигация по экранам
+document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const screenId = `screen-${btn.dataset.screen}`;
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+        if (btn.dataset.screen === 'base') renderBase();
+        if (btn.dataset.screen === 'tasks') renderTasks();
+        if (btn.dataset.screen === 'leader') renderLeaders();
+    });
+});
+
+// Таймер восстановления энергии
 setInterval(() => {
-    const timerMs = getTimeUntilMidnight();
-    document.getElementById('vote-timer').textContent = formatTime(timerMs);
-    const totalSec = 86400;
-    const remaining = Math.ceil(timerMs / 1000);
-    const progress = (remaining / totalSec) * 282.74;
-    document.getElementById('timer-circle').style.strokeDashoffset = 282.74 - progress;
-    // Если день сменился – перезапуск логики (сработает при заходе на главный экран)
-    if (getToday() !== game.lastEventDate) {
-        dailyReset();
+    if (game.energy < game.maxEnergy) {
+        game.energy = Math.min(game.maxEnergy, game.energy + 0.2); // 1 энергия в 5 сек примерно
         updateUI();
     }
 }, 1000);
 
-// Старт
-const user = initUser();
-dailyReset();
-if (user.lastLoginDate !== getToday()) claimDailyReward();
+// Инициализация
+loadGame();
 updateUI();
+renderBase();
+renderTasks();
+renderLeaders();
+// Проверка реферальной ссылки
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('ref') && !sessionStorage.getItem('refApplied')) {
+    sessionStorage.setItem('refApplied', '1');
+    game.referrals++;
+    game.coins += 200;
+    game.tasks.forEach(t => { if (t.id === 'invite_friend') t.progress = 1; });
+    updateUI();
+    saveGame();
+    document.getElementById('ref-bonus').textContent = '🎁 Получен бонус за переход по ссылке друга!';
+}
