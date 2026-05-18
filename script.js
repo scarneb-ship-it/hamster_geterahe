@@ -16,11 +16,11 @@ const EXCHANGES_DATA = [
     { id:4, name:"MEXC", url:"https://promote.mexc.com/r/aTSLfdm54W", description:"Глобальная биржа", image:"images/mexc.jpg", fallback:"🌍" }
 ];
 
-// Скины
+// Скины (теперь все бесплатны)
 const SKINS = [
     { id: 'classic', name: 'Классический', price: 0, preview: '2' },
-    { id: 'golden', name: 'Золотой', price: 100, preview: '🪙' },
-    { id: 'neon', name: 'Неоновый', price: 200, preview: '💠' }
+    { id: 'golden', name: 'Золотой', price: 0, preview: '🪙' },
+    { id: 'neon', name: 'Неоновый', price: 0, preview: '💠' }
 ];
 
 function vibrate() { if (navigator.vibrate) navigator.vibrate(50); }
@@ -452,75 +452,37 @@ function getCurrentBalanceFromDisplay() {
     return match ? parseInt(match[1]) : 0;
 }
 
-// ==================== МАГАЗИН СКИНОВ ====================
+// ==================== МАГАЗИН СКИНОВ (БЕСПЛАТНЫЙ) ====================
 function setupShop() {
     renderSkins();
 }
-async function renderSkins() {
+function renderSkins() {
     const grid = document.getElementById('skins-grid');
     if (!grid) return;
     const currentSkin = localStorage.getItem('selectedSkin') || 'classic';
-    const purchasedSkins = JSON.parse(localStorage.getItem('purchasedSkins') || '["classic"]');
-    const balance = await updateBalanceDisplay(); // получаем актуальные коины
+    // Все скины теперь доступны без покупки, поэтому список купленных игнорируем
     grid.innerHTML = SKINS.map(skin => {
-        const owned = purchasedSkins.includes(skin.id);
         const isActive = currentSkin === skin.id;
         let btnHtml = '';
         if (isActive) {
             btnHtml = '<button class="active-skin" disabled>Выбрано</button>';
-        } else if (owned) {
-            btnHtml = `<button class="select-skin" data-skin="${skin.id}">Выбрать</button>`;
         } else {
-            btnHtml = `<button class="buy-skin" data-skin="${skin.id}" data-price="${skin.price}">Купить за ${skin.price} коин.</button>`;
+            btnHtml = `<button class="apply-skin" data-skin="${skin.id}">Применить</button>`;
         }
         return `<div class="skin-card">
             <div class="skin-preview">${skin.preview}</div>
-            <div class="skin-info"><div class="skin-name">${skin.name}</div><div class="skin-price">${skin.price > 0 ? skin.price + ' коин.' : 'Бесплатно'}</div></div>
+            <div class="skin-info"><div class="skin-name">${skin.name}</div><div class="skin-price">Бесплатно</div></div>
             <div class="skin-action">${btnHtml}</div>
         </div>`;
     }).join('');
 
-    // Обработчики кнопок
-    document.querySelectorAll('.buy-skin').forEach(btn => {
-        btn.addEventListener('click', async function() {
-            const skinId = this.dataset.skin;
-            const price = parseInt(this.dataset.price);
-            const currentBalance = await updateBalanceDisplay();
-            if (currentBalance < price) {
-                showNotification('Недостаточно коинов');
-                return;
-            }
-            // Отправляем списание на сервер
-            try {
-                const res = await fetch(WORKER_URL+'/spend-coins', {
-                    method:'POST',
-                    headers:{'Content-Type':'application/json'},
-                    body: JSON.stringify({ userId: currentUserId.toString(), amount: price })
-                });
-                if (!res.ok) throw new Error('Server error');
-                const data = await res.json();
-                if (!data.success) { showNotification(data.error || 'Ошибка'); return; }
-                // Сохраняем покупку локально
-                const purchased = JSON.parse(localStorage.getItem('purchasedSkins') || '["classic"]');
-                if (!purchased.includes(skinId)) {
-                    purchased.push(skinId);
-                    localStorage.setItem('purchasedSkins', JSON.stringify(purchased));
-                }
-                // Применяем скин
-                if (game2048) game2048.applySkin(skinId);
-                showNotification('Скин куплен и применён!');
-                renderSkins(); // обновить список
-            } catch(e) {
-                showNotification('Ошибка при покупке');
-            }
-        });
-    });
-    document.querySelectorAll('.select-skin').forEach(btn => {
+    // Обработчики кнопок "Применить"
+    document.querySelectorAll('.apply-skin').forEach(btn => {
         btn.addEventListener('click', function() {
             const skinId = this.dataset.skin;
             if (game2048) game2048.applySkin(skinId);
             showNotification('Скин применён');
-            renderSkins();
+            renderSkins(); // обновить список, чтобы показать "Выбрано"
         });
     });
 }
