@@ -1,4 +1,4 @@
-// ========== Telegram Mini App инициализация ==========
+// Telegram Mini App
 const tg = window.Telegram?.WebApp;
 if (tg) {
   tg.ready();
@@ -6,38 +6,38 @@ if (tg) {
   document.body.style.backgroundColor = tg.backgroundColor;
   document.body.style.color = tg.textColor;
   tg.MainButton.setText('Поделиться результатом').show().onClick(() => {
-    const score = document.getElementById('scoreDisplay').textContent;
+    const score = scoreDisplay.textContent;
     tg.sendData(JSON.stringify({ game: 'Block Blast Color', score }));
   });
 }
 
-// ========== Игровые константы и состояние ==========
+// Константы
 const ROWS = 8;
 const COLS = 8;
-// board теперь хранит цвет: 0 = пусто, 'цвет' = строка цвета фигуры
 let board = Array(ROWS).fill().map(() => Array(COLS).fill(0));
 let score = 0;
 let selectedPiece = null;
-let currentPieces = []; // массив объектов { shape, color }
+let currentPieces = [];
 let gameOver = false;
-let isClearing = false; // флаг, чтобы блокировать действия во время анимации очистки
+let isClearing = false;
 
-// Цветовая палитра фигур (яркие оттенки)
+// DOM-элементы
+const boardEl = document.getElementById('board');
+const piecesPanelEl = document.getElementById('piecesPanel');
+const scoreDisplay = document.getElementById('scoreDisplay');
+const gameOverMsg = document.getElementById('gameOverMsg');
+const restartBtn = document.getElementById('restartBtn');
+
+// Ссылки на DOM-ячейки для быстрого обновления превью
+let cellElements = Array(ROWS).fill().map(() => Array(COLS).fill(null));
+
+// Цвета фигур
 const PIECE_COLORS = [
-  '#FF6B6B', // красный
-  '#4ECDC4', // бирюзовый
-  '#FFD166', // жёлтый
-  '#A855F7', // фиолетовый
-  '#38BDF8', // голубой
-  '#F472B6', // розовый
-  '#10B981', // зелёный
-  '#FB923C', // оранжевый
-  '#6366F1', // индиго
-  '#FACC15', // лимон
-  '#A3E635'  // лайм
+  '#FF6B6B', '#4ECDC4', '#FFD166', '#A855F7', '#38BDF8',
+  '#F472B6', '#10B981', '#FB923C', '#6366F1', '#FACC15', '#A3E635'
 ];
 
-// Доступные фигуры (матрицы)
+// Формы фигур
 const SHAPES = [
   [[1]],
   [[1, 1]],
@@ -52,47 +52,41 @@ const SHAPES = [
   [[1, 1, 1], [0, 1, 0]]
 ];
 
-// DOM элементы
-const boardEl = document.getElementById('board');
-const piecesPanelEl = document.getElementById('piecesPanel');
-const scoreDisplay = document.getElementById('scoreDisplay');
-const gameOverMsg = document.getElementById('gameOverMsg');
-const restartBtn = document.getElementById('restartBtn');
-
-// ========== Функции логики ==========
+// Генерация случайного цвета
 function randomColor() {
   return PIECE_COLORS[Math.floor(Math.random() * PIECE_COLORS.length)];
 }
 
+// Создание фигуры
 function createPiece() {
   const shape = SHAPES[Math.floor(Math.random() * SHAPES.length)];
   return { shape, color: randomColor() };
 }
 
+// Генерация трёх новых фигур
 function generateThreePieces() {
   currentPieces = [createPiece(), createPiece(), createPiece()];
   selectedPiece = null;
   renderPieces();
-  if (!anyPieceCanBePlaced()) {
-    endGame();
-  }
+  if (!anyPieceCanBePlaced()) endGame();
 }
 
+// Проверка возможности размещения
 function canPlace(piece, row, col) {
   const shape = piece.shape;
   for (let r = 0; r < shape.length; r++) {
     for (let c = 0; c < shape[0].length; c++) {
       if (shape[r][c]) {
-        const newRow = row + r;
-        const newCol = col + c;
-        if (newRow < 0 || newRow >= ROWS || newCol < 0 || newCol >= COLS) return false;
-        if (board[newRow][newCol] !== 0) return false;
+        const nr = row + r, nc = col + c;
+        if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) return false;
+        if (board[nr][nc] !== 0) return false;
       }
     }
   }
   return true;
 }
 
+// Размещение фигуры на доске
 function placePiece(piece, row, col) {
   const shape = piece.shape;
   for (let r = 0; r < shape.length; r++) {
@@ -102,19 +96,17 @@ function placePiece(piece, row, col) {
       }
     }
   }
-  // Удаляем использованную фигуру из списка
   const index = currentPieces.indexOf(piece);
   if (index > -1) currentPieces.splice(index, 1);
   selectedPiece = null;
 }
 
+// Получить все заполненные линии и столбцы
 function getFullLinesAndColumns() {
   const lines = [];
-  // строки
   for (let r = 0; r < ROWS; r++) {
     if (board[r].every(cell => cell !== 0)) lines.push({ type: 'row', index: r });
   }
-  // столбцы
   for (let c = 0; c < COLS; c++) {
     let full = true;
     for (let r = 0; r < ROWS; r++) {
@@ -125,53 +117,50 @@ function getFullLinesAndColumns() {
   return lines;
 }
 
+// Очистка заполненных линий с анимацией
 function clearFullLinesAndColumns() {
   const toClear = getFullLinesAndColumns();
   if (toClear.length === 0) return;
 
   isClearing = true;
-  const cellsToAnimate = [];
-  // собираем ячейки для анимации
+  const cellsToClear = [];
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
-      const isRowClear = toClear.some(item => item.type === 'row' && item.index === r);
-      const isColClear = toClear.some(item => item.type === 'col' && item.index === c);
-      if (isRowClear || isColClear) {
-        cellsToAnimate.push({ row: r, col: c });
-      }
+      const isRow = toClear.some(item => item.type === 'row' && item.index === r);
+      const isCol = toClear.some(item => item.type === 'col' && item.index === c);
+      if (isRow || isCol) cellsToClear.push({ row: r, col: c });
     }
   }
 
-  // Запускаем анимацию: добавляем класс clearing
-  cellsToAnimate.forEach(({ row, col }) => {
-    const cell = document.querySelector(`.cell[data-row='${row}'][data-col='${col}']`);
+  // Добавляем класс анимации
+  cellsToClear.forEach(({ row, col }) => {
+    const cell = cellElements[row][col];
     if (cell) cell.classList.add('clearing');
   });
 
   setTimeout(() => {
-    // Реальная очистка поля
+    // Физическая очистка
     for (let r = 0; r < ROWS; r++) {
       for (let c = 0; c < COLS; c++) {
-        const isRowClear = toClear.some(item => item.type === 'row' && item.index === r);
-        const isColClear = toClear.some(item => item.type === 'col' && item.index === c);
-        if (isRowClear || isColClear) {
-          board[r][c] = 0;
-        }
+        const isRow = toClear.some(item => item.type === 'row' && item.index === r);
+        const isCol = toClear.some(item => item.type === 'col' && item.index === c);
+        if (isRow || isCol) board[r][c] = 0;
       }
     }
     score += toClear.length * 10;
     updateScore();
     isClearing = false;
-    renderBoard();
+    renderBoard(); // обновляем доску
     if (currentPieces.length === 0 && !gameOver) {
       generateThreePieces();
     } else if (currentPieces.length > 0 && !anyPieceCanBePlaced() && !gameOver) {
       endGame();
     }
     if (tg) tg.HapticFeedback?.notificationOccurred('success');
-  }, 400);
+  }, 350);
 }
 
+// Проверка, можно ли разместить хотя бы одну фигуру
 function anyPieceCanBePlaced() {
   for (let piece of currentPieces) {
     for (let r = 0; r < ROWS; r++) {
@@ -206,42 +195,73 @@ function resetGame() {
 
 function updateScore() {
   scoreDisplay.textContent = score;
+  // Визуальный бамп
+  scoreDisplay.classList.add('bump');
+  setTimeout(() => scoreDisplay.classList.remove('bump'), 200);
 }
 
-// ========== Отрисовка ==========
-function renderBoard(previewPiece = null, previewRow = -1, previewCol = -1) {
+// Обновление превью без перерисовки всей доски
+function updatePreview(piece, startRow, startCol) {
+  if (!piece || gameOver || isClearing) {
+    // Убираем все превью-классы
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const cell = cellElements[r][c];
+        if (cell) {
+          cell.classList.remove('preview', 'invalid-preview');
+          if (!board[r][c]) cell.style.backgroundColor = '';
+        }
+      }
+    }
+    return;
+  }
+
+  const shape = piece.shape;
+  const valid = canPlace(piece, startRow, startCol);
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const cell = cellElements[r][c];
+      if (!cell) continue;
+      // Сбрасываем
+      cell.classList.remove('preview', 'invalid-preview');
+      if (!board[r][c]) cell.style.backgroundColor = '';
+
+      const inShape = (
+        r >= startRow && r < startRow + shape.length &&
+        c >= startCol && c < startCol + shape[0].length &&
+        shape[r - startRow][c - startCol] === 1
+      );
+      if (inShape && !board[r][c]) {
+        if (valid) {
+          cell.classList.add('preview');
+          cell.style.backgroundColor = piece.color + '99'; // полупрозрачный
+        } else {
+          cell.classList.add('invalid-preview');
+          cell.style.backgroundColor = 'rgba(255,80,80,0.3)';
+        }
+      }
+    }
+  }
+}
+
+// Полная перерисовка доски (после изменений)
+function renderBoard() {
   boardEl.innerHTML = '';
+  cellElements = Array(ROWS).fill().map(() => Array(COLS).fill(null));
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       const cell = document.createElement('div');
       cell.className = 'cell';
       cell.dataset.row = r;
       cell.dataset.col = c;
-      
-      // Цвет ячейки
+
       if (board[r][c] !== 0) {
         cell.classList.add('filled');
         cell.style.backgroundColor = board[r][c];
         cell.style.boxShadow = `0 0 12px ${board[r][c]}`;
       }
-      
-      // Превью фигуры
-      if (previewPiece && !gameOver && !isClearing) {
-        const shape = previewPiece.shape;
-        const inShape = (r >= previewRow && r < previewRow + shape.length &&
-                         c >= previewCol && c < previewCol + shape[0].length &&
-                         shape[r - previewRow][c - previewCol] === 1);
-        if (inShape) {
-          if (canPlace(previewPiece, previewRow, previewCol)) {
-            cell.classList.add('preview');
-            cell.style.backgroundColor = previewPiece.color + '99'; // полупрозрачный
-          } else {
-            cell.classList.add('invalid-preview');
-          }
-        }
-      }
-      
-      // Обработчики событий
+
+      // Обработчик клика
       cell.addEventListener('click', () => {
         if (gameOver || !selectedPiece || isClearing) return;
         if (canPlace(selectedPiece, r, c)) {
@@ -251,29 +271,37 @@ function renderBoard(previewPiece = null, previewRow = -1, previewCol = -1) {
           renderPieces();
         }
       });
+
+      // Для мобильных: касание активирует клик
+      cell.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        cell.click();
+      });
+
+      // Превью при наведении
       cell.addEventListener('mouseenter', () => {
         if (gameOver || !selectedPiece || isClearing) return;
-        renderBoard(selectedPiece, r, c);
+        updatePreview(selectedPiece, r, c);
       });
       cell.addEventListener('mouseleave', () => {
-        if (gameOver || !selectedPiece || isClearing) return;
-        renderBoard();
+        updatePreview(null);
       });
-      
+
       boardEl.appendChild(cell);
+      cellElements[r][c] = cell;
     }
   }
 }
 
 function renderPieces() {
   piecesPanelEl.innerHTML = '';
-  currentPieces.forEach((piece, index) => {
+  currentPieces.forEach((piece) => {
     const pieceDiv = document.createElement('div');
     pieceDiv.className = 'piece';
     if (piece === selectedPiece) pieceDiv.classList.add('selected');
     pieceDiv.style.gridTemplateColumns = `repeat(${piece.shape[0].length}, 1fr)`;
     pieceDiv.style.gridTemplateRows = `repeat(${piece.shape.length}, 1fr)`;
-    
+
     for (let r = 0; r < piece.shape.length; r++) {
       for (let c = 0; c < piece.shape[0].length; c++) {
         const cell = document.createElement('div');
@@ -286,16 +314,18 @@ function renderPieces() {
         pieceDiv.appendChild(cell);
       }
     }
+
     pieceDiv.addEventListener('click', () => {
       if (gameOver || isClearing) return;
       selectedPiece = piece;
       renderPieces();
-      renderBoard();
+      updatePreview(null); // убрать превью со старой фигуры
     });
+
     piecesPanelEl.appendChild(pieceDiv);
   });
 }
 
-// ========== Запуск ==========
+// Запуск
 restartBtn.addEventListener('click', resetGame);
 resetGame();
