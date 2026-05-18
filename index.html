@@ -1,114 +1,100 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-    <title>LAST VOTE — голосование дня</title>
-    <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Хомяк AI – Крипто Империя</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="app">
-        <!-- Главный экран -->
-        <div id="main-screen" class="screen active">
-            <div class="profile-card glass">
-                <div class="avatar-level">
-                    <img id="user-avatar" src="" alt="Аватар" class="avatar" />
-                    <div class="level-badge"><span id="user-level">1</span></div>
+    <div id="app" class="phone-frame">
+        <!-- Шапка -->
+        <header class="top-bar">
+            <div class="resource"><span class="icon">🪙</span> <span id="coins">0</span></div>
+            <div class="resource"><span class="icon">💎</span> <span id="crystals">0</span></div>
+            <div class="resource"><span class="icon">⚡</span> <span id="energy">100/100</span></div>
+            <div class="resource level">Ур. <span id="level">1</span></div>
+        </header>
+
+        <!-- Основной контент (переключаемые экраны) -->
+        <main class="content">
+            <!-- Экран 1: Главный -->
+            <section id="screen-main" class="screen active">
+                <div class="main-hamster" id="hamster-tap">
+                    <span>🐹</span>
+                    <div class="tap-effect" id="tap-effect">+1</div>
                 </div>
-                <h2 id="user-name"></h2>
-                <div class="points">🔹 <span id="user-points">0</span> очков</div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="xp-bar"></div>
+                <div class="income-bar">💰 Доход: <span id="income-hour">0</span>/час</div>
+                <div class="xp-bar"><progress id="xp-progress" value="0" max="100"></progress> Опыт: <span id="xp-text">0/100</span></div>
+                <button class="btn" id="btn-collect">Собрать доход</button>
+                <div class="boost-buttons">
+                    <button class="btn small" id="boost-energy">⚡Энергия x2 (30м)</button>
+                    <button class="btn small" id="boost-income">💰Доход x2 (1ч)</button>
                 </div>
-                <div class="shield-info">🛡 Щитов: <span id="shield-count">0</span></div>
-            </div>
+                <button class="btn small" id="btn-daily-reward">🎁 Ежедневная награда</button>
+                <button class="btn small" id="btn-cases">📦 Кейсы</button>
+            </section>
 
-            <div class="timer-card glass">
-                <div class="timer-label">До нового голосования</div>
-                <div class="timer-ring">
-                    <svg viewBox="0 0 100 100">
-                        <circle cx="50" cy="50" r="45" class="timer-bg" />
-                        <circle cx="50" cy="50" r="45" class="timer-progress" id="timer-circle" />
-                    </svg>
-                    <div class="timer-value" id="vote-timer">00:00:00</div>
+            <!-- Экран 2: База -->
+            <section id="screen-base" class="screen">
+                <h3>🏗️ Моя база</h3>
+                <div id="buildings-container"></div>
+            </section>
+
+            <!-- Экран 3: Задания -->
+            <section id="screen-tasks" class="screen">
+                <h3>📋 Задания</h3>
+                <div id="tasks-container"></div>
+            </section>
+
+            <!-- Экран 4: AI-помощник -->
+            <section id="screen-ai" class="screen">
+                <h3>🤖 AI-наставник</h3>
+                <div id="chat-window"></div>
+                <div class="chat-input">
+                    <input type="text" id="ai-input" placeholder="Спроси о крипте...">
+                    <button id="ai-send">➤</button>
                 </div>
-            </div>
+            </section>
 
-            <button id="vote-btn" class="btn-neon">
-                <span id="vote-btn-text">ГОЛОСОВАТЬ</span>
-                <span class="btn-glow"></span>
-            </button>
+            <!-- Экран 5: Рейтинг -->
+            <section id="screen-leader" class="screen">
+                <h3>🏆 Рейтинг игроков</h3>
+                <ol id="leaders-list"></ol>
+                <p>👥 Приглашено друзей: <span id="ref-count">0</span></p>
+                <button class="btn" id="btn-invite">📤 Пригласить друга</button>
+                <p id="ref-bonus"></p>
+            </section>
+        </main>
 
-            <div class="event-banner glass" id="event-banner">
-                <span id="event-icon">🔥</span>
-                <span id="event-text"></span>
-            </div>
+        <!-- Нижняя навигация -->
+        <nav class="bottom-nav">
+            <button class="nav-btn active" data-screen="main">🏠</button>
+            <button class="nav-btn" data-screen="base">🏗️</button>
+            <button class="nav-btn" data-screen="tasks">📋</button>
+            <button class="nav-btn" data-screen="ai">🤖</button>
+            <button class="nav-btn" data-screen="leader">🏆</button>
+        </nav>
+    </div>
 
-            <div class="nav-grid">
-                <button class="nav-btn" data-screen="leaderboard">🏆 Лидеры</button>
-                <button class="nav-btn" data-screen="rewards">🎁 Награды</button>
-                <button class="nav-btn" id="invite-btn">📨 Друзья</button>
-                <button class="nav-btn" data-screen="profile">👤 Профиль</button>
-            </div>
+    <!-- Модальные окна -->
+    <div id="modal-daily" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>🎁 Ежедневные награды</h3>
+            <div id="daily-rewards"></div>
         </div>
-
-        <!-- Экран голосования -->
-        <div id="vote-screen" class="screen">
-            <h2 id="vote-title">Кого удалить?</h2>
-            <div id="candidates-list"></div>
-            <button class="btn-back" data-screen="main">← Назад</button>
-        </div>
-
-        <!-- Лидерборд -->
-        <div id="leaderboard-screen" class="screen">
-            <h2>🏆 Топ-10 игроков</h2>
-            <div id="leaders-list"></div>
-            <button class="btn-back" data-screen="main">← Назад</button>
-        </div>
-
-        <!-- Награды и рефералы -->
-        <div id="rewards-screen" class="screen">
-            <h2>🎁 Ежедневный бонус</h2>
-            <div class="reward-card glass">
-                <div class="streak-info">
-                    <span>Дней подряд: <strong id="streak-days">1</strong></span>
-                    <span>Сегодня: <strong id="streak-bonus">+10</strong> очков</span>
-                </div>
-                <button id="claim-reward-btn" class="btn-neon">Забрать награду</button>
-                <p class="note" id="reward-status"></p>
-            </div>
-            <div class="ref-card glass">
-                <h3>📨 Рефералы</h3>
-                <p>Приглашено: <span id="ref-count">0</span></p>
-                <p>Каждый друг даёт <strong>+2 очка</strong> и <strong>+1 щит</strong></p>
-            </div>
-            <div class="revive-card glass" id="revive-section" style="display:none;">
-                <h3>💀 Вы выбыли!</h3>
-                <p>Потратьте 100 очков, чтобы воскреснуть</p>
-                <button id="revive-btn" class="btn-neon">Воскреснуть (100 🔹)</button>
-            </div>
-            <button class="btn-back" data-screen="main">← Назад</button>
-        </div>
-
-        <!-- Профиль (расширенный) -->
-        <div id="profile-screen" class="screen">
-            <h2>👤 Профиль</h2>
-            <div class="profile-detail glass">
-                <p><strong>ID:</strong> <span id="profile-id"></span></p>
-                <p><strong>Уровень:</strong> <span id="profile-level"></span></p>
-                <p><strong>Очки:</strong> <span id="profile-points"></span></p>
-                <p><strong>Щиты:</strong> <span id="profile-shields"></span></p>
-                <p><strong>Дней подряд:</strong> <span id="profile-streak"></span></p>
-                <p><strong>Статус:</strong> <span id="profile-status"></span></p>
-            </div>
-            <button class="btn-back" data-screen="main">← Назад</button>
+    </div>
+    <div id="modal-cases" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>📦 Кейсы</h3>
+            <p>Обычный кейс: <button id="open-common-case">Открыть</button></p>
+            <p>Редкий кейс: <button id="open-rare-case">Открыть (💎5)</button></p>
+            <p id="case-result"></p>
         </div>
     </div>
 
-    <!-- Canvas для конфетти -->
-    <canvas id="confetti-canvas"></canvas>
-
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
