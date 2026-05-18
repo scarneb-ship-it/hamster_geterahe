@@ -78,50 +78,42 @@
                 <div class="exchanges-list" id="exchanges-list"></div>
             </section>
 
-            <!-- Tap Game Section (бывшая 2048) -->
+            <!-- Tapolka Game Section -->
             <section id="game-section" class="content-section game-fullscreen">
                 <div class="tap-game-container">
-                    <div class="tap-balance-display">
-                        <span class="balance-amount" id="tap-balance">0</span>
-                        <span class="balance-label">монет</span>
-                    </div>
-                    <div class="tap-energy-bar">
-                        <div class="energy-fill" id="tap-energy-fill"></div>
-                        <span class="energy-text" id="tap-energy-text">100/100</span>
-                    </div>
-                    <div class="tap-button-area">
-                        <button class="tap-main-button" id="tap-main-button">
-                            <span class="tap-emoji">💎</span>
-                            <span class="tap-hint">ЖМИ!</span>
-                        </button>
-                    </div>
-                    <div class="tap-floating-text" id="tap-floating-text"></div>
-                    <div class="tap-upgrades">
-                        <h4 class="upgrades-title">🚀 Улучшения</h4>
-                        <div class="upgrade-item">
-                            <span>💪 Сила тапа (Ур. <span id="tap-power-level">1</span>)</span>
-                            <span class="upgrade-desc">+1 за тап</span>
-                            <button class="upgrade-button" id="upgrade-tap-power">
-                                Купить (<span id="tap-power-cost">10</span>💰)
-                            </button>
-                        </div>
-                        <div class="upgrade-item">
-                            <span>⚡ Макс. энергия (Ур. <span id="max-energy-level">1</span>)</span>
-                            <span class="upgrade-desc">+10</span>
-                            <button class="upgrade-button" id="upgrade-max-energy">
-                                Купить (<span id="max-energy-cost">20</span>💰)
-                            </button>
-                        </div>
-                        <div class="upgrade-item">
-                            <span>⏱️ Авто-тап (Ур. <span id="auto-tap-level">0</span>)</span>
-                            <span class="upgrade-desc">+<span id="auto-tap-income">0</span>/с</span>
-                            <button class="upgrade-button" id="upgrade-auto-tap">
-                                Купить (<span id="auto-tap-cost">50</span>💰)
-                            </button>
+                    <div class="game-header-tap">
+                        <h3 class="game-title-tap">Таполка</h3>
+                        <div class="game-scores">
+                            <div class="score-box">
+                                <div class="score-label">Монеты</div>
+                                <div class="score-value" id="tap-coins">0</div>
+                            </div>
+                            <div class="score-box">
+                                <div class="score-label">За клик</div>
+                                <div class="score-value" id="tap-per-click">1</div>
+                            </div>
                         </div>
                     </div>
-                    <div class="daily-reward">
-                        <button id="daily-reward-button">🎁 Ежедневная награда</button>
+                    <div class="coin-container">
+                        <div class="coin" id="main-coin">
+                            <span class="coin-icon">🪙</span>
+                            <div class="tap-effect" id="tap-effect"></div>
+                        </div>
+                        <div class="coin-tap-value" id="tap-pop">+1</div>
+                    </div>
+                    <div class="energy-bar-container">
+                        <div class="energy-bar-bg">
+                            <div class="energy-bar-fill" id="energy-fill"></div>
+                        </div>
+                        <div class="energy-text" id="energy-text">500/500</div>
+                    </div>
+                    <div class="upgrades-panel" id="upgrades-panel">
+                        <h4>Улучшения</h4>
+                        <div class="upgrades-list" id="upgrades-list"></div>
+                    </div>
+                    <div class="tap-game-info">
+                        <span>Авто-клик: <span id="auto-tap-info">0/сек</span></span>
+                        <span>Восстановление: <span id="regen-info">1/сек</span></span>
                     </div>
                 </div>
                 <!-- Таблица лидеров -->
@@ -176,8 +168,8 @@
                 <span class="nav-label">Биржи</span>
             </button>
             <button class="nav-item" data-section="game-section">
-                <span class="nav-icon">👆</span>
-                <span class="nav-label">Тапалка</span>
+                <span class="nav-icon">🪙</span>
+                <span class="nav-label">Таполка</span>
             </button>
             <button class="nav-item" data-section="profile-section">
                 <span class="nav-icon">👤</span>
