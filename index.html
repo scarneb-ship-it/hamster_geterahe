@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#667eea">
-    <title>Games Verse</title>
+    <title>TapVerse — кликер как VK Coin</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
@@ -19,7 +19,7 @@
         <!-- Header -->
         <header class="header">
             <div class="header-content">
-                <h1 class="app-title">Games Verse</h1>
+                <h1 class="app-title">TapVerse</h1>
                 <button class="settings-button" id="settings-button" aria-label="Настройки">⚙️</button>
             </div>
         </header>
@@ -41,90 +41,68 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Games Section -->
-            <section id="games-section" class="content-section active">
-                <div class="section-header">
-                    <h2>Игры</h2>
-                    <span class="section-subtitle">Лучшие игры Telegram</span>
-                </div>
-                <div class="games-grid" id="games-grid"></div>
-            </section>
+            <!-- TAP (Кликер) Секция -->
+            <section id="tap-section" class="content-section active">
+                <div class="tap-container">
+                    <div class="balance-panel">
+                        <div class="balance-title">BAUCHET</div>
+                        <div class="balance-value" id="balance">0.000</div>
+                        <div class="kurs-info">Курс: 1.00 ₽</div>
+                    </div>
 
-            <!-- Exchanges Section -->
-            <section id="exchanges-section" class="content-section">
-                <div class="section-header">
-                    <h2>Крипто-биржи</h2>
-                    <span class="section-subtitle">Торгуйте криптовалютами безопасно</span>
-                </div>
-                <div class="gamefi-banner">
-                    <img src="images/gamefi.jpg" alt="GameFi Trading" class="gamefi-image">
-                    <div class="gamefi-overlay">
-                        <div class="gamefi-content">
-                            <h3 class="gamefi-title">Торгуйте монетами GameFi</h3>
-                            <p class="gamefi-description">На популярных криптобиржах с лучшими условиями</p>
-                            <div class="gamefi-stats">
-                                <div class="stat">
-                                    <span class="stat-number">100+</span>
-                                    <span class="stat-label">GameFi токенов</span>
-                                </div>
-                                <div class="stat">
-                                    <span class="stat-number">24/7</span>
-                                    <span class="stat-label">Торговля</span>
-                                </div>
-                            </div>
+                    <div class="coin-wrapper" id="coin-wrapper">
+                        <div class="coin" id="coin-tap">
+                            <span class="coin-emoji">🪙</span>
                         </div>
                     </div>
-                </div>
-                <div class="exchanges-list" id="exchanges-list"></div>
-            </section>
 
-            <!-- Tapolka Game Section -->
-            <section id="game-section" class="content-section game-fullscreen">
-                <div class="tap-game-container">
-                    <div class="game-header-tap">
-                        <h3 class="game-title-tap">Таполка</h3>
-                        <div class="game-scores">
-                            <div class="score-box">
-                                <div class="score-label">Монеты</div>
-                                <div class="score-value" id="tap-coins">0</div>
-                            </div>
-                            <div class="score-box">
-                                <div class="score-label">За клик</div>
-                                <div class="score-value" id="tap-per-click">1</div>
-                            </div>
+                    <div class="stats-row">
+                        <div class="stat-card">
+                            <span class="stat-label">⚡ Сила клика</span>
+                            <span class="stat-value" id="click-power">1.000</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">🤖 Авто-доход/сек</span>
+                            <span class="stat-value" id="passive-income">0.000</span>
                         </div>
                     </div>
-                    <div class="coin-container">
-                        <div class="coin" id="main-coin">
-                            <span class="coin-icon">🪙</span>
-                            <div class="tap-effect" id="tap-effect"></div>
-                        </div>
-                        <div class="coin-tap-value" id="tap-pop">+1</div>
+
+                    <div class="upgrades-section">
+                        <h3 class="upgrades-title">🏪 Улучшения (как VK Coin)</h3>
+                        <div class="upgrades-grid" id="upgrades-list"></div>
                     </div>
-                    <div class="energy-bar-container">
-                        <div class="energy-bar-bg">
-                            <div class="energy-bar-fill" id="energy-fill"></div>
-                        </div>
-                        <div class="energy-text" id="energy-text">500/500</div>
-                    </div>
-                    <div class="upgrades-panel" id="upgrades-panel">
-                        <h4>Улучшения</h4>
-                        <div class="upgrades-list" id="upgrades-list"></div>
-                    </div>
-                    <div class="tap-game-info">
-                        <span>Авто-клик: <span id="auto-tap-info">0/сек</span></span>
-                        <span>Восстановление: <span id="regen-info">1/сек</span></span>
-                    </div>
+
+                    <button class="save-button" id="force-save-btn">💾 Сохранить прогресс</button>
                 </div>
-                <!-- Таблица лидеров -->
-                <div class="leaderboard-container" id="leaderboard-container">
+                <!-- Таблица лидеров (по балансу) -->
+                <div class="leaderboard-container" id="tap-leaderboard">
                     <div class="leaderboard-header">
-                        <h3 class="leaderboard-title">🏆 Таблица лидеров</h3>
-                        <button class="refresh-leaderboard" id="refresh-leaderboard">🔄</button>
+                        <h3 class="leaderboard-title">🏆 Топ кликеров</h3>
+                        <button class="refresh-leaderboard" id="refresh-leaderboard-tap">🔄</button>
                     </div>
-                    <div class="leaderboard-list" id="leaderboard-list">
+                    <div class="leaderboard-list" id="tap-leaderboard-list">
                         <div class="leaderboard-loading">Загрузка...</div>
                     </div>
+                </div>
+            </section>
+
+            <!-- ЗАДАНИЯ: игры + биржи -->
+            <section id="tasks-section" class="content-section">
+                <div class="section-header">
+                    <h2>Задания</h2>
+                    <span class="section-subtitle">Игры и биржи для заработка</span>
+                </div>
+
+                <!-- Игры -->
+                <div class="tasks-block">
+                    <h3 class="tasks-block-title">🎮 Игры</h3>
+                    <div class="games-grid" id="games-grid"></div>
+                </div>
+
+                <!-- Биржи -->
+                <div class="tasks-block">
+                    <h3 class="tasks-block-title">📊 Крипто-биржи</h3>
+                    <div class="exchanges-list" id="exchanges-list"></div>
                 </div>
             </section>
 
@@ -157,19 +135,15 @@
             </section>
         </main>
 
-        <!-- Bottom Navigation -->
+        <!-- Bottom Navigation (новый порядок) -->
         <nav class="bottom-nav">
-            <button class="nav-item active" data-section="games-section">
-                <span class="nav-icon">🎮</span>
-                <span class="nav-label">Игры</span>
-            </button>
-            <button class="nav-item" data-section="exchanges-section">
-                <span class="nav-icon">📊</span>
-                <span class="nav-label">Биржи</span>
-            </button>
-            <button class="nav-item" data-section="game-section">
+            <button class="nav-item active" data-section="tap-section">
                 <span class="nav-icon">🪙</span>
-                <span class="nav-label">Таполка</span>
+                <span class="nav-label">Кликер</span>
+            </button>
+            <button class="nav-item" data-section="tasks-section">
+                <span class="nav-icon">📋</span>
+                <span class="nav-label">Задания</span>
             </button>
             <button class="nav-item" data-section="profile-section">
                 <span class="nav-icon">👤</span>
@@ -177,7 +151,7 @@
             </button>
         </nav>
 
-        <div id="notification" class="notification">Ссылка скопирована в буфер обмена!</div>
+        <div id="notification" class="notification">Ссылка скопирована!</div>
     </div>
 
     <script src="script.js"></script>
