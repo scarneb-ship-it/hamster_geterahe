@@ -5,8 +5,12 @@ const App = {
         userCoins: parseInt(localStorage.getItem('userCoins')) || 0,
         theme: localStorage.getItem('theme') || 'light',
         isGameActive: false,
-        game2048: null,
+        activeGame: null,
+        gameRegistry: {},
         dailyTasks: JSON.parse(localStorage.getItem('dailyTasks')) || [],
+        inventory: JSON.parse(localStorage.getItem('inventory')) || { undo: 0, bonusTile: 0, skin: 'default' },
+        lastDailyBonus: localStorage.getItem('lastDailyBonus') || null,
+        inviteCount: parseInt(localStorage.getItem('inviteCount')) || 0,
     },
 
     saveCoins() {
@@ -17,9 +21,18 @@ const App = {
         localStorage.setItem('dailyTasks', JSON.stringify(this.state.dailyTasks));
         UIManager.updateBadges();
     },
+    saveInventory() {
+        localStorage.setItem('inventory', JSON.stringify(this.state.inventory));
+    },
+    saveInviteCount() {
+        localStorage.setItem('inviteCount', this.state.inviteCount);
+    },
+    registerGame(id, gameClass) {
+        this.state.gameRegistry[id] = gameClass;
+    },
 };
 
-// ==================== МОДУЛЬ: СЕТЕВЫЕ ЗАПРОСЫ ====================
+// ==================== СЕТЕВОЙ МОДУЛЬ ====================
 const NetworkService = {
     WORKER_URL: 'https://gamesverse-bot.scarneb.workers.dev',
 
@@ -87,9 +100,25 @@ const NetworkService = {
             body: JSON.stringify({ newUserId, referrerId }),
         });
     },
+
+    async purchaseItem(itemId, coins) {
+        if (!App.state.userId) throw new Error('No user');
+        return this.fetchJSON('/purchase', {
+            method: 'POST',
+            body: JSON.stringify({ userId: App.state.userId.toString(), itemId, coins }),
+        });
+    },
+
+    async claimDailyBonus() {
+        if (!App.state.userId) return { coins: 5 };
+        return this.fetchJSON('/daily-bonus', {
+            method: 'POST',
+            body: JSON.stringify({ userId: App.state.userId.toString() }),
+        });
+    },
 };
 
-// ==================== МОДУЛЬ: УПРАВЛЕНИЕ ИНТЕРФЕЙСОМ ====================
+// ==================== УПРАВЛЕНИЕ UI ====================
 const UIManager = {
     elements: {
         header: document.querySelector('.header'),
@@ -103,6 +132,12 @@ const UIManager = {
         modalScoreText: document.getElementById('modal-score-text'),
         modalShareBtn: document.getElementById('modal-share-btn'),
         modalCloseBtn: document.getElementById('modal-close-btn'),
+        shopItemsContainer: document.getElementById('shop-items'),
+        referralProgress: document.getElementById('referral-progress'),
+        referralText: document.getElementById('referral-text'),
+        referralBarFill: document.getElementById('referral-bar-fill'),
+        dailyBonusModal: document.getElementById('daily-bonus-modal'),
+        dailyBonusCloseBtn: document.getElementById('daily-bonus-close-btn'),
     },
 
     showNotification(msg) {
@@ -143,7 +178,7 @@ const UIManager = {
         }
     },
 
-    generateStars(rating) { /* ... без изменений ... */
+    generateStars(rating) {
         const full = Math.floor(rating);
         const half = rating % 1 >= 0.5;
         let stars = '';
@@ -153,11 +188,11 @@ const UIManager = {
         return stars;
     },
 
-    escapeHtml(text) { /* ... */
+    escapeHtml(text) {
         return text.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
     },
 
-    setActiveSection(sectionId) { /* ... без изменений */
+    setActiveSection(sectionId) {
         this.elements.sections.forEach(s => s.classList.remove('active'));
         const target = document.getElementById(sectionId);
         if (target) target.classList.add('active');
@@ -169,12 +204,12 @@ const UIManager = {
 
     toggleHeaderAndNav(show) {
         const { header, mainContent, bottomNav } = this.elements;
-        if (header) header.style.display = show ? 'flex' : 'none'; // важно flex
+        if (header) header.style.display = show ? 'flex' : 'none';
         if (bottomNav) bottomNav.style.display = show ? '' : 'none';
         if (mainContent) mainContent.style.paddingTop = show ? '' : '8px';
     },
 
-    renderCardList(containerId, items, options) { /* ... без изменений, с небольшим улучшением обработки ошибок изображений */
+    renderCardList(containerId, items, options) {
         const container = document.getElementById(containerId);
         if (!container) return;
         container.innerHTML = items.map(item => {
@@ -225,9 +260,9 @@ const UIManager = {
                     }
                 } else {
                     const gameId = card.dataset.gameId;
-                    const game = GAMES_DATA.find(g => g.id.toString() === gameId);
+                    const game = GAMES_DATA.find(g => g.id.toString() === gameId); // используем локальный массив, если не динамический
                     if (game?.isInternal) {
-                        GameManager.open();
+                        GameManager.open(game.id);
                     } else {
                         const link = btn.dataset.link;
                         if (link) {
@@ -242,13 +277,64 @@ const UIManager = {
         });
     },
 
-    // Модальное окно рекорда
+    renderShop() {
+        const container = this.elements.shopItemsContainer;
+        if (!container) return;
+        const items = [
+            { id: 'undo', name: 'Отмена хода', desc: 'Отменить последний ход в 2048', price: 5, icon: '↩️' },
+            { id: 'bonusTile', name: 'Бонусный тайл', desc: 'Случайный тайл 4 или 2 в начале игры', price: 10, icon: '✨' },
+            { id: 'skin', name: 'Скин доски', desc: 'Уникальный цвет доски (ночной)', price: 200, icon: '🎨' },
+        ];
+        container.innerHTML = items.map(item => {
+            const owned = (item.id === 'skin' && App.state.inventory.skin !== 'default') || (item.id !== 'skin' && App.state.inventory[item.id] > 0);
+            const canBuy = App.state.userCoins >= item.price && !owned;
+            return `
+                <div class="shop-item">
+                    <div class="shop-item-info">
+                        <div class="shop-item-name">${item.icon} ${item.name}</div>
+                        <div class="shop-item-desc">${item.desc}</div>
+                    </div>
+                    <span class="shop-item-price">${item.price} 🪙</span>
+                    <button class="buy-button" data-item-id="${item.id}" data-price="${item.price}" ${!canBuy ? 'disabled' : ''}>
+                        ${owned ? 'Куплено' : 'Купить'}
+                    </button>
+                </div>`;
+        }).join('');
+
+        container.querySelectorAll('.buy-button').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const button = e.currentTarget;
+                const itemId = button.dataset.itemId;
+                const price = parseInt(button.dataset.price);
+                UIManager.setLoading(button, true);
+                await ShopManager.purchase(itemId, price);
+                UIManager.setLoading(button, false);
+                this.renderShop();
+            });
+        });
+    },
+
+    updateReferralProgress() {
+        const { inviteCount } = App.state;
+        const threshold = 3;
+        const progress = inviteCount % threshold;
+        const nextRewardAt = threshold - progress;
+        const container = this.elements.referralProgress;
+        if (!container) return;
+        if (inviteCount === 0) {
+            container.style.display = 'none';
+            return;
+        }
+        container.style.display = 'block';
+        this.elements.referralText.textContent = `Приглашено ${inviteCount}. Ещё ${nextRewardAt} до награды (+200 🪙)`;
+        this.elements.referralBarFill.style.width = `${(progress / threshold) * 100}%`;
+    },
+
     showRecordModal(score) {
         if (!this.elements.recordModal) return;
         this.elements.modalScoreText.textContent = score + ' очков';
         this.elements.recordModal.style.display = 'flex';
 
-        // Обработчики кнопок (назначаются один раз)
         this.elements.modalShareBtn.onclick = () => {
             vibrate();
             const refCode = App.state.userId ? `ref_${App.state.userId}` : '';
@@ -267,11 +353,9 @@ const UIManager = {
         };
         this.elements.modalCloseBtn.onclick = () => this.closeRecordModal();
     },
-
     closeRecordModal() {
         if (this.elements.recordModal) this.elements.recordModal.style.display = 'none';
     },
-
     fallbackCopy(text) {
         const ta = document.createElement('textarea');
         ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
@@ -280,11 +364,20 @@ const UIManager = {
         this.showNotification('Ссылка скопирована!');
     },
 
-    // Быстрая смена темы
+    showDailyBonusModal(coins) {
+        const modal = this.elements.dailyBonusModal;
+        if (!modal) return;
+        const scoreEl = modal.querySelector('.modal-score');
+        if (scoreEl) scoreEl.textContent = `+${coins} 🪙`;
+        modal.style.display = 'flex';
+        this.elements.dailyBonusCloseBtn.onclick = () => {
+            modal.style.display = 'none';
+        };
+    },
+
     setupThemeToggle() {
         const btn = this.elements.themeToggleBtn;
         if (!btn) return;
-        // Синхронизируем иконку с текущей темой
         const updateIcon = () => {
             btn.textContent = App.state.theme === 'dark' ? '☀️' : '🌙';
         };
@@ -295,7 +388,6 @@ const UIManager = {
             document.body.classList.toggle('dark-theme', App.state.theme === 'dark');
             localStorage.setItem('theme', App.state.theme);
             updateIcon();
-            // Синхронизировать переключатель в профиле
             const sw = document.getElementById('profile-theme-switcher');
             if (sw) {
                 sw.querySelectorAll('.theme-option').forEach(o => o.classList.remove('active'));
@@ -306,62 +398,37 @@ const UIManager = {
     },
 };
 
-// ==================== МОДУЛЬ: УПРАВЛЕНИЕ ИГРОЙ 2048 ====================
-const GameManager = {
-    open() {
-        App.state.isGameActive = true;
-        UIManager.setActiveSection('game-section');
-        UIManager.toggleHeaderAndNav(false);
-        if (!App.state.game2048) {
-            this.initGame();
-        } else {
-            App.state.game2048.render();
-            App.state.game2048.updateBestUI();
-        }
-    },
+// ==================== АБСТРАКТНЫЙ КЛАСС МИНИ-ИГРЫ ====================
+class MiniGame {
+    constructor(containerId) {
+        this.container = document.getElementById(containerId);
+        if (!this.container) throw new Error(`Container #${containerId} not found`);
+        this.isRunning = false;
+    }
+    init() { throw new Error('init() must be implemented'); }
+    start() { this.isRunning = true; this.render(); }
+    pause() { this.isRunning = false; this.saveState(); }
+    resume() { this.isRunning = true; this.render(); }
+    render() { throw new Error('render() must be implemented'); }
+    saveState() {}
+    loadState() { return null; }
+    getScore() { return 0; }
+    onGameOver() {}
+    vibrate() { if (navigator.vibrate) navigator.vibrate(50); }
+}
 
-    close(showGamesSection = true) {
-        if (App.state.game2048) {
-            App.state.game2048.saveState();
-        }
-        App.state.isGameActive = false;
-        if (showGamesSection) {
-            UIManager.setActiveSection('games-section');
-        }
-        UIManager.toggleHeaderAndNav(true);
-    },
-
-    initGame() {
-        const board = document.getElementById('game-board-2048');
-        const scoreEl = document.getElementById('game-score');
-        const bestEl = document.getElementById('best-score');
-        const statusEl = document.getElementById('game-status');
-        if (!board || !scoreEl || !bestEl || !statusEl) return;
-
-        App.state.game2048 = new Game2048(board, scoreEl, bestEl, statusEl);
-        document.getElementById('new-game-btn')?.addEventListener('click', () => {
-            vibrate();
-            QuestManager.updateProgress('play_', 1);
-            App.state.game2048.init();
-        });
-        document.getElementById('back-from-game')?.addEventListener('click', () => {
-            vibrate();
-            GameManager.close();
-        });
-    },
-};
-
-// ==================== КЛАСС: 2048 (с вызовом модалки) ====================
-class Game2048 {
-    constructor(board, scoreEl, bestEl, statusEl) {
-        this.board = board;
-        this.scoreEl = scoreEl;
-        this.bestEl = bestEl;
-        this.statusEl = statusEl;
+// ==================== ИГРА 2048 ====================
+class Game2048 extends MiniGame {
+    constructor() {
+        super('game-board-2048');
         this.size = 4;
         this.grid = [];
         this.score = 0;
         this.bestScore = parseInt(localStorage.getItem('bestScore2048')) || 0;
+        this.previousState = null;
+        this.scoreEl = document.getElementById('game-score');
+        this.bestEl = document.getElementById('best-score');
+        this.statusEl = document.getElementById('game-status');
 
         const saved = this.loadState();
         if (saved && !saved.gameOver) {
@@ -373,6 +440,8 @@ class Game2048 {
         }
         this.updateBestUI();
         this.bindEvents();
+        if (App.state.inventory.skin === 'night') this.applySkin('night');
+        this.createUndoButton();
     }
 
     init() {
@@ -400,6 +469,10 @@ class Game2048 {
     }
 
     move(dir) {
+        this.previousState = {
+            grid: JSON.parse(JSON.stringify(this.grid)),
+            score: this.score,
+        };
         const old = JSON.parse(JSON.stringify(this.grid));
         let gained = 0;
         const vectors = { left: { x: 0, y: -1 }, right: { x: 0, y: 1 }, up: { x: -1, y: 0 }, down: { x: 1, y: 0 } };
@@ -433,7 +506,6 @@ class Game2048 {
             this.score += gained;
             this.scoreEl.textContent = this.score;
             QuestManager.updateProgress('score_', gained);
-
             if (this.score > this.bestScore) {
                 this.bestScore = this.score;
                 localStorage.setItem('bestScore2048', this.bestScore);
@@ -449,23 +521,18 @@ class Game2048 {
                 QuestManager.updateProgress('win_', 1);
                 this.submitScore();
                 this.saveState();
-                // Модальное окно рекорда
                 UIManager.showRecordModal(this.score);
             } else if (this.isGameOver()) {
                 this.statusEl.textContent = 'Игра окончена! 😔';
                 this.submitScore();
                 this.saveState();
-                // Показываем модалку только если набрали больше 0 очков
-                if (this.score > 0) {
-                    UIManager.showRecordModal(this.score);
-                }
+                if (this.score > 0) UIManager.showRecordModal(this.score);
             } else {
                 this.saveState();
             }
         }
     }
 
-    // ... остальные методы без изменений (buildTraversals, equals, hasWon, isGameOver, render, updateBestUI, bindEvents, saveState, loadState, submitScore)
     buildTraversals(v) {
         const x = Array.from({ length: this.size }, (_, i) => i);
         const y = Array.from({ length: this.size }, (_, i) => i);
@@ -491,7 +558,7 @@ class Game2048 {
     }
 
     render() {
-        this.board.innerHTML = '';
+        this.container.innerHTML = '';
         for (let i = 0; i < this.size; i++) {
             for (let j = 0; j < this.size; j++) {
                 const val = this.grid[i][j];
@@ -501,7 +568,7 @@ class Game2048 {
                     tile.classList.add(val > 2048 ? 'tile-super' : `tile-${val}`);
                     tile.textContent = val;
                 }
-                this.board.appendChild(tile);
+                this.container.appendChild(tile);
             }
         }
     }
@@ -510,22 +577,22 @@ class Game2048 {
 
     bindEvents() {
         let touchStartX = 0, touchStartY = 0;
-        this.board.addEventListener('touchstart', e => {
+        this.container.addEventListener('touchstart', e => {
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
             e.preventDefault();
         });
-        this.board.addEventListener('touchend', e => {
+        this.container.addEventListener('touchend', e => {
             const dx = e.changedTouches[0].clientX - touchStartX;
             const dy = e.changedTouches[0].clientY - touchStartY;
             if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return;
             this.move(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'));
-            vibrate();
+            this.vibrate();
         });
         window.addEventListener('keydown', e => {
             if (!document.getElementById('game-section')?.classList.contains('active')) return;
             const map = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down' };
-            if (map[e.key]) { this.move(map[e.key]); e.preventDefault(); vibrate(); }
+            if (map[e.key]) { this.move(map[e.key]); e.preventDefault(); this.vibrate(); }
         });
     }
 
@@ -545,7 +612,7 @@ class Game2048 {
         try {
             const data = JSON.parse(raw);
             if (data?.grid?.length === this.size) return data;
-        } catch { }
+        } catch {}
         return null;
     }
 
@@ -562,11 +629,157 @@ class Game2048 {
             App.state.dailyTasks.forEach(t => { if (t.id !== 'invite_1') t.progress = 0; });
             App.saveTasks();
             QuestManager.render();
-        } catch { }
+        } catch {}
+    }
+
+    undoMove() {
+        if (!ShopManager.canUndo() || !this.previousState) {
+            UIManager.showNotification('Нет отмен!');
+            return;
+        }
+        if (ShopManager.useUndo()) {
+            this.grid = this.previousState.grid;
+            this.score = this.previousState.score;
+            this.scoreEl.textContent = this.score;
+            this.previousState = null;
+            this.render();
+            this.saveState();
+            UIManager.showNotification('Ход отменён');
+        }
+    }
+
+    createUndoButton() {
+        const controls = document.querySelector('.game-controls');
+        if (!controls || document.querySelector('.undo-btn')) return;
+        const btn = document.createElement('button');
+        btn.className = 'new-game-btn undo-btn';
+        btn.style.marginLeft = '8px';
+        btn.textContent = '↩️ Отмена';
+        btn.addEventListener('click', () => {
+            this.vibrate();
+            this.undoMove();
+        });
+        controls.appendChild(btn);
+    }
+
+    applySkin(skinName) {
+        if (skinName === 'night') this.container.style.backgroundColor = '#1e1e2f';
+        else this.container.style.backgroundColor = '';
     }
 }
 
-// ==================== МОДУЛЬ: ЗАДАНИЯ ====================
+// ==================== УПРАВЛЕНИЕ ИГРАМИ ====================
+const GameManager = {
+    open(gameId = '2048') {
+        App.state.isGameActive = true;
+        UIManager.setActiveSection('game-section');
+        UIManager.toggleHeaderAndNav(false);
+
+        const GameClass = App.state.gameRegistry[gameId];
+        if (!GameClass) {
+            console.error(`Игра ${gameId} не найдена`);
+            return;
+        }
+
+        if (App.state.activeGame && App.state.activeGame instanceof GameClass) {
+            App.state.activeGame.resume();
+            return;
+        }
+
+        if (App.state.activeGame) {
+            App.state.activeGame.pause();
+        }
+
+        const game = new GameClass();
+        App.state.activeGame = game;
+        game.start();
+    },
+
+    close(showGamesSection = true) {
+        if (App.state.activeGame) {
+            App.state.activeGame.pause();
+        }
+        App.state.isGameActive = false;
+        if (showGamesSection) {
+            UIManager.setActiveSection('games-section');
+        }
+        UIManager.toggleHeaderAndNav(true);
+    },
+
+    initRegistry() {
+        App.registerGame('2048', Game2048);
+        // Здесь можно добавить другие игры
+    },
+};
+
+// ==================== МАГАЗИН ====================
+const ShopManager = {
+    async purchase(itemId, price) {
+        if (App.state.userCoins < price) {
+            UIManager.showNotification('Недостаточно монет');
+            return;
+        }
+        App.state.userCoins -= price;
+        App.saveCoins();
+
+        switch (itemId) {
+            case 'undo':
+                App.state.inventory.undo = (App.state.inventory.undo || 0) + 1;
+                break;
+            case 'bonusTile':
+                App.state.inventory.bonusTile = (App.state.inventory.bonusTile || 0) + 1;
+                break;
+            case 'skin':
+                App.state.inventory.skin = 'night';
+                if (App.state.activeGame instanceof Game2048) {
+                    App.state.activeGame.applySkin('night');
+                }
+                break;
+            default:
+                return;
+        }
+        App.saveInventory();
+        UIManager.showNotification(`Куплено: ${itemId}!`);
+
+        if (App.state.userId) {
+            NetworkService.purchaseItem(itemId, price).catch(() => {});
+        }
+    },
+
+    canUndo() {
+        return App.state.inventory.undo > 0;
+    },
+
+    useUndo() {
+        if (this.canUndo()) {
+            App.state.inventory.undo--;
+            App.saveInventory();
+            return true;
+        }
+        return false;
+    },
+};
+
+// ==================== ЕЖЕДНЕВНЫЙ БОНУС ====================
+const DailyBonusManager = {
+    init() {
+        const today = new Date().toDateString();
+        if (App.state.lastDailyBonus === today) return;
+
+        UIManager.showDailyBonusModal(5);
+        App.state.userCoins += 5;
+        App.saveCoins();
+        App.state.lastDailyBonus = today;
+        localStorage.setItem('lastDailyBonus', today);
+        UIManager.updateProfileCoins();
+
+        if (App.state.userId) {
+            NetworkService.claimDailyBonus().catch(() => {});
+        }
+    },
+};
+
+// ==================== ЗАДАНИЯ ====================
 const QuestManager = {
     DEFAULT_TASKS: [
         { id: 'play_3', name: 'Сыграть 3 партии', icon: '🎮', target: 3, progress: 0, reward: 50 },
@@ -656,7 +869,7 @@ const QuestManager = {
     },
 };
 
-// ==================== МОДУЛЬ: ЛИДЕРБОРД (с лоадером) ====================
+// ==================== ЛИДЕРБОРД ====================
 const LeaderboardManager = {
     async fetch() {
         const list = document.getElementById('leaderboard-list');
@@ -699,7 +912,7 @@ const LeaderboardManager = {
     },
 };
 
-// ==================== МОДУЛЬ: ПРОФИЛЬ И РЕФЕРАЛЫ ====================
+// ==================== ПРОФИЛЬ И РЕФЕРАЛЫ ====================
 const ProfileManager = {
     async init() {
         this.setupThemeSwitcher();
@@ -727,7 +940,7 @@ const ProfileManager = {
                 App.state.userCoins = data.coins;
                 App.saveCoins();
             }
-        } catch { /* сохраняем локальное значение */ }
+        } catch {}
     },
 
     async loadStats() {
@@ -737,18 +950,23 @@ const ProfileManager = {
             document.getElementById('stat-invites').textContent = '—';
             return;
         }
-        // Показать лоадер на карточках? Для простоты просто обновим
         try {
             const data = await NetworkService.fetchUserStats(App.state.userId);
             document.getElementById('stat-rank').textContent = data.rank || '—';
             document.getElementById('stat-score').textContent = data.bestScore || 0;
             document.getElementById('stat-invites').textContent = data.inviteCount || 0;
             App.state.userCoins = data.coins ?? App.state.userCoins;
+            App.state.inviteCount = data.inviteCount || 0;
+            App.saveInviteCount();
             App.saveCoins();
+            UIManager.updateReferralProgress();
         } catch {
             document.getElementById('stat-score').textContent = localStorage.getItem('bestScore2048') || '0';
             document.getElementById('stat-rank').textContent = '—';
-            document.getElementById('stat-invites').textContent = localStorage.getItem('inviteCount') || '0';
+            const localInvites = parseInt(localStorage.getItem('inviteCount')) || 0;
+            document.getElementById('stat-invites').textContent = localInvites;
+            App.state.inviteCount = localInvites;
+            UIManager.updateReferralProgress();
         }
     },
 
@@ -756,9 +974,53 @@ const ProfileManager = {
         try { return window.Telegram?.WebApp?.initDataUnsafe?.start_param || null; } catch { return null; }
     },
 
-    async handleReferral(user) { /* без изменений */ },
-    updateDisplay(user) { /* без изменений */ },
-    showFallback() { /* без изменений */ },
+    async handleReferral(user) {
+        const ref = this.getRefParam();
+        if (!ref || !ref.startsWith('ref_')) return;
+        const referrerId = ref.replace('ref_', '');
+        if (referrerId === user.id.toString() || localStorage.getItem('invitedBy')) return;
+
+        localStorage.setItem('invitedBy', referrerId);
+        try { await NetworkService.sendInvite(user.id.toString(), referrerId); } catch { }
+        if (App.state.userId && App.state.userId.toString() === referrerId) {
+            let invites = parseInt(localStorage.getItem('inviteCount')) || 0;
+            invites++;
+            localStorage.setItem('inviteCount', invites);
+            App.state.userCoins += 150;
+            App.saveCoins();
+            QuestManager.updateProgress('invite_', 1);
+            UIManager.showNotification('🎉 Вы пригласили друга! +150 монет');
+        }
+    },
+
+    updateDisplay(user) {
+        document.getElementById('user-name').textContent = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+        document.getElementById('user-username').textContent = user.username ? '@' + user.username : 'Telegram User';
+        const avatarImg = document.getElementById('avatar-img');
+        const fallback = document.getElementById('avatar-fallback');
+        if (user.photo_url) {
+            avatarImg.src = user.photo_url;
+            avatarImg.style.display = 'block';
+            fallback.style.display = 'none';
+        } else {
+            avatarImg.style.display = 'none';
+            fallback.textContent = user.first_name?.charAt(0).toUpperCase() || 'T';
+            fallback.style.display = 'flex';
+        }
+        if (user.is_premium && !document.querySelector('.premium-badge')) {
+            const badge = document.createElement('div');
+            badge.className = 'premium-badge';
+            badge.innerHTML = '⭐ Premium';
+            document.querySelector('.profile-info')?.appendChild(badge);
+        }
+    },
+
+    showFallback() {
+        document.getElementById('user-name').textContent = 'Telegram User';
+        document.getElementById('user-username').textContent = 'Открой в Telegram';
+        const fb = document.getElementById('avatar-fallback');
+        fb.textContent = 'T'; fb.style.display = 'flex';
+    },
 
     setupThemeSwitcher() {
         const sw = document.getElementById('profile-theme-switcher');
@@ -777,84 +1039,66 @@ const ProfileManager = {
             btn.classList.add('active');
             document.body.classList.toggle('dark-theme', App.state.theme === 'dark');
             localStorage.setItem('theme', App.state.theme);
-            // Обновить кнопку в header
             const toggleBtn = document.getElementById('theme-toggle-btn');
             if (toggleBtn) toggleBtn.textContent = App.state.theme === 'dark' ? '☀️' : '🌙';
         });
     },
 
-    setupShareButton() { /* без изменений, только убрали дублирование кода */ },
+    setupShareButton() {
+        const btn = document.getElementById('share-friends-button');
+        if (!btn) return;
+        btn.addEventListener('click', () => {
+            vibrate();
+            const refCode = App.state.userId ? `ref_${App.state.userId}` : '';
+            const url = `https://t.me/khadron_bot?start=${refCode}`;
+            const text = 'Играй в лучшие мини-игры Telegram вместе с HADRON! 🎮';
+            if (window.Telegram?.WebApp) {
+                const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
+                try {
+                    window.Telegram.WebApp.openTelegramLink(shareUrl);
+                    App.state.inviteCount++;
+                    App.saveInviteCount();
+                    UIManager.updateReferralProgress();
+                    if (App.state.inviteCount % 3 === 0) {
+                        App.state.userCoins += 200;
+                        App.saveCoins();
+                        UIManager.showNotification('🎉 Вы пригласили 3 друзей! +200 монет');
+                    }
+                } catch { UIManager.fallbackCopy(url); }
+            } else if (navigator.share) {
+                navigator.share({ title: 'Games Verse', text, url })
+                    .then(() => {
+                        App.state.inviteCount++;
+                        App.saveInviteCount();
+                        UIManager.updateReferralProgress();
+                        if (App.state.inviteCount % 3 === 0) {
+                            App.state.userCoins += 200;
+                            App.saveCoins();
+                            UIManager.showNotification('🎉 Вы пригласили 3 друзей! +200 монет');
+                        }
+                    })
+                    .catch(() => UIManager.fallbackCopy(url));
+            } else UIManager.fallbackCopy(url);
+        });
+    },
 };
 
-// Заполним недостающие методы ProfileManager (ссылаемся на UIManager для шаринга)
-ProfileManager.setupShareButton = function() {
-    const btn = document.getElementById('share-friends-button');
-    if (!btn) return;
-    btn.addEventListener('click', () => {
-        vibrate();
-        const refCode = App.state.userId ? `ref_${App.state.userId}` : '';
-        const url = `https://t.me/khadron_bot?start=${refCode}`;
-        const text = 'Играй в лучшие мини-игры Telegram вместе с HADRON! 🎮';
-        if (window.Telegram?.WebApp) {
-            const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
-            try { window.Telegram.WebApp.openTelegramLink(shareUrl); } catch { UIManager.fallbackCopy(url); }
-        } else if (navigator.share) {
-            navigator.share({ title: 'Games Verse', text, url }).catch(() => UIManager.fallbackCopy(url));
-        } else UIManager.fallbackCopy(url);
-    });
-};
+// ==================== ДАННЫЕ (ЛОКАЛЬНЫЙ КАТАЛОГ) ====================
+const GAMES_DATA = [
+    { id: '2048', name: "2048", fullLink: null, description: "Классическая головоломка прямо здесь", rating: 4.8, players: "∞", image: "", fallback: "🔢", badge: "Внутри", highlight: true, isInternal: true },
+    { id: 0, name: "Pixel World", fullLink: "https://t.me/pixelworld/play?startapp=r6823288584", description: "Первый 3D-шутер в Telegram", rating: 4.9, players: "34K", image: "images/photo_2026-02-17_13-44-55.jpg", fallback: "🌍", badge: "Beta", highlight: true },
+    { id: 1, name: "Hamster GameDev", fullLink: "https://t.me/Hamster_GAme_Dev_bot/start?startapp=kentId6823288584", description: "Создай свою студию", rating: 4.7, players: "368K", image: "images/hamster-gamedev.jpg", fallback: "🎮" },
+    { id: 2, name: "Hamster King", fullLink: "https://t.me/hamsterking_game_bot?startapp=6823288584", description: "Стань королем хомяков", rating: 4.2, players: "188K", image: "images/hamster-king.jpg", fallback: "👑" },
+    { id: 3, name: "Hamster Fight Club", fullLink: "https://t.me/hamster_fightclub_bot?startapp=NWE1YjA2YWUtZTAyMS01ZjA1LTg4ZTYtMGZmZjUwNDQwNjU5", description: "Бойцовский клуб хомяков", rating: 4.9, players: "85K", image: "images/hamster-fightclub.jpg", fallback: "🥊" },
+    { id: 4, name: "BitQuest", fullLink: "https://t.me/BitquestGameSBot/start?startapp=kentId_6823288584", description: "Приключения в мире крипты", rating: 3.8, players: "281K", image: "images/bitquest.jpg", fallback: "💰" }
+];
 
-ProfileManager.handleReferral = async function(user) {
-    const ref = this.getRefParam();
-    if (!ref || !ref.startsWith('ref_')) return;
-    const referrerId = ref.replace('ref_', '');
-    if (referrerId === user.id.toString() || localStorage.getItem('invitedBy')) return;
-
-    localStorage.setItem('invitedBy', referrerId);
-    try { await NetworkService.sendInvite(user.id.toString(), referrerId); } catch { }
-    if (App.state.userId && App.state.userId.toString() === referrerId) {
-        let invites = parseInt(localStorage.getItem('inviteCount')) || 0;
-        invites++;
-        localStorage.setItem('inviteCount', invites);
-        App.state.userCoins += 150;
-        App.saveCoins();
-        QuestManager.updateProgress('invite_', 1);
-        UIManager.showNotification('🎉 Вы пригласили друга! +150 монет');
-    }
-};
-
-ProfileManager.updateDisplay = function(user) {
-    document.getElementById('user-name').textContent = user.first_name + (user.last_name ? ' ' + user.last_name : '');
-    document.getElementById('user-username').textContent = user.username ? '@' + user.username : 'Telegram User';
-    const avatarImg = document.getElementById('avatar-img');
-    const fallback = document.getElementById('avatar-fallback');
-    if (user.photo_url) {
-        avatarImg.src = user.photo_url;
-        avatarImg.style.display = 'block';
-        fallback.style.display = 'none';
-    } else {
-        avatarImg.style.display = 'none';
-        fallback.textContent = user.first_name?.charAt(0).toUpperCase() || 'T';
-        fallback.style.display = 'flex';
-    }
-    if (user.is_premium && !document.querySelector('.premium-badge')) {
-        const badge = document.createElement('div');
-        badge.className = 'premium-badge';
-        badge.innerHTML = '⭐ Premium';
-        document.querySelector('.profile-info')?.appendChild(badge);
-    }
-};
-
-ProfileManager.showFallback = function() {
-    document.getElementById('user-name').textContent = 'Telegram User';
-    document.getElementById('user-username').textContent = 'Открой в Telegram';
-    const fb = document.getElementById('avatar-fallback');
-    fb.textContent = 'T'; fb.style.display = 'flex';
-};
-
-// ==================== ДАННЫЕ ====================
-const GAMES_DATA = [ /* ... без изменений ... */ ];
-const EXCHANGES_DATA = [ /* ... без изменений ... */ ];
+const EXCHANGES_DATA = [
+    { id: 1, name: "Bybit", url: "https://www.bybit.com/invite?ref=57KXPMO", description: "Продвинутая торговая платформа", image: "images/bybit.jpg", fallback: "💱" },
+    { id: 2, name: "BingX", url: "https://bingxdao.com/referral-program/V2TZVA?activityId=g_1529293499868241925", description: "Социальная торговля и копирование", image: "images/bingx.jpg", fallback: "📈" },
+    { id: 3, name: "Bitget", url: "https://www.bitgetapps.com/ru/referral/register?clacCode=40FSP70H&from=%2Fru%2Fevents%2Freferral-all-program&source=events&utmSource=PremierInviter", description: "Инновационная торговая платформа", image: "images/bitget.jpg", fallback: "⚡" },
+    { id: 4, name: "MEXC", url: "https://promote.mexc.com/r/aTSLfdm54W", description: "Глобальная биржа с низкими комиссиями", image: "images/mexc.jpg", fallback: "🌍" }
+];
 
 // ==================== УТИЛИТЫ ====================
 function vibrate() { if (navigator.vibrate) navigator.vibrate(50); }
@@ -866,17 +1110,21 @@ async function initializeApp() {
         window.Telegram.WebApp.expand();
     }
 
+    GameManager.initRegistry();
+
     await ProfileManager.init();
     await ProfileManager.loadUser();
+    DailyBonusManager.init();
 
-    // Переключение темы в header
     UIManager.setupThemeToggle();
-
     QuestManager.init();
 
+    // Динамический каталог: можно заменить на вызов GamesDataService.fetchCatalog(), если нужно
     UIManager.renderCardList('games-grid', GAMES_DATA, { type: 'game' });
     UIManager.renderCardList('exchanges-list', EXCHANGES_DATA, { type: 'exchange' });
 
+    UIManager.renderShop();
+    UIManager.updateReferralProgress();
     LeaderboardManager.setupRefresh();
     setupNavigation();
 
@@ -919,4 +1167,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (splash) splash.style.display = 'none';
     document.body.style.opacity = '1';
     initializeApp();
+});
+
+// Кнопка "Назад" из игры
+document.getElementById('back-from-game')?.addEventListener('click', () => {
+    vibrate();
+    GameManager.close();
 });
