@@ -1,84 +1,156 @@
-const BOT_USERNAME = 'khadron_bot';
+const BOT_USERNAME = 'khadron_bot'; // ← замените на username вашего бота
 let currentUserId = null;
-const WORKER_URL = 'https://gamesverse-bot.scarneb.workers.dev';
+
+const WORKER_URL = ''; // API на том же домене
 
 const GAMES_DATA = [
-    { id: 0, name: "Pixel World", fullLink: "https://t.me/pixelworld/play?startapp=r6823288584", description: "Первый 3D-шутер в Telegram", rating: 4.9, players: "34K", image: "images/photo_2026-02-17_13-44-55.jpg", fallback: "🌍", badge: "Beta", highlight: true },
-    { id: 1, name: "Hamster GameDev", fullLink: "https://t.me/Hamster_GAme_Dev_bot/start?startapp=kentId6823288584", description: "Создай свою студию", rating: 4.7, players: "368K", image: "images/hamster-gamedev.jpg", fallback: "🎮" },
-    { id: 2, name: "Hamster King", fullLink: "https://t.me/hamsterking_game_bot?startapp=6823288584", description: "Стань королем хомяков", rating: 4.2, players: "188K", image: "images/hamster-king.jpg", fallback: "👑" },
-    { id: 3, name: "Hamster Fight Club", fullLink: "https://t.me/hamster_fightclub_bot?startapp=NWE1YjA2YWUtZTAyMS01ZjA1LTg4ZTYtMGZmZjUwNDQwNjU5", description: "Бойцовский клуб хомяков", rating: 4.9, players: "85K", image: "images/hamster-fightclub.jpg", fallback: "🥊" },
-    { id: 4, name: "BitQuest", fullLink: "https://t.me/BitquestGameSBot/start?startapp=kentId_6823288584", description: "Приключения в мире крипты", rating: 3.8, players: "281K", image: "images/bitquest.jpg", fallback: "💰" }
+    {
+        id: 0,
+        name: "Pixel World",
+        fullLink: "https://t.me/pixelworld/play?startapp=r6823288584",
+        description: "Первый 3D-шутер в Telegram",
+        rating: 4.9,
+        players: "34K",
+        image: "images/photo_2026-02-17_13-44-55.jpg",
+        fallback: "🌍",
+        badge: "Beta",
+        highlight: true
+    },
+    {
+        id: 1,
+        name: "Hamster GameDev",
+        fullLink: "https://t.me/Hamster_GAme_Dev_bot/start?startapp=kentId6823288584",
+        description: "Создай свою студию",
+        rating: 4.7,
+        players: "368K",
+        image: "images/hamster-gamedev.jpg",
+        fallback: "🎮"
+    },
+    {
+        id: 2,
+        name: "Hamster King",
+        fullLink: "https://t.me/hamsterking_game_bot?startapp=6823288584",
+        description: "Стань королем хомяков",
+        rating: 4.2,
+        players: "188K",
+        image: "images/hamster-king.jpg",
+        fallback: "👑"
+    },
+    {
+        id: 3,
+        name: "Hamster Fight Club",
+        fullLink: "https://t.me/hamster_fightclub_bot?startapp=NWE1YjA2YWUtZTAyMS01ZjA1LTg4ZTYtMGZmZjUwNDQwNjU5",
+        description: "Бойцовский клуб хомяков",
+        rating: 4.9,
+        players: "85K",
+        image: "images/hamster-fightclub.jpg",
+        fallback: "🥊"
+    },
+    {
+        id: 4,
+        name: "BitQuest",
+        fullLink: "https://t.me/BitquestGameSBot/start?startapp=kentId_6823288584",
+        description: "Приключения в мире крипты",
+        rating: 3.8,
+        players: "281K",
+        image: "images/bitquest.jpg",
+        fallback: "💰"
+    }
 ];
 
 const EXCHANGES_DATA = [
-    { id: 1, name: "Bybit", url: "https://www.bybit.com/invite?ref=57KXPMO", description: "Продвинутая торговая платформа", image: "images/bybit.jpg", fallback: "💱" },
-    { id: 2, name: "BingX", url: "https://bingxdao.com/referral-program/V2TZVA?activityId=g_1529293499868241925", description: "Социальная торговля и копирование", image: "images/bingx.jpg", fallback: "📈" },
-    { id: 3, name: "Bitget", url: "https://www.bitgetapps.com/ru/referral/register?clacCode=40FSP70H&from=%2Fru%2Fevents%2Freferral-all-program&source=events&utmSource=PremierInviter", description: "Инновационная торговая платформа", image: "images/bitget.jpg", fallback: "⚡" },
-    { id: 4, name: "MEXC", url: "https://promote.mexc.com/r/aTSLfdm54W", description: "Глобальная биржа с низкими комиссиями", image: "images/mexc.jpg", fallback: "🌍" }
+    {
+        id: 1,
+        name: "Bybit",
+        url: "https://www.bybit.com/invite?ref=57KXPMO",
+        description: "Продвинутая торговая платформа",
+        image: "images/bybit.jpg",
+        fallback: "💱"
+    },
+    {
+        id: 2,
+        name: "BingX",
+        url: "https://bingxdao.com/referral-program/V2TZVA?activityId=g_1529293499868241925",
+        description: "Социальная торговля и копирование",
+        image: "images/bingx.jpg",
+        fallback: "📈"
+    },
+    {
+        id: 3,
+        name: "Bitget",
+        url: "https://www.bitgetapps.com/ru/referral/register?clacCode=40FSP70H&from=%2Fru%2Fevents%2Freferral-all-program&source=events&utmSource=PremierInviter",
+        description: "Инновационная торговая платформа",
+        image: "images/bitget.jpg",
+        fallback: "⚡"
+    },
+    {
+        id: 4,
+        name: "MEXC",
+        url: "https://promote.mexc.com/r/aTSLfdm54W",
+        description: "Глобальная биржа с низкими комиссиями",
+        image: "images/mexc.jpg",
+        fallback: "🌍"
+    }
 ];
 
 const translations = {
-    appTitle: "Games Verse", settings: "Настройки", theme: "Тема", lightTheme: "Светлая", darkTheme: "Темная", done: "Готово",
-    games: "Игры", bestGames: "Лучшие игры Telegram", play: "Играть", exchanges: "Биржи", exchangesDesc: "Торгуйте криптовалютами безопасно",
-    user: "Пользователь", shareWithFriends: "Поделиться с друзьями", profile: "Профиль", linkCopied: "Ссылка скопирована в буфер обмена!",
-    go: "Перейти", game2048: "2048", score: "Счёт", best: "Лучший", newGame: "Новая игра",
-    swipeHint: "👆 Свайпайте пальцем или используйте стрелки", gameWin: "Вы победили! 🎉", gameLose: "Игра окончена! 😔"
+    appTitle: "Games Verse",
+    settings: "Настройки",
+    theme: "Тема",
+    lightTheme: "Светлая",
+    darkTheme: "Темная",
+    done: "Готово",
+    games: "Игры",
+    bestGames: "Лучшие игры Telegram",
+    play: "Играть",
+    exchanges: "Биржи",
+    exchangesDesc: "Торгуйте криптовалютами безопасно",
+    user: "Пользователь",
+    shareWithFriends: "Поделиться с друзьями",
+    profile: "Профиль",
+    linkCopied: "Ссылка скопирована в буфер обмена!",
+    go: "Перейти",
+    game2048: "2048",
+    score: "Счёт",
+    best: "Лучший",
+    newGame: "Новая игра",
+    swipeHint: "👆 Свайпайте пальцем или используйте стрелки",
+    gameWin: "Вы победили! 🎉",
+    gameLose: "Игра окончена! 😔"
 };
 
-class SeededRandom {
-    constructor(seed) { this.seed = seed % 2147483647; if (this.seed <= 0) this.seed += 2147483646; }
-    next() { this.seed = (this.seed * 16807) % 2147483647; return (this.seed - 1) / 2147483646; }
+document.addEventListener('DOMContentLoaded', function() {
+    initializeApp();
+});
+
+function vibrate() {
+    if (navigator.vibrate) navigator.vibrate(50);
 }
 
-const ACHIEVEMENTS = [
-    { id: 'tile_128', name: 'Плитка 128', desc: 'Соберите 128', icon: '🟩', tile: 128, check: g => g.grid.some(r => r.some(v => v >= 128)) },
-    { id: 'tile_256', name: 'Плитка 256', desc: 'Соберите 256', icon: '🟦', tile: 256, check: g => g.grid.some(r => r.some(v => v >= 256)) },
-    { id: 'tile_512', name: 'Плитка 512', desc: 'Соберите 512', icon: '🟪', tile: 512, check: g => g.grid.some(r => r.some(v => v >= 512)) },
-    { id: 'tile_1024', name: 'Плитка 1024', desc: 'Соберите 1024', icon: '🟧', tile: 1024, check: g => g.grid.some(r => r.some(v => v >= 1024)) },
-    { id: 'tile_2048', name: '2048!', desc: 'Соберите 2048', icon: '🏆', tile: 2048, check: g => g.grid.some(r => r.some(v => v >= 2048)) },
-    { id: 'score_2000', name: 'Новичок', desc: 'Наберите 2000 очков', icon: '💵', tile: 2000, check: g => g.score >= 2000 },
-    { id: 'score_5000', name: 'Любитель', desc: 'Наберите 5000 очков', icon: '💰', tile: 5000, check: g => g.score >= 5000 },
-    { id: 'score_10000', name: 'Профи', desc: 'Наберите 10000 очков', icon: '💎', tile: 10000, check: g => g.score >= 10000 },
-    { id: 'moves_50', name: 'Тактик', desc: 'Сделайте 50 ходов', icon: '♟️', tile: 50, check: g => g.moveCount >= 50 },
-    { id: 'moves_100', name: 'Марафонец', desc: 'Сделайте 100 ходов', icon: '🏃', tile: 100, check: g => g.moveCount >= 100 },
-];
-
-let game2048 = null;
-let replayMode = false;
-let replayInterval = null;
-let replayIndex = 0;
-let replayMoves = [];
-let replaySeed = 0;
-let replaySpeed = 1;
-
-document.addEventListener('DOMContentLoaded', () => {
+function initializeApp() {
     const splash = document.getElementById('splash-screen');
     if (splash) splash.style.display = 'none';
     document.body.style.opacity = '1';
+
     initializeTelegramWebApp();
     setupNavigation();
     initializeGames();
     initializeExchanges();
     setupSettingsPanel();
     loadThemePreference();
+    setLanguage();
     loadUserData();
     setupShareButton();
+    initGame2048();
     setupLeaderboardRefresh();
     setupLeaderboardShare();
-    setupGameTabs();
-    initGame2048();
-    loadAchievementsUI();
-    loadChallengesUI();
-    checkReplayParam();
-    checkDuelParam();
-});
-
-function vibrate() { if (navigator.vibrate) navigator.vibrate(50); }
+}
 
 function initializeTelegramWebApp() {
     if (window.Telegram && window.Telegram.WebApp) {
         const tg = window.Telegram.WebApp;
-        tg.ready(); tg.expand();
+        tg.ready();
+        tg.expand();
         const themeParams = tg.themeParams;
         if (themeParams) {
             if (themeParams.bg_color) document.documentElement.style.setProperty('--tg-theme-bg-color', themeParams.bg_color);
@@ -89,99 +161,74 @@ function initializeTelegramWebApp() {
     }
 }
 
-function setupNavigation() {
-    const navItems = document.querySelectorAll('.nav-item');
-    const sections = document.querySelectorAll('.content-section');
-    const header = document.getElementById('main-header');
-    navItems.forEach(item => {
-        item.addEventListener('click', function() {
-            vibrate();
-            const targetSection = this.getAttribute('data-section');
-            navItems.forEach(nav => nav.classList.remove('active'));
-            this.classList.add('active');
-            sections.forEach(section => section.classList.remove('active'));
-            const activeSection = document.getElementById(targetSection);
-            if (activeSection) activeSection.classList.add('active');
-            if (header) {
-                if (targetSection === 'profile-section' || targetSection === 'game-section' || targetSection === 'leaderboard-section') {
-                    header.style.display = 'none';
-                } else {
-                    header.style.display = 'block';
-                }
-            }
-            if (targetSection === 'leaderboard-section') fetchLeaderboard();
-            if (targetSection === 'profile-section') updateProfileTiles();
-        });
-    });
-    document.getElementById('main-header').style.display = 'none';
-}
-
 function initializeGames() {
     const gamesGrid = document.getElementById('games-grid');
     if (!gamesGrid) return;
     gamesGrid.innerHTML = GAMES_DATA.map(game => `
-        <div class="game-card ${game.highlight ? 'highlight' : ''}">
-            <div class="game-image"><img src="${game.image}" class="game-img" onerror="this.style.display='none'"><div class="image-fallback">${game.fallback}</div></div>
+        <div class="game-card ${game.highlight ? 'highlight' : ''}" data-game-id="${game.id}">
+            <div class="game-image">
+                <img src="${game.image}" alt="${game.name}" class="game-img" onerror="this.style.display='none'">
+                <div class="image-fallback">${game.fallback}</div>
+            </div>
             <div class="game-info">
-                <div class="game-header"><h3>${game.name}</h3>${game.badge ? `<span class="game-badge">${game.badge}</span>` : ''}</div>
+                <div class="game-header">
+                    <h3>${game.name}</h3>
+                    ${game.badge ? `<span class="game-badge">${game.badge}</span>` : ''}
+                </div>
                 <p class="game-description">${game.description}</p>
                 <div class="game-stats">
-                    <div class="rating"><div class="stars">${generateStars(game.rating)}</div><span class="rating-value">${game.rating}</span></div>
-                    <div class="players"><span class="players-icon">👥</span><span class="players-count">${game.players}</span></div>
+                    <div class="rating">
+                        <div class="stars">${generateStars(game.rating)}</div>
+                        <span class="rating-value">${game.rating}</span>
+                    </div>
+                    <div class="players">
+                        <span class="players-icon">👥</span>
+                        <span class="players-count">${game.players}</span>
+                    </div>
                 </div>
             </div>
-            <button class="play-button" data-link="${game.fullLink}">Играть</button>
+            <button class="play-button" data-link="${game.fullLink || ''}">
+                Играть
+            </button>
         </div>
     `).join('');
-    document.querySelectorAll('.play-button').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            vibrate();
-            const link = this.dataset.link;
-            if (link) {
-                if (window.Telegram?.WebApp) {
-                    if (link.startsWith('https://t.me/')) window.Telegram.WebApp.openTelegramLink(link);
-                    else window.Telegram.WebApp.openLink(link);
-                } else window.open(link, '_blank');
-            }
-        });
-    });
+    setupGameButtons();
 }
 
-function generateStars(r) {
-    const full = Math.floor(r), half = r % 1 >= 0.5, empty = 5 - full - (half ? 1 : 0);
-    let s = '';
-    for (let i=0;i<full;i++) s += '<span class="star filled">★</span>';
-    if (half) s += '<span class="star half">★</span>';
-    for (let i=0;i<empty;i++) s += '<span class="star">★</span>';
-    return s;
+function generateStars(rating) {
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+    let stars = '';
+    for (let i = 0; i < fullStars; i++) stars += '<span class="star filled">★</span>';
+    if (hasHalfStar) stars += '<span class="star half">★</span>';
+    for (let i = 0; i < emptyStars; i++) stars += '<span class="star">★</span>';
+    return stars;
 }
 
 function initializeExchanges() {
-    const list = document.getElementById('exchanges-list');
-    if (!list) return;
-    list.innerHTML = EXCHANGES_DATA.map(ex => `
-        <div class="exchange-card">
-            <div class="exchange-logo"><img src="${ex.image}" class="exchange-img" onerror="this.style.display='none'"><div class="image-fallback">${ex.fallback}</div></div>
-            <div class="exchange-info"><h3>${ex.name}</h3><p>${ex.description}</p></div>
-            <button class="exchange-button" data-url="${ex.url}">Перейти</button>
+    const exchangesList = document.getElementById('exchanges-list');
+    if (!exchangesList) return;
+    exchangesList.innerHTML = EXCHANGES_DATA.map(exchange => `
+        <div class="exchange-card" data-exchange-id="${exchange.id}">
+            <div class="exchange-logo">
+                <img src="${exchange.image}" alt="${exchange.name}" class="exchange-img" onerror="this.style.display='none'">
+                <div class="image-fallback">${exchange.fallback}</div>
+            </div>
+            <div class="exchange-info">
+                <h3>${exchange.name}</h3>
+                <p>${exchange.description}</p>
+            </div>
+            <button class="exchange-button" data-url="${exchange.url}">
+                Перейти
+            </button>
         </div>
     `).join('');
-    document.querySelectorAll('.exchange-button').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            vibrate();
-            const url = this.dataset.url;
-            if (url) {
-                if (window.Telegram?.WebApp) window.Telegram.WebApp.openLink(url);
-                else window.open(url, '_blank');
-            }
-        });
-    });
+    setupExchangeButtons();
 }
 
 function loadUserData() {
-    if (window.Telegram?.WebApp) {
+    if (window.Telegram && window.Telegram.WebApp) {
         const user = window.Telegram.WebApp.initDataUnsafe?.user;
         if (user) {
             updateProfileDisplay(user);
@@ -195,140 +242,271 @@ function loadUserData() {
         showFallbackProfile();
         currentUserId = null;
     }
-    updateProfileTiles();
 }
 
 async function sendMiniAppStat(user) {
-    if (!user?.id) return;
+    if (!user || !user.id) return;
     let ref = null;
-    try { ref = window.Telegram?.WebApp?.initDataUnsafe?.start_param; } catch(e){}
     try {
-        await fetch(WORKER_URL + '/track', {
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({userId:user.id.toString(), firstName:user.first_name||'', username:user.username||'', ref})
+        if (window.Telegram && window.Telegram.WebApp) {
+            const startParam = window.Telegram.WebApp.initDataUnsafe?.start_param;
+            if (startParam) ref = startParam;
+        }
+    } catch (e) {}
+
+    const payload = {
+        userId: user.id.toString(),
+        firstName: user.first_name || '',
+        username: user.username || '',
+        ref: ref || null,
+        initData: window.Telegram?.WebApp?.initData || ''
+    };
+
+    try {
+        await fetch(WORKER_URL + '/api/track', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
         });
-    } catch(e){}
+    } catch (err) {
+        console.error('track err:', err);
+    }
 }
 
 function updateProfileDisplay(user) {
-    document.getElementById('user-name').textContent = user.first_name + (user.last_name ? ' '+user.last_name : '');
-    document.getElementById('user-username').textContent = user.username ? '@'+user.username : 'Telegram User';
-    const img = document.getElementById('avatar-img');
-    const fallback = document.getElementById('avatar-fallback');
+    const userName = document.getElementById('user-name');
+    if (userName) userName.textContent = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+    const userUsername = document.getElementById('user-username');
+    if (userUsername) userUsername.textContent = user.username ? '@' + user.username : 'Telegram User';
+    updateUserAvatar(user);
+    if (user.is_premium) showPremiumBadge();
+}
+
+function updateUserAvatar(user) {
+    const avatarImg = document.getElementById('avatar-img');
+    const avatarFallback = document.getElementById('avatar-fallback');
+    if (!avatarImg) return;
     if (user.photo_url) {
-        img.src = user.photo_url;
-        img.style.display = 'block';
-        img.onerror = () => { img.style.display = 'none'; fallback.style.display = 'flex'; };
-        fallback.style.display = 'none';
+        avatarImg.src = user.photo_url;
+        avatarImg.style.display = 'block';
+        avatarImg.onerror = () => { avatarImg.style.display = 'none'; showAvatarFallback(user, avatarFallback); };
+        avatarFallback.style.display = 'none';
     } else {
-        img.style.display = 'none';
-        fallback.textContent = user.first_name.charAt(0).toUpperCase();
-        fallback.style.display = 'flex';
+        avatarImg.style.display = 'none';
+        showAvatarFallback(user, avatarFallback);
     }
-    if (user.is_premium) {
-        const info = document.querySelector('.profile-info');
-        if (info && !document.querySelector('.premium-badge')) {
-            const badge = document.createElement('div');
-            badge.className = 'premium-badge';
-            badge.innerHTML = '⭐ Premium';
-            info.appendChild(badge);
-        }
+}
+
+function showAvatarFallback(user, avatarFallback) {
+    if (user.first_name) avatarFallback.textContent = user.first_name.charAt(0).toUpperCase();
+    else avatarFallback.textContent = 'T';
+    avatarFallback.style.display = 'flex';
+}
+
+function showPremiumBadge() {
+    const profileInfo = document.querySelector('.profile-info');
+    if (profileInfo && !document.querySelector('.premium-badge')) {
+        const premiumBadge = document.createElement('div');
+        premiumBadge.className = 'premium-badge';
+        premiumBadge.innerHTML = '⭐ Premium';
+        profileInfo.appendChild(premiumBadge);
     }
 }
 
 function showFallbackProfile() {
-    document.getElementById('user-name').textContent = 'Telegram User';
-    document.getElementById('user-username').textContent = 'Открой в Telegram';
-    document.getElementById('avatar-fallback').textContent = 'T';
-    document.getElementById('avatar-fallback').style.display = 'flex';
+    const userName = document.getElementById('user-name');
+    const userUsername = document.getElementById('user-username');
+    const avatarFallback = document.getElementById('avatar-fallback');
+    if (userName) userName.textContent = 'Telegram User';
+    if (userUsername) userUsername.textContent = 'Открой в Telegram';
+    if (avatarFallback) { avatarFallback.textContent = 'T'; avatarFallback.style.display = 'flex'; }
+}
+
+const headerElement = document.querySelector('.header');
+const mainContent = document.querySelector('.main-content');
+
+function toggleHeaderForSection(sectionId) {
+    if (!headerElement) return;
+    if (sectionId === 'profile-section' || sectionId === 'game-section') {
+        headerElement.style.display = 'none';
+        if (mainContent) mainContent.style.paddingTop = '8px';
+    } else {
+        headerElement.style.display = 'block';
+        if (mainContent) mainContent.style.paddingTop = '';
+    }
+}
+
+function setupNavigation() {
+    const navItems = document.querySelectorAll('.nav-item');
+    const sections = document.querySelectorAll('.content-section');
+    navItems.forEach(item => {
+        item.addEventListener('click', function() {
+            vibrate();
+            const targetSection = this.getAttribute('data-section');
+            navItems.forEach(nav => nav.classList.remove('active'));
+            this.classList.add('active');
+            sections.forEach(section => {
+                section.classList.remove('active');
+                if (section.id === targetSection) section.classList.add('active');
+            });
+            toggleHeaderForSection(targetSection);
+
+            if (targetSection === 'game-section') {
+                fetchLeaderboard();
+            }
+        });
+    });
+
+    const activeSection = document.querySelector('.content-section.active');
+    if (activeSection && activeSection.id === 'game-section') {
+        fetchLeaderboard();
+    }
+    if (activeSection) toggleHeaderForSection(activeSection.id);
+}
+
+function setupGameButtons() {
+    document.querySelectorAll('.play-button').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.stopPropagation();
+            vibrate();
+            const link = this.getAttribute('data-link');
+            if (link) {
+                if (window.Telegram && window.Telegram.WebApp) {
+                    if (link.startsWith('https://t.me/')) window.Telegram.WebApp.openTelegramLink(link);
+                    else window.Telegram.WebApp.openLink(link);
+                } else {
+                    window.open(link, '_blank');
+                }
+            }
+        });
+    });
+}
+
+function setupExchangeButtons() {
+    document.querySelectorAll('.exchange-button').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.stopPropagation();
+            vibrate();
+            const exchangeUrl = this.getAttribute('data-url');
+            if (exchangeUrl) {
+                if (window.Telegram && window.Telegram.WebApp) window.Telegram.WebApp.openLink(exchangeUrl);
+                else window.open(exchangeUrl, '_blank');
+            }
+        });
+    });
 }
 
 function setupSettingsPanel() {
-    document.getElementById('settings-button').addEventListener('click', () => { vibrate(); document.getElementById('settings-panel').classList.add('active'); });
-    document.getElementById('close-settings').addEventListener('click', () => { vibrate(); document.getElementById('settings-panel').classList.remove('active'); });
-    document.getElementById('settings-panel').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.classList.remove('active'); });
-    document.querySelectorAll('.theme-option').forEach(opt => {
-        opt.addEventListener('click', function() {
+    const settingsButton = document.getElementById('settings-button');
+    const settingsPanel = document.getElementById('settings-panel');
+    const closeSettings = document.getElementById('close-settings');
+    if (settingsButton) settingsButton.addEventListener('click', () => { vibrate(); settingsPanel.classList.add('active'); });
+    if (closeSettings) closeSettings.addEventListener('click', () => { vibrate(); settingsPanel.classList.remove('active'); });
+    if (settingsPanel) settingsPanel.addEventListener('click', (e) => { if (e.target === settingsPanel) settingsPanel.classList.remove('active'); });
+
+    document.querySelectorAll('.theme-option').forEach(option => {
+        option.addEventListener('click', function() {
             vibrate();
-            const theme = this.dataset.theme;
-            document.querySelectorAll('.theme-option').forEach(o => o.classList.remove('active'));
+            const theme = this.getAttribute('data-theme');
+            document.querySelectorAll('.theme-option').forEach(opt => opt.classList.remove('active'));
             this.classList.add('active');
-            document.body.classList.toggle('dark-theme', theme === 'dark');
+            if (theme === 'dark') document.body.classList.add('dark-theme');
+            else document.body.classList.remove('dark-theme');
             localStorage.setItem('theme', theme);
         });
     });
 }
 
-function loadThemePreference() {
-    const theme = localStorage.getItem('theme') || 'light';
-    document.body.classList.toggle('dark-theme', theme === 'dark');
-    document.querySelectorAll('.theme-option').forEach(o => o.classList.toggle('active', o.dataset.theme === theme));
-}
-
-function setupShareButton() {
-    const btn = document.getElementById('share-friends-button');
-    if (!btn) return;
-    btn.addEventListener('click', () => {
-        vibrate();
-        let url = currentUserId ? `https://t.me/${BOT_USERNAME}?start=ref_${currentUserId}` : `https://t.me/${BOT_USERNAME}`;
-        const text = 'Играй в лучшие мини-игры Telegram вместе с HADRON! 🎮';
-        if (window.Telegram?.WebApp) {
-            try { window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`); }
-            catch { fallbackCopyToClipboard(url); }
-        } else {
-            if (navigator.share) navigator.share({title:'Games Verse', text, url}).catch(() => fallbackCopyToClipboard(url));
-            else fallbackCopyToClipboard(url);
-        }
+function setLanguage() {
+    document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        if (translations[key]) element.textContent = translations[key];
     });
 }
 
+function loadThemePreference() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    if (savedTheme === 'dark') document.body.classList.add('dark-theme');
+    document.querySelectorAll('.theme-option').forEach(opt => {
+        opt.classList.remove('active');
+        if (opt.getAttribute('data-theme') === savedTheme) opt.classList.add('active');
+    });
+}
+
+function setupShareButton() {
+    const shareButton = document.getElementById('share-friends-button');
+    if (shareButton) {
+        shareButton.addEventListener('click', function() {
+            vibrate();
+            let botUrl;
+            if (currentUserId) {
+                botUrl = `https://t.me/${BOT_USERNAME}?start=ref_${currentUserId}`;
+            } else {
+                botUrl = `https://t.me/${BOT_USERNAME}`;
+            }
+            const shareText = 'Играй в лучшие мини-игры Telegram вместе с HADRON! 🎮';
+            if (window.Telegram && window.Telegram.WebApp) {
+                const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(botUrl)}&text=${encodeURIComponent(shareText)}`;
+                try {
+                    window.Telegram.WebApp.openTelegramLink(shareUrl);
+                } catch (error) {
+                    fallbackCopyToClipboard(botUrl);
+                }
+            } else {
+                if (navigator.share) {
+                    navigator.share({
+                        title: 'Games Verse',
+                        text: shareText,
+                        url: botUrl,
+                    }).catch(() => fallbackCopyToClipboard(botUrl));
+                } else {
+                    fallbackCopyToClipboard(botUrl);
+                }
+            }
+        });
+    }
+}
+
 function fallbackCopyToClipboard(text) {
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.position = 'fixed'; ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    showNotification();
+    try {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showNotification();
+    } catch (err) {
+        showNotification('Не удалось скопировать ссылку');
+    }
 }
 
-function showNotification(msg) {
-    const el = document.getElementById('notification');
-    if (!el) return;
-    el.textContent = msg || 'Ссылка скопирована!';
-    el.classList.add('show');
-    setTimeout(() => el.classList.remove('show'), 2000);
+function showNotification(customMessage) {
+    const notification = document.getElementById('notification');
+    if (!notification) return;
+    notification.textContent = customMessage || translations.linkCopied;
+    notification.classList.add('show');
+    setTimeout(() => notification.classList.remove('show'), 2000);
 }
 
-/* ========== 2048 ========== */
+/* 2048 Game */
 class Game2048 {
-    constructor(boardEl, scoreEl, bestEl, statusEl, replayBtn, duelConfig = null) {
-        this.boardEl = boardEl;
-        this.scoreEl = scoreEl;
-        this.bestEl = bestEl;
-        this.statusEl = statusEl;
-        this.replayBtn = replayBtn;
+    constructor(boardElement, scoreElement, bestScoreElement, statusElement) {
+        this.boardElement = boardElement;
+        this.scoreElement = scoreElement;
+        this.bestScoreElement = bestScoreElement;
+        this.statusElement = statusElement;
         this.size = 4;
         this.grid = [];
         this.score = 0;
-        this.bestScore = parseInt(localStorage.getItem('bestScore2048')) || 0;
-        this.seed = duelConfig ? duelConfig.seed : Date.now();
-        this.duelMode = duelConfig !== null;
-        this.onDuelEnd = duelConfig ? duelConfig.onEnd : null;
-        this.duelId = duelConfig ? duelConfig.duelId : null;
-        this.rng = new SeededRandom(this.seed);
-        this.moveHistory = [];
-        this.moveCount = 0;
-        this.mergedCombo = 0;
-        this.totalMerges = 0;
-        this.lastAdded = null;
+        this.bestScore = localStorage.getItem('bestScore2048') ? parseInt(localStorage.getItem('bestScore2048')) : 0;
+        this.lastAddedTile = null;
         this.mergedPositions = new Set();
         this.moveMap = null;
-        this.gameOver = false;
-        this.won = false;
-        this.updateBestUI();
+
+        this.updateBestScoreUI();
         this.init();
         this.setupSwipeEvents();
         this.setupKeyboardEvents();
@@ -336,177 +514,256 @@ class Game2048 {
 
     init() {
         this.grid = Array(this.size).fill().map(() => Array(this.size).fill(0));
-        this.score = 0; this.moveCount = 0; this.mergedCombo = 0; this.totalMerges = 0;
-        this.moveHistory = []; this.gameOver = false; this.won = false;
-        this.statusEl.textContent = '';
-        this.replayBtn.style.display = 'none';
+        this.score = 0;
         this.updateScoreUI();
-        this.rng = new SeededRandom(this.seed);
-        this.addRandomTile(); this.addRandomTile();
+        this.statusElement.textContent = '';
+        this.lastAddedTile = null;
+        this.mergedPositions.clear();
+        this.moveMap = null;
+        this.addRandomTile();
+        this.addRandomTile();
         this.render();
-        this.checkAchievements();
-        this.updateChallengeProgress();
     }
 
     addRandomTile() {
-        const empty = [];
-        for (let i=0;i<this.size;i++) for (let j=0;j<this.size;j++) if (this.grid[i][j]===0) empty.push({x:i,y:j});
-        if (empty.length) {
-            const {x,y} = empty[Math.floor(this.rng.next()*empty.length)];
-            this.grid[x][y] = this.rng.next() < 0.9 ? 2 : 4;
-            this.lastAdded = {x,y};
+        const emptyCells = [];
+        for (let i = 0; i < this.size; i++) {
+            for (let j = 0; j < this.size; j++) {
+                if (this.grid[i][j] === 0) emptyCells.push({x: i, y: j});
+            }
+        }
+        if (emptyCells.length > 0) {
+            const {x, y} = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            this.grid[x][y] = Math.random() < 0.9 ? 2 : 4;
+            this.lastAddedTile = {x, y};
             return true;
         }
         return false;
     }
 
     move(direction) {
-        if (this.gameOver || replayMode) return;
-        const old = JSON.parse(JSON.stringify(this.grid));
-        let gained = 0;
+        const oldGrid = JSON.parse(JSON.stringify(this.grid));
+        let totalScoreGain = 0;
         this.mergedPositions.clear();
         this.moveMap = {};
-        let mergeCombo = 0;
 
-        const slide = (row, isCol, idx, reverse) => {
-            let arr = row.filter(v=>v!==0);
-            let newRow = [], mergedFlags = Array(arr.length).fill(false);
-            for (let i=0;i<arr.length;i++) {
-                if (i+1<arr.length && arr[i]===arr[i+1] && !mergedFlags[i] && !mergedFlags[i+1]) {
-                    newRow.push(arr[i]*2);
-                    gained += arr[i]*2;
-                    mergedFlags[i]=mergedFlags[i+1]=true;
-                    mergeCombo++;
-                    this.totalMerges++;
+        const slideWithTracking = (row, isColumn, index, reverse) => {
+            let arr = row.filter(v => v !== 0);
+            let newRow = [];
+            let scoreGain = 0;
+            let merged = new Array(arr.length).fill(false);
+
+            for (let i = 0; i < arr.length; i++) {
+                if (i + 1 < arr.length && arr[i] === arr[i + 1] && !merged[i] && !merged[i+1]) {
+                    let mergedVal = arr[i] * 2;
+                    newRow.push(mergedVal);
+                    scoreGain += mergedVal;
+                    merged[i] = merged[i+1] = true;
                     i++;
-                } else newRow.push(arr[i]);
+                } else {
+                    newRow.push(arr[i]);
+                }
             }
-            while (newRow.length<this.size) newRow.push(0);
-            let oldVals = arr, oldPtr = 0;
-            for (let newPos=0;newPos<this.size;newPos++) {
-                if (newRow[newPos]===0) continue;
-                if (oldPtr<oldVals.length && oldVals[oldPtr]*2===newRow[newPos] && oldPtr+1<oldVals.length && oldVals[oldPtr]===oldVals[oldPtr+1]) {
-                    this.recordMove(oldPtr,oldVals,newPos,isCol,idx,reverse,true);
-                    this.recordMove(oldPtr+1,oldVals,newPos,isCol,idx,reverse,true);
-                    oldPtr+=2;
-                } else if (oldPtr<oldVals.length && oldVals[oldPtr]===newRow[newPos]) {
-                    this.recordMove(oldPtr,oldVals,newPos,isCol,idx,reverse,false);
+            while (newRow.length < this.size) newRow.push(0);
+
+            let oldVals = arr;
+            let oldPtr = 0;
+            for (let newPos = 0; newPos < this.size; newPos++) {
+                if (newRow[newPos] === 0) continue;
+                if (oldPtr < oldVals.length && oldVals[oldPtr] * 2 === newRow[newPos] &&
+                    oldPtr + 1 < oldVals.length && oldVals[oldPtr] === oldVals[oldPtr + 1]) {
+                    this.recordMove(oldPtr, oldVals, newPos, isColumn, index, reverse, true, false);
+                    this.recordMove(oldPtr + 1, oldVals, newPos, isColumn, index, reverse, true, true);
+                    oldPtr += 2;
+                } else if (oldPtr < oldVals.length && oldVals[oldPtr] === newRow[newPos]) {
+                    this.recordMove(oldPtr, oldVals, newPos, isColumn, index, reverse, false, false);
                     oldPtr++;
                 }
             }
-            return newRow;
+            return {newRow, scoreGain};
         };
 
-        if (direction==='left') for (let i=0;i<this.size;i++) this.grid[i] = slide(this.grid[i],false,i,false);
-        else if (direction==='right') for (let i=0;i<this.size;i++) { let rev=[...this.grid[i]].reverse(); this.grid[i]=slide(rev,false,i,true).reverse(); }
-        else if (direction==='up') for (let j=0;j<this.size;j++) { let col=[]; for (let i=0;i<this.size;i++) col.push(this.grid[i][j]); let res=slide(col,true,j,false); for (let i=0;i<this.size;i++) this.grid[i][j]=res[i]; }
-        else if (direction==='down') for (let j=0;j<this.size;j++) { let col=[]; for (let i=0;i<this.size;i++) col.push(this.grid[i][j]); let rev=col.reverse(); let res=slide(rev,true,j,true).reverse(); for (let i=0;i<this.size;i++) this.grid[i][j]=res[i]; }
+        this.recordMove = (oldIdx, oldVals, newIdx, isColumn, lineIdx, reverse, merged, isSecond) => {
+            const originalLine = [];
+            if (!isColumn) {
+                originalLine.push(...this.grid[lineIdx]);
+            } else {
+                for (let r = 0; r < this.size; r++) originalLine.push(this.grid[r][lineIdx]);
+            }
+            if (reverse) originalLine.reverse();
 
-        this.mergedCombo = mergeCombo;
-        if (!this.gridsAreEqual(old, this.grid)) {
-            this.score += gained;
-            this.moveCount++;
-            this.moveHistory.push(direction);
+            let skip = 0;
+            let sourceIdx = -1;
+            for (let i = 0; i < originalLine.length; i++) {
+                if (originalLine[i] !== 0) {
+                    if (skip === oldIdx) { sourceIdx = i; break; }
+                    skip++;
+                }
+            }
+            if (sourceIdx === -1) return;
+
+            if (reverse) sourceIdx = this.size - 1 - sourceIdx;
+
+            let fromRow, fromCol;
+            if (!isColumn) {
+                fromRow = lineIdx;
+                fromCol = sourceIdx;
+            } else {
+                fromRow = sourceIdx;
+                fromCol = lineIdx;
+            }
+
+            let targetIdx = newIdx;
+            if (reverse) targetIdx = this.size - 1 - targetIdx;
+
+            let toRow, toCol;
+            if (!isColumn) {
+                toRow = lineIdx;
+                toCol = targetIdx;
+            } else {
+                toRow = targetIdx;
+                toCol = lineIdx;
+            }
+
+            const key = `${toRow},${toCol}`;
+            if (!this.moveMap[key]) {
+                this.moveMap[key] = { fromRow, fromCol, merged };
+            }
+            if (merged) this.mergedPositions.add(key);
+        };
+
+        if (direction === 'left') {
+            for (let i = 0; i < this.size; i++) {
+                const {newRow, scoreGain} = slideWithTracking(this.grid[i], false, i, false);
+                this.grid[i] = newRow;
+                totalScoreGain += scoreGain;
+            }
+        } else if (direction === 'right') {
+            for (let i = 0; i < this.size; i++) {
+                const reversed = [...this.grid[i]].reverse();
+                const {newRow, scoreGain} = slideWithTracking(reversed, false, i, true);
+                totalScoreGain += scoreGain;
+                this.grid[i] = newRow.reverse();
+            }
+        } else if (direction === 'up') {
+            for (let j = 0; j < this.size; j++) {
+                const column = [];
+                for (let i = 0; i < this.size; i++) column.push(this.grid[i][j]);
+                const {newRow, scoreGain} = slideWithTracking(column, true, j, false);
+                totalScoreGain += scoreGain;
+                for (let i = 0; i < this.size; i++) this.grid[i][j] = newRow[i];
+            }
+        } else if (direction === 'down') {
+            for (let j = 0; j < this.size; j++) {
+                const column = [];
+                for (let i = 0; i < this.size; i++) column.push(this.grid[i][j]);
+                const reversed = column.reverse();
+                const {newRow, scoreGain} = slideWithTracking(reversed, true, j, true);
+                totalScoreGain += scoreGain;
+                const finalArr = newRow.reverse();
+                for (let i = 0; i < this.size; i++) this.grid[i][j] = finalArr[i];
+            }
+        }
+
+        if (totalScoreGain > 0) {
+            this.score += totalScoreGain;
             this.updateScoreUI();
+        }
+
+        const changed = !this.gridsAreEqual(oldGrid, this.grid);
+        if (changed) {
             this.addRandomTile();
             this.render();
-            this.checkAchievements();
-            this.updateChallengeProgress();
             if (this.checkWin()) {
-                this.statusEl.textContent = translations.gameWin;
-                this.gameOver = true; this.won = true;
+                this.statusElement.textContent = translations.gameWin;
                 this.submitScoreToLeaderboard();
-                this.showReplayButton();
-                if (this.duelMode && this.onDuelEnd) this.onDuelEnd(this.score, [...this.moveHistory]);
             } else if (this.checkLose()) {
-                this.statusEl.textContent = translations.gameLose;
-                this.gameOver = true;
+                this.statusElement.textContent = translations.gameLose;
                 this.submitScoreToLeaderboard();
-                this.showReplayButton();
-                if (this.duelMode && this.onDuelEnd) this.onDuelEnd(this.score, [...this.moveHistory]);
             }
-        } else this.moveMap = null;
-    }
-
-    recordMove(oldIdx, oldVals, newIdx, isCol, lineIdx, reverse, merged) {
-        const originalLine = [];
-        if (!isCol) originalLine.push(...this.grid[lineIdx]);
-        else for (let r=0;r<this.size;r++) originalLine.push(this.grid[r][lineIdx]);
-        if (reverse) originalLine.reverse();
-        let skip=0, sourceIdx=-1;
-        for (let i=0;i<originalLine.length;i++) {
-            if (originalLine[i]!==0) { if (skip===oldIdx) { sourceIdx=i; break; } skip++; }
+        } else {
+            this.moveMap = null;
         }
-        if (sourceIdx===-1) return;
-        if (reverse) sourceIdx = this.size-1-sourceIdx;
-        let fromRow, fromCol;
-        if (!isCol) { fromRow=lineIdx; fromCol=sourceIdx; }
-        else { fromRow=sourceIdx; fromCol=lineIdx; }
-        let targetIdx = reverse ? this.size-1-newIdx : newIdx;
-        let toRow, toCol;
-        if (!isCol) { toRow=lineIdx; toCol=targetIdx; }
-        else { toRow=targetIdx; toCol=lineIdx; }
-        const key = `${toRow},${toCol}`;
-        if (!this.moveMap[key]) this.moveMap[key] = {fromRow, fromCol, merged};
-        if (merged) this.mergedPositions.add(key);
     }
 
-    gridsAreEqual(a,b) {
-        for (let i=0;i<this.size;i++) for (let j=0;j<this.size;j++) if (a[i][j]!==b[i][j]) return false;
+    gridsAreEqual(a, b) {
+        for (let i = 0; i < this.size; i++)
+            for (let j = 0; j < this.size; j++)
+                if (a[i][j] !== b[i][j]) return false;
         return true;
     }
 
     render() {
-        this.boardEl.innerHTML = '';
-        const ts = this.boardEl.clientWidth / this.size;
-        for (let i=0;i<this.size;i++) {
-            for (let j=0;j<this.size;j++) {
-                const val = this.grid[i][j];
+        const board = this.boardElement;
+        board.innerHTML = '';
+        const tileSize = board.clientWidth / this.size;
+
+        for (let i = 0; i < this.size; i++) {
+            for (let j = 0; j < this.size; j++) {
+                const value = this.grid[i][j];
                 const tile = document.createElement('div');
                 tile.className = 'tile-cell';
-                if (val) {
-                    tile.classList.add(val<=2048 ? `tile-${val}` : 'tile-super');
-                    tile.textContent = val;
+                if (value !== 0) {
+                    let tileClass = `tile-${value}`;
+                    if (value > 2048) tileClass = 'tile-super';
+                    tile.classList.add(tileClass);
+                    tile.textContent = value;
+
                     const key = `${i},${j}`;
-                    if (this.moveMap?.[key]) {
-                        const {fromRow, fromCol, merged} = this.moveMap[key];
-                        tile.style.transform = `translate(${(fromCol-j)*ts}px, ${(fromRow-i)*ts}px)`;
+                    if (this.moveMap && this.moveMap[key]) {
+                        const { fromRow, fromCol, merged } = this.moveMap[key];
+                        const deltaX = (fromCol - j) * tileSize;
+                        const deltaY = (fromRow - i) * tileSize;
+                        tile.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
                         tile.offsetHeight;
                         tile.style.transform = '';
                         if (merged) {
                             tile.classList.add('tile-merge');
-                            tile.addEventListener('animationend', ()=>tile.classList.remove('tile-merge'), {once:true});
+                            tile.addEventListener('animationend', () => tile.classList.remove('tile-merge'), { once: true });
                         }
                     }
-                    if (this.lastAdded?.x===i && this.lastAdded?.y===j) {
+
+                    if (this.lastAddedTile && this.lastAddedTile.x === i && this.lastAddedTile.y === j) {
                         tile.classList.add('tile-new');
-                        tile.addEventListener('animationend', ()=>tile.classList.remove('tile-new'), {once:true});
+                        tile.addEventListener('animationend', () => tile.classList.remove('tile-new'), { once: true });
                     }
+                } else {
+                    tile.textContent = '';
                 }
-                this.boardEl.appendChild(tile);
+                board.appendChild(tile);
             }
         }
-        this.lastAdded = null;
+        this.lastAddedTile = null;
         this.moveMap = null;
     }
 
     updateScoreUI() {
-        this.scoreEl.textContent = this.score;
+        this.scoreElement.textContent = this.score;
         if (this.score > this.bestScore) {
             this.bestScore = this.score;
             localStorage.setItem('bestScore2048', this.bestScore);
-            this.updateBestUI();
+            this.updateBestScoreUI();
         }
     }
 
-    updateBestUI() { this.bestEl.textContent = this.bestScore; }
-    checkWin() { return this.grid.some(r => r.includes(2048)); }
+    updateBestScoreUI() {
+        this.bestScoreElement.textContent = this.bestScore;
+    }
+
+    checkWin() {
+        return this.grid.some(row => row.includes(2048));
+    }
+
     checkLose() {
-        for (let i=0;i<this.size;i++) for (let j=0;j<this.size;j++) if (!this.grid[i][j]) return false;
-        for (let i=0;i<this.size;i++) for (let j=0;j<this.size;j++) {
-            if (j<this.size-1 && this.grid[i][j]===this.grid[i][j+1]) return false;
-            if (i<this.size-1 && this.grid[i][j]===this.grid[i+1][j]) return false;
-        }
+        for (let i = 0; i < this.size; i++)
+            for (let j = 0; j < this.size; j++)
+                if (this.grid[i][j] === 0) return false;
+        for (let i = 0; i < this.size; i++)
+            for (let j = 0; j < this.size; j++) {
+                const val = this.grid[i][j];
+                if (j < this.size-1 && val === this.grid[i][j+1]) return false;
+                if (i < this.size-1 && val === this.grid[i+1][j]) return false;
+            }
         return true;
     }
 
@@ -514,568 +771,180 @@ class Game2048 {
         if (!currentUserId) return;
         const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
         if (!user) return;
-        fetch(WORKER_URL+'/submit-score', {
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({userId:currentUserId.toString(), firstName:user.first_name||'Игрок', username:user.username||'', score:this.score, avatarUrl:user.photo_url||''})
-        }).then(() => fetchLeaderboard()).catch(e=>console.error(e));
-    }
-
-    showReplayButton() {
-        this.replayBtn.style.display = 'inline-block';
-        this.replayBtn.onclick = () => this.shareReplay();
-    }
-
-    shareReplay() {
-        const movesStr = this.moveHistory.map(d=>d[0]).join('');
-        const url = `https://t.me/${BOT_USERNAME}?startapp=replay_${this.seed}_${movesStr}`;
-        if (window.Telegram?.WebApp) {
-            window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=Смотри%20мой%20реплей%202048!`);
-        } else fallbackCopyToClipboard(url);
-    }
-
-    resetGame() {
-        if (this.duelMode) return; // нельзя перезапустить дуэль
-        this.seed = Date.now();
-        this.duelMode = false;
-        this.onDuelEnd = null;
-        this.init();
-        this.render();
-        document.getElementById('replay-viewer').style.display = 'none';
-        document.getElementById('new-game-btn').style.display = '';
-    }
-
-    startReplay(seed, moves) {
-        replayMode = true;
-        this.seed = seed;
-        this.rng = new SeededRandom(seed);
-        this.grid = Array(this.size).fill().map(()=>Array(this.size).fill(0));
-        this.addRandomTile(); this.addRandomTile();
-        this.render();
-        replayMoves = moves; replayIndex = 0;
-        document.getElementById('replay-viewer').style.display = 'block';
-        this.replayBtn.style.display = 'none';
-        document.getElementById('new-game-btn').style.display = 'none';
-        document.getElementById('replay-step').textContent = `0/${moves.length}`;
-        this.setupReplayControls();
-    }
-
-    setupReplayControls() {
-        const playBtn = document.getElementById('replay-play');
-        const speedBtn = document.getElementById('replay-speed');
-        const stepSpan = document.getElementById('replay-step');
-        let playing = false;
-        const doStep = () => {
-            if (replayIndex >= replayMoves.length) {
-                clearInterval(replayInterval);
-                playing = false;
-                playBtn.textContent = '▶️';
-                this.statusEl.textContent = 'Реплей завершён';
-                return;
-            }
-            this.move(replayMoves[replayIndex++]);
-            stepSpan.textContent = `${replayIndex}/${replayMoves.length}`;
+        const payload = {
+            userId: currentUserId.toString(),
+            firstName: user.first_name || 'Игрок',
+            username: user.username || '',
+            score: this.score,
+            avatarUrl: user.photo_url || '',
+            initData: window.Telegram?.WebApp?.initData || ''
         };
-        playBtn.onclick = () => {
-            if (playing) { clearInterval(replayInterval); playing = false; playBtn.textContent = '▶️'; }
-            else { playing = true; playBtn.textContent = '⏸️'; replayInterval = setInterval(doStep, 300/replaySpeed); }
-        };
-        speedBtn.onclick = () => {
-            replaySpeed = replaySpeed===1?2:(replaySpeed===2?4:1);
-            speedBtn.textContent = replaySpeed+'x';
-            if (playing) { clearInterval(replayInterval); replayInterval = setInterval(doStep, 300/replaySpeed); }
-        };
-    }
-
-    checkAchievements() {
-        const earned = JSON.parse(localStorage.getItem('achievements')||'{}');
-        const collected = JSON.parse(localStorage.getItem('collectedTiles')||'[]');
-        let updated = false;
-        ACHIEVEMENTS.forEach(a => {
-            if (!earned[a.id] && a.check(this)) {
-                earned[a.id] = true;
-                if (!collected.includes(a.tile)) collected.push(a.tile);
-                updated = true;
-                showNotification(`🏆 ${a.name}! + плитка ${a.tile}`);
-            }
-        });
-        if (updated) {
-            localStorage.setItem('achievements', JSON.stringify(earned));
-            localStorage.setItem('collectedTiles', JSON.stringify(collected));
-            loadAchievementsUI();
-            updateProfileTiles();
-        }
-    }
-
-    updateChallengeProgress() {
-        const daily = getDailyTask();
-        const weekly = getWeeklyTask();
-        const dailyData = JSON.parse(localStorage.getItem('dailyProgress')||'{"date":"","progress":0}');
-        const weeklyData = JSON.parse(localStorage.getItem('weeklyProgress')||'{"week":"","progress":0}');
-        const today = new Date().toISOString().slice(0,10);
-        const week = Math.floor((Date.now()-new Date('2024-01-01'))/604800000);
-        if (dailyData.date!==today) { dailyData.date=today; dailyData.progress=0; }
-        if (weeklyData.week!==week) { weeklyData.week=week; weeklyData.progress=0; }
-        switch (daily.type) {
-            case 'score': dailyData.progress = Math.max(dailyData.progress, this.score); break;
-            case 'tile': dailyData.progress = Math.max(dailyData.progress, ...this.grid.flat()); break;
-            case 'moves': dailyData.progress = Math.max(dailyData.progress, this.moveCount); break;
-            case 'merge_combo': dailyData.progress = Math.max(dailyData.progress, this.mergedCombo); break;
-        }
-        switch (weekly.type) {
-            case 'score': weeklyData.progress = Math.max(weeklyData.progress, this.score); break;
-            case 'tile': weeklyData.progress = Math.max(weeklyData.progress, ...this.grid.flat()); break;
-            case 'moves': weeklyData.progress = Math.max(weeklyData.progress, this.moveCount); break;
-            case 'total_merges': weeklyData.progress = Math.max(weeklyData.progress, this.totalMerges); break;
-        }
-        localStorage.setItem('dailyProgress', JSON.stringify(dailyData));
-        localStorage.setItem('weeklyProgress', JSON.stringify(weeklyData));
-        if (document.getElementById('tab-challenges')?.classList.contains('active')) loadChallengesUI();
+        fetch(WORKER_URL + '/api/submit-score', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        }).then(() => {
+            fetchLeaderboard();
+        }).catch(err => console.error('submit score err:', err));
     }
 
     setupSwipeEvents() {
-        let startX=0, startY=0;
-        this.boardEl.addEventListener('touchstart', e => { startX=e.touches[0].clientX; startY=e.touches[0].clientY; e.preventDefault(); });
-        this.boardEl.addEventListener('touchend', e => {
-            if (!startX && !startY) return;
-            const dx = e.changedTouches[0].clientX - startX;
-            const dy = e.changedTouches[0].clientY - startY;
-            if (Math.abs(dx)<20 && Math.abs(dy)<20) return;
-            if (Math.abs(dx) > Math.abs(dy)) this.move(dx>0?'right':'left');
-            else this.move(dy>0?'down':'up');
-            startX=startY=0;
+        let touchStartX = 0, touchStartY = 0;
+        this.boardElement.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            e.preventDefault();
+        });
+        this.boardElement.addEventListener('touchend', (e) => {
+            if (touchStartX === 0 && touchStartY === 0) return;
+            let deltaX = e.changedTouches[0].clientX - touchStartX;
+            let deltaY = e.changedTouches[0].clientY - touchStartY;
+            if (Math.abs(deltaX) < 20 && Math.abs(deltaY) < 20) return;
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                if (deltaX > 0) this.move('right');
+                else this.move('left');
+            } else {
+                if (deltaY > 0) this.move('down');
+                else this.move('up');
+            }
+            touchStartX = 0; touchStartY = 0;
             vibrate();
         });
     }
 
     setupKeyboardEvents() {
-        window.addEventListener('keydown', e => {
+        window.addEventListener('keydown', (e) => {
             if (document.querySelector('#game-section.active')) {
-                switch (e.key) {
-                    case 'ArrowLeft': this.move('left'); e.preventDefault(); vibrate(); break;
-                    case 'ArrowRight': this.move('right'); e.preventDefault(); vibrate(); break;
-                    case 'ArrowUp': this.move('up'); e.preventDefault(); vibrate(); break;
-                    case 'ArrowDown': this.move('down'); e.preventDefault(); vibrate(); break;
-                }
+                const key = e.key;
+                if (key === 'ArrowLeft') { this.move('left'); e.preventDefault(); vibrate(); }
+                else if (key === 'ArrowRight') { this.move('right'); e.preventDefault(); vibrate(); }
+                else if (key === 'ArrowUp') { this.move('up'); e.preventDefault(); vibrate(); }
+                else if (key === 'ArrowDown') { this.move('down'); e.preventDefault(); vibrate(); }
             }
         });
     }
+
+    resetGame() {
+        this.init();
+        this.render();
+    }
 }
 
+let game2048 = null;
 function initGame2048() {
     const board = document.getElementById('game-board-2048');
-    if (!board || game2048) return;
-    game2048 = new Game2048(
-        board,
-        document.getElementById('game-score'),
-        document.getElementById('best-score'),
-        document.getElementById('game-status'),
-        document.getElementById('replay-share-btn')
-    );
-    document.getElementById('new-game-btn').addEventListener('click', () => { vibrate(); game2048.resetGame(); });
-    document.getElementById('goto-leaderboard-btn').addEventListener('click', () => {
-        document.querySelector('.nav-item[data-section="leaderboard-section"]').click();
-    });
-    document.getElementById('start-duel-btn').addEventListener('click', () => openDuelModal());
-    document.getElementById('close-duel-modal').addEventListener('click', () => {
-        document.getElementById('duel-modal').style.display = 'none';
-    });
-    if (replayMode) game2048.startReplay(replaySeed, replayMoves);
-}
-
-function setupGameTabs() {
-    const tabs = document.querySelectorAll('.game-tab');
-    const contents = document.querySelectorAll('.game-tab-content');
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const target = tab.dataset.tab;
-            tabs.forEach(t => t.classList.remove('active'));
-            contents.forEach(c => c.classList.remove('active'));
-            tab.classList.add('active');
-            document.getElementById(`tab-${target}`).classList.add('active');
-            if (target === 'achievements') loadAchievementsUI();
-            if (target === 'challenges') loadChallengesUI();
-        });
-    });
-}
-
-function loadAchievementsUI() {
-    const container = document.getElementById('achievements-list');
-    if (!container) return;
-    const earned = JSON.parse(localStorage.getItem('achievements')||'{}');
-    container.innerHTML = ACHIEVEMENTS.map(a => `
-        <div class="achievement-item ${earned[a.id]?'earned':''}">
-            <div class="achievement-icon">${a.icon}</div>
-            <div class="achievement-name">${a.name}</div>
-            <div class="achievement-desc">${a.desc}</div>
-        </div>
-    `).join('');
-    updateProfileBadges(earned);
-}
-
-function updateProfileBadges(earned) {
-    const cont = document.getElementById('profile-badges');
-    if (!cont) return;
-    cont.innerHTML = ACHIEVEMENTS.filter(a=>earned[a.id]).map(a=>`<span class="badge" title="${a.name}">${a.icon}</span>`).join('');
-}
-
-function updateProfileTiles() {
-    const cont = document.getElementById('profile-tiles-grid');
-    if (!cont) return;
-    const tiles = JSON.parse(localStorage.getItem('collectedTiles')||'[]');
-    if (!tiles.length) {
-        cont.innerHTML = '<p style="font-size:13px;color:var(--text-secondary-light)">Пока нет плиток. Выполняйте достижения!</p>';
-        return;
-    }
-    tiles.sort((a,b)=>a-b);
-    cont.innerHTML = tiles.map(v => {
-        let cls = `tile-${v}`;
-        if (v>2048) cls = 'tile-super';
-        if ([50,2000,5000,10000].includes(v)) cls = `tile-${v}`;
-        return `<div class="profile-tile ${cls}">${v}</div>`;
-    }).join('');
-}
-
-function getDailyTask() {
-    const tasks = [
-        { desc:'Наберите 1500 очков', target:1500, type:'score' },
-        { desc:'Достигните плитки 128', target:128, type:'tile' },
-        { desc:'Сделайте 30 ходов', target:30, type:'moves' },
-        { desc:'Совершите 3 слияния за ход', target:3, type:'merge_combo' }
-    ];
-    return tasks[new Date().getDate() % tasks.length];
-}
-
-function getWeeklyTask() {
-    const tasks = [
-        { desc:'Наберите 8000 очков', target:8000, type:'score' },
-        { desc:'Достигните плитки 512', target:512, type:'tile' },
-        { desc:'Сделайте 150 ходов', target:150, type:'moves' },
-        { desc:'Совершите 10 слияний за игру', target:10, type:'total_merges' }
-    ];
-    return tasks[Math.floor((Date.now()-new Date('2024-01-01'))/604800000) % tasks.length];
-}
-
-function loadChallengesUI() {
-    const daily = getDailyTask();
-    const weekly = getWeeklyTask();
-    document.getElementById('daily-desc').textContent = daily.desc;
-    document.getElementById('weekly-desc').textContent = weekly.desc;
-    const dailyData = JSON.parse(localStorage.getItem('dailyProgress')||'{"date":"","progress":0}');
-    const weeklyData = JSON.parse(localStorage.getItem('weeklyProgress')||'{"week":"","progress":0}');
-    const today = new Date().toISOString().slice(0,10);
-    const week = Math.floor((Date.now()-new Date('2024-01-01'))/604800000);
-    if (dailyData.date!==today) { dailyData.date=today; dailyData.progress=0; }
-    if (weeklyData.week!==week) { weeklyData.week=week; weeklyData.progress=0; }
-    const dp = Math.min(100, (dailyData.progress/daily.target)*100);
-    const wp = Math.min(100, (weeklyData.progress/weekly.target)*100);
-    document.getElementById('daily-progress').style.width = dp+'%';
-    document.getElementById('weekly-progress').style.width = wp+'%';
-    document.getElementById('daily-status').textContent = dailyData.progress>=daily.target ? '✅ Выполнено' : `${dailyData.progress}/${daily.target}`;
-    document.getElementById('weekly-status').textContent = weeklyData.progress>=weekly.target ? '✅ Выполнено' : `${weeklyData.progress}/${weekly.target}`;
-}
-
-function checkReplayParam() {
-    if (window.Telegram?.WebApp) {
-        const param = window.Telegram.WebApp.initDataUnsafe?.start_param;
-        if (param?.startsWith('replay_')) {
-            const [seedStr, movesStr] = param.replace('replay_','').split('_');
-            if (seedStr && movesStr) {
-                replaySeed = parseInt(seedStr);
-                replayMoves = movesStr.split('').map(c => ({'l':'left','r':'right','u':'up','d':'down'}[c] || 'left'));
-                replayMode = true;
-                document.querySelector('.game-tab[data-tab="play"]')?.click();
-            }
+    const scoreEl = document.getElementById('game-score');
+    const bestEl = document.getElementById('best-score');
+    const statusEl = document.getElementById('game-status');
+    if (board && scoreEl && bestEl && statusEl && !game2048) {
+        game2048 = new Game2048(board, scoreEl, bestEl, statusEl);
+        const newGameBtn = document.getElementById('new-game-btn');
+        if (newGameBtn) {
+            newGameBtn.addEventListener('click', () => {
+                vibrate();
+                game2048.resetGame();
+            });
         }
     }
 }
 
-function checkDuelParam() {
-    if (window.Telegram?.WebApp) {
-        const param = window.Telegram.WebApp.initDataUnsafe?.start_param;
-        if (param?.startsWith('duel_')) {
-            const duelId = param.replace('duel_', '');
-            joinDuelFromInvite(duelId);
-        }
-    }
-}
-
-/* ========== ЛИДЕРБОРД ========== */
+/* Leaderboard */
 async function fetchLeaderboard() {
     const list = document.getElementById('leaderboard-list');
     if (!list) return;
     list.innerHTML = '<div class="leaderboard-loading">Загрузка...</div>';
+
     try {
-        const res = await fetch(WORKER_URL+'/leaderboard');
+        const res = await fetch(WORKER_URL + '/api/leaderboard');
         const data = await res.json();
-        renderLeaderboard(data.leaderboard||[]);
-    } catch { list.innerHTML = '<div class="leaderboard-loading">Ошибка загрузки</div>'; }
+        renderLeaderboard(data.leaderboard || []);
+    } catch (err) {
+        console.error('leaderboard err:', err);
+        list.innerHTML = '<div class="leaderboard-loading">Не удалось загрузить таблицу</div>';
+    }
 }
 
-function renderLeaderboard(players) {
+function renderLeaderboard(leaderboard) {
     const list = document.getElementById('leaderboard-list');
     if (!list) return;
-    if (!players.length) { list.innerHTML = '<div class="leaderboard-loading">Пока нет результатов</div>'; return; }
-    list.innerHTML = players.map((p,i) => {
-        const isMe = currentUserId && p.userId.toString() === currentUserId.toString();
-        const avatar = p.avatarUrl ? `<img src="${p.avatarUrl}" onerror="this.style.display='none';this.parentElement.textContent='${escapeHtml(p.firstName).charAt(0)}'">` : escapeHtml(p.firstName).charAt(0);
-        return `<div class="leaderboard-item ${isMe?'current-user':''}">
-            <div class="leaderboard-rank">#${i+1}</div>
-            <div class="leaderboard-avatar">${avatar}</div>
-            <div class="leaderboard-info"><div class="leaderboard-name">${escapeHtml(p.firstName)}</div></div>
-            <div class="leaderboard-score">${p.score} <span>очк.</span>
-                <button class="leaderboard-share-btn" data-share-name="${escapeHtml(p.firstName)}" data-share-score="${p.score}">
-                    <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg>
-                </button>
+    if (!leaderboard.length) {
+        list.innerHTML = '<div class="leaderboard-loading">Пока нет результатов</div>';
+        return;
+    }
+
+    list.innerHTML = leaderboard.map((player, index) => {
+        const isCurrentUser = currentUserId && player.userId.toString() === currentUserId.toString();
+        const rank = index + 1;
+        const avatarContent = player.avatarUrl
+            ? `<img src="${player.avatarUrl}" alt="${player.firstName}" onerror="this.style.display='none'; this.parentElement.textContent='${player.firstName.charAt(0).toUpperCase()}';" />`
+            : player.firstName.charAt(0).toUpperCase();
+
+        return `
+            <div class="leaderboard-item ${isCurrentUser ? 'current-user' : ''}">
+                <div class="leaderboard-rank">#${rank}</div>
+                <div class="leaderboard-avatar">
+                    ${avatarContent}
+                </div>
+                <div class="leaderboard-info">
+                    <div class="leaderboard-name">${escapeHtml(player.firstName)}</div>
+                </div>
+                <div class="leaderboard-score">
+                    ${player.score} <span>очк.</span>
+                    <button class="leaderboard-share-btn" aria-label="Поделиться результатом" data-share-name="${escapeHtml(player.firstName)}" data-share-score="${player.score}">
+                        <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg>
+                    </button>
+                </div>
             </div>
-        </div>`;
+        `;
     }).join('');
 }
 
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+}
+
 function setupLeaderboardRefresh() {
-    document.getElementById('refresh-leaderboard')?.addEventListener('click', () => { vibrate(); fetchLeaderboard(); });
+    const refreshBtn = document.getElementById('refresh-leaderboard');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => {
+            vibrate();
+            fetchLeaderboard();
+        });
+    }
 }
 
 function setupLeaderboardShare() {
-    document.getElementById('leaderboard-list')?.addEventListener('click', e => {
-        const btn = e.target.closest('.leaderboard-share-btn');
-        if (!btn) return;
-        const name = btn.dataset.shareName, score = btn.dataset.shareScore;
-        const text = `🏆 ${name} набрал ${score} очков в 2048! Сможешь побить рекорд? https://t.me/${BOT_USERNAME}`;
-        if (window.Telegram?.WebApp) {
-            window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent('https://t.me/'+BOT_USERNAME)}&text=${encodeURIComponent(text)}`);
-        } else if (navigator.share) {
-            navigator.share({title:'2048 Verse', text, url:'https://t.me/'+BOT_USERNAME}).catch(()=>fallbackCopyToClipboard(text));
-        } else fallbackCopyToClipboard(text);
+    const leaderboardList = document.getElementById('leaderboard-list');
+    if (!leaderboardList) return;
+    leaderboardList.addEventListener('click', (e) => {
+        const shareBtn = e.target.closest('.leaderboard-share-btn');
+        if (!shareBtn) return;
+        e.stopPropagation();
+        const name = shareBtn.dataset.shareName;
+        const score = shareBtn.dataset.shareScore;
+        if (name && score) shareLeaderboardScore(name, parseInt(score, 10));
     });
 }
 
-function escapeHtml(t) {
-    return t.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-}
-
-/* ========== ДУЭЛЬ ========== */
-const DUEL_STORAGE_KEY = 'activeDuels';
-
-class DuelManager {
-    constructor() { this.currentDuel = null; }
-
-    createDuel() {
-        const seed = Date.now();
-        const duelId = this.generateDuelId();
-        const duel = {
-            duelId, seed,
-            creator: currentUserId?.toString(),
-            opponent: null,
-            status: 'waiting',
-            creatorResult: null,
-            opponentResult: null,
-            creatorReplay: null,
-            opponentReplay: null
-        };
-        localStorage.setItem(DUEL_STORAGE_KEY + '_' + duelId, JSON.stringify(duel));
-        this.currentDuel = duel;
-        return duel;
-    }
-
-    joinDuel(duelId) {
-        const json = localStorage.getItem(DUEL_STORAGE_KEY + '_' + duelId);
-        if (!json) return null;
-        const duel = JSON.parse(json);
-        if (duel.status !== 'waiting' || duel.creator === currentUserId?.toString()) return null;
-        duel.opponent = currentUserId?.toString();
-        duel.status = 'ready';
-        localStorage.setItem(DUEL_STORAGE_KEY + '_' + duelId, JSON.stringify(duel));
-        this.currentDuel = duel;
-        return duel;
-    }
-
-    submitResult(score, moves) {
-        if (!this.currentDuel) return;
-        const duel = this.currentDuel;
-        const isCreator = currentUserId?.toString() === duel.creator;
-        if (isCreator) {
-            duel.creatorResult = score;
-            duel.creatorReplay = moves;
-        } else {
-            duel.opponentResult = score;
-            duel.opponentReplay = moves;
-        }
-        if (duel.creatorResult !== null && duel.opponentResult !== null) duel.status = 'finished';
-        localStorage.setItem(DUEL_STORAGE_KEY + '_' + duel.duelId, JSON.stringify(duel));
-        this.currentDuel = duel;
-        return duel;
-    }
-
-    generateDuelId() { return Date.now().toString(36) + Math.random().toString(36).substr(2,5); }
-}
-
-const duelManager = new DuelManager();
-
-function openDuelModal() {
-    const modal = document.getElementById('duel-modal');
-    modal.style.display = 'flex';
-    document.getElementById('duel-screen-waiting').style.display = 'block';
-    document.getElementById('duel-screen-ready').style.display = 'none';
-    document.getElementById('duel-screen-result').style.display = 'none';
-
-    const duel = duelManager.createDuel();
-    document.getElementById('duel-seed-display').textContent = duel.seed;
-
-    document.getElementById('cancel-duel-btn').onclick = () => {
-        modal.style.display = 'none';
-        localStorage.removeItem(DUEL_STORAGE_KEY + '_' + duel.duelId);
-    };
-
-    // имитация присоединения соперника (для теста)
-    setTimeout(() => {
-        const stored = JSON.parse(localStorage.getItem(DUEL_STORAGE_KEY + '_' + duel.duelId));
-        if (stored && stored.status === 'waiting') {
-            stored.opponent = 'fake_opponent';
-            stored.status = 'ready';
-            localStorage.setItem(DUEL_STORAGE_KEY + '_' + duel.duelId, JSON.stringify(stored));
-            duelManager.currentDuel = stored;
-            document.getElementById('duel-screen-waiting').style.display = 'none';
-            document.getElementById('duel-screen-ready').style.display = 'block';
-        }
-    }, 3000);
-
-    document.getElementById('start-duel-game-btn').onclick = () => startDuelGame(duel);
-}
-
-function startDuelGame(duel) {
-    document.getElementById('duel-modal').style.display = 'none';
-    game2048 = new Game2048(
-        document.getElementById('game-board-2048'),
-        document.getElementById('game-score'),
-        document.getElementById('best-score'),
-        document.getElementById('game-status'),
-        document.getElementById('replay-share-btn'),
-        {
-            seed: duel.seed,
-            duelId: duel.duelId,
-            onEnd: (score, moves) => {
-                const updated = duelManager.submitResult(score, moves);
-                if (updated && updated.status === 'finished') {
-                    showDuelResult(updated);
-                } else {
-                    showNotification('Результат отправлен. Ожидаем соперника...');
-                }
-            }
-        }
-    );
-    game2048.init();
-    game2048.render();
-}
-
-function joinDuelFromInvite(duelId) {
-    const duel = duelManager.joinDuel(duelId);
-    if (duel) {
-        document.getElementById('duel-modal').style.display = 'flex';
-        document.getElementById('duel-screen-waiting').style.display = 'none';
-        document.getElementById('duel-screen-ready').style.display = 'block';
-        document.getElementById('duel-screen-result').style.display = 'none';
-        document.getElementById('start-duel-game-btn').onclick = () => startDuelGame(duel);
+function shareLeaderboardScore(name, score) {
+    const shareText = `🏆 ${name} набрал ${score} очков в 2048! Сможешь побить рекорд? Играй в Games Verse: https://t.me/${BOT_USERNAME}`;
+    if (window.Telegram?.WebApp) {
+        const shareUrl = `https://t.me/share/url?url=${encodeURIComponent('https://t.me/' + BOT_USERNAME)}&text=${encodeURIComponent(shareText)}`;
+        window.Telegram.WebApp.openTelegramLink(shareUrl);
+    } else if (navigator.share) {
+        navigator.share({
+            title: 'Games Verse',
+            text: shareText,
+            url: 'https://t.me/' + BOT_USERNAME
+        }).catch(() => fallbackCopyToClipboard(shareText));
     } else {
-        showNotification('Дуэль не найдена или уже началась.');
+        fallbackCopyToClipboard(shareText);
     }
-}
-
-function showDuelResult(duel) {
-    const modal = document.getElementById('duel-modal');
-    modal.style.display = 'flex';
-    document.getElementById('duel-screen-waiting').style.display = 'none';
-    document.getElementById('duel-screen-ready').style.display = 'none';
-    document.getElementById('duel-screen-result').style.display = 'block';
-
-    const myId = currentUserId?.toString();
-    const myScore = duel.creator === myId ? duel.creatorResult : duel.opponentResult;
-    const oppScore = duel.creator === myId ? duel.opponentResult : duel.creatorResult;
-    const resultText = myScore > oppScore ? '🏆 Вы победили!' : (myScore < oppScore ? '😞 Вы проиграли' : '🤝 Ничья');
-    document.getElementById('duel-result-text').textContent = resultText;
-
-    const container = document.getElementById('duel-boards-container');
-    container.innerHTML = '';
-    const myReplay = duel.creator === myId ? duel.creatorReplay : duel.opponentReplay;
-    const oppReplay = duel.creator === myId ? duel.opponentReplay : duel.creatorReplay;
-    container.appendChild(createMiniBoard(duel.seed, myReplay, 'Вы'));
-    container.appendChild(createMiniBoard(duel.seed, oppReplay, 'Соперник'));
-
-    document.getElementById('share-duel-btn').onclick = () => {
-        const text = `⚔️ Дуэль 2048! ${resultText} Мой счёт: ${myScore}, соперник: ${oppScore}. Попробуй обыграть: https://t.me/${BOT_USERNAME}`;
-        if (window.Telegram?.WebApp) {
-            window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent('https://t.me/'+BOT_USERNAME)}&text=${encodeURIComponent(text)}`);
-        } else fallbackCopyToClipboard(text);
-    };
-}
-
-class Game2048Sim {
-    constructor(seed) {
-        this.size = 4;
-        this.grid = Array(this.size).fill().map(()=>Array(this.size).fill(0));
-        this.rng = new SeededRandom(seed);
-        this.addRandomTile();
-        this.addRandomTile();
-    }
-    addRandomTile() {
-        const empty = [];
-        for (let i=0;i<this.size;i++) for (let j=0;j<this.size;j++) if (this.grid[i][j]===0) empty.push({x:i,y:j});
-        if (empty.length) {
-            const {x,y} = empty[Math.floor(this.rng.next()*empty.length)];
-            this.grid[x][y] = this.rng.next() < 0.9 ? 2 : 4;
-        }
-    }
-    move(direction) {
-        const old = JSON.parse(JSON.stringify(this.grid));
-        let gained = 0;
-        const slide = (row) => {
-            let arr = row.filter(v=>v!==0);
-            let newRow = [];
-            for (let i=0;i<arr.length;i++) {
-                if (i+1<arr.length && arr[i]===arr[i+1]) {
-                    newRow.push(arr[i]*2);
-                    gained += arr[i]*2;
-                    i++;
-                } else newRow.push(arr[i]);
-            }
-            while (newRow.length<this.size) newRow.push(0);
-            return newRow;
-        };
-        if (direction==='left') for (let i=0;i<this.size;i++) this.grid[i] = slide(this.grid[i]);
-        else if (direction==='right') for (let i=0;i<this.size;i++) this.grid[i] = slide([...this.grid[i]].reverse()).reverse();
-        else if (direction==='up') for (let j=0;j<this.size;j++) { let col=[]; for (let i=0;i<this.size;i++) col.push(this.grid[i][j]); let res=slide(col); for (let i=0;i<this.size;i++) this.grid[i][j]=res[i]; }
-        else if (direction==='down') for (let j=0;j<this.size;j++) { let col=[]; for (let i=0;i<this.size;i++) col.push(this.grid[i][j]); let res=slide(col.reverse()).reverse(); for (let i=0;i<this.size;i++) this.grid[i][j]=res[i]; }
-        if (!this.gridsAreEqual(old, this.grid)) this.addRandomTile();
-    }
-    gridsAreEqual(a,b) {
-        for (let i=0;i<this.size;i++) for (let j=0;j<this.size;j++) if (a[i][j]!==b[i][j]) return false;
-        return true;
-    }
-}
-
-function createMiniBoard(seed, moves, label) {
-    const wrapper = document.createElement('div');
-    const boardDiv = document.createElement('div');
-    boardDiv.className = 'duel-board';
-    const sim = new Game2048Sim(seed);
-    moves.forEach(m => sim.move(m));
-    for (let i=0;i<4;i++) {
-        for (let j=0;j<4;j++) {
-            const val = sim.grid[i][j];
-            const tile = document.createElement('div');
-            tile.className = 'mini-tile';
-            if (val) {
-                tile.classList.add(val<=2048 ? `tile-${val}` : 'tile-super');
-                tile.textContent = val;
-            }
-            boardDiv.appendChild(tile);
-        }
-    }
-    const labelEl = document.createElement('div');
-    labelEl.textContent = label;
-    labelEl.style.textAlign = 'center';
-    labelEl.style.marginBottom = '4px';
-    wrapper.appendChild(labelEl);
-    wrapper.appendChild(boardDiv);
-    return wrapper;
 }
