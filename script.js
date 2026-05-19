@@ -1,625 +1,921 @@
+// script.js
 const BOT_USERNAME = 'khadron_bot';
 let currentUserId = null;
 const WORKER_URL = 'https://gamesverse-bot.scarneb.workers.dev';
-
-let userProfile = { coins: 0, level: 1, exp: 0, boosters: {}, isPro: false };
-let currentTournament = null;
-let achievementsData = [];
-let isPro = false;
-let game2048 = null;
+const COIN_BALANCE_KEY = 'totalCoinBalance2048';
 
 const GAMES_DATA = [
-  { id: 0, name: "Pixel World", fullLink: "https://t.me/pixelworld/play?startapp=r6823288584", description: "Первый 3D-шутер в Telegram", rating: 4.9, players: "34K", image: "images/photo_2026-02-17_13-44-55.jpg", fallback: "🌍", badge: "Beta", highlight: true },
-  { id: 1, name: "Hamster GameDev", fullLink: "https://t.me/Hamster_GAme_Dev_bot/start?startapp=kentId6823288584", description: "Создай свою студию", rating: 4.7, players: "368K", image: "images/hamster-gamedev.jpg", fallback: "🎮" },
-  { id: 2, name: "Hamster King", fullLink: "https://t.me/hamsterking_game_bot?startapp=6823288584", description: "Стань королем хомяков", rating: 4.2, players: "188K", image: "images/hamster-king.jpg", fallback: "👑" },
-  { id: 3, name: "Hamster Fight Club", fullLink: "https://t.me/hamster_fightclub_bot?startapp=NWE1YjA2YWUtZTAyMS01ZjA1LTg4ZTYtMGZmZjUwNDQwNjU5", description: "Бойцовский клуб хомяков", rating: 4.9, players: "85K", image: "images/hamster-fightclub.jpg", fallback: "🥊" },
-  { id: 4, name: "BitQuest", fullLink: "https://t.me/BitquestGameSBot/start?startapp=kentId_6823288584", description: "Приключения в мире крипты", rating: 3.8, players: "281K", image: "images/bitquest.jpg", fallback: "💰" }
+    { id: 0, name: "Pixel World", fullLink: "https://t.me/pixelworld/play?startapp=r6823288584",
+        description: "Первый 3D-шутер в Telegram", rating: 4.9, players: "34K", image: "images/photo_2026-02-17_13-44-55.jpg",
+        fallback: "🌍", badge: "Beta", highlight: true },
+    { id: 1, name: "Hamster GameDev", fullLink: "https://t.me/Hamster_GAme_Dev_bot/start?startapp=kentId6823288584",
+        description: "Создай свою студию", rating: 4.7, players: "368K", image: "images/hamster-gamedev.jpg",
+        fallback: "🎮" },
+    { id: 2, name: "Hamster King", fullLink: "https://t.me/hamsterking_game_bot?startapp=6823288584",
+        description: "Стань королем хомяков", rating: 4.2, players: "188K", image: "images/hamster-king.jpg",
+        fallback: "👑" },
+    { id: 3, name: "Hamster Fight Club",
+        fullLink: "https://t.me/hamster_fightclub_bot?startapp=NWE1YjA2YWUtZTAyMS01ZjA1LTg4ZTYtMGZmZjUwNDQwNjU5",
+        description: "Бойцовский клуб хомяков", rating: 4.9, players: "85K", image: "images/hamster-fightclub.jpg",
+        fallback: "🥊" },
+    { id: 4, name: "BitQuest", fullLink: "https://t.me/BitquestGameSBot/start?startapp=kentId_6823288584",
+        description: "Приключения в мире крипты", rating: 3.8, players: "281K", image: "images/bitquest.jpg",
+        fallback: "💰" }
 ];
 
-const TASKS_DATA = [
-  { id: 1, name: "Bybit", url: "https://www.bybit.com/invite?ref=57KXPMO", description: "Зарегистрируйся на Bybit", image: "images/bybit.jpg", fallback: "💱", reward: 20, dailyLimit: 1 },
-  { id: 2, name: "BingX", url: "https://bingxdao.com/referral-program/V2TZVA?activityId=g_1529293499868241925", description: "Присоединись к BingX", image: "images/bingx.jpg", fallback: "📈", reward: 20, dailyLimit: 1 },
-  { id: 3, name: "Bitget", url: "https://www.bitgetapps.com/ru/referral/register?clacCode=40FSP70H", description: "Создай аккаунт Bitget", image: "images/bitget.jpg", fallback: "⚡", reward: 20, dailyLimit: 1 },
-  { id: 4, name: "MEXC", url: "https://promote.mexc.com/r/aTSLfdm54W", description: "Торгуй на MEXC", image: "images/mexc.jpg", fallback: "🌍", reward: 20, dailyLimit: 1 }
+const EXCHANGES_DATA = [
+    { id: 1, name: "Bybit", url: "https://www.bybit.com/invite?ref=57KXPMO", description: "Продвинутая торговая платформа",
+        image: "images/bybit.jpg", fallback: "💱" },
+    { id: 2, name: "BingX",
+        url: "https://bingxdao.com/referral-program/V2TZVA?activityId=g_1529293499868241925",
+        description: "Социальная торговля и копирование", image: "images/bingx.jpg", fallback: "📈" },
+    { id: 3, name: "Bitget",
+        url: "https://www.bitgetapps.com/ru/referral/register?clacCode=40FSP70H&from=%2Fru%2Fevents%2Freferral-all-program&source=events&utmSource=PremierInviter",
+        description: "Инновационная торговая платформа", image: "images/bitget.jpg", fallback: "⚡" },
+    { id: 4, name: "MEXC", url: "https://promote.mexc.com/r/aTSLfdm54W", description: "Глобальная биржа с низкими комиссиями",
+        image: "images/mexc.jpg", fallback: "🌍" }
 ];
 
-// Утилиты
-function vibrate() { if (navigator.vibrate) navigator.vibrate(50); }
-function showNotification(msg) {
-  const n = document.getElementById('notification');
-  n.textContent = msg || 'Ссылка скопирована!';
-  n.classList.add('show');
-  setTimeout(() => n.classList.remove('show'), 2000);
-}
-function escapeHtml(text) {
-  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-  return text.replace(/[&<>"']/g, m => map[m]);
+const translations = {
+    appTitle: "Games Verse", settings: "Настройки", theme: "Тема", lightTheme: "Светлая", darkTheme: "Темная",
+    done: "Готово", games: "Игры", bestGames: "Лучшие игры Telegram", play: "Играть", exchanges: "Биржи",
+    exchangesDesc: "Торгуйте криптовалютами безопасно", user: "Пользователь", shareWithFriends: "Поделиться с друзьями",
+    profile: "Профиль", linkCopied: "Ссылка скопирована в буфер обмена!", go: "Перейти", game2048: "2048",
+    score: "Coin", best: "Рекорд", newGame: "Новая игра", swipeHint: "👆 Свайпайте пальцем или используйте стрелки",
+    gameWin: "Вы победили! 🎉", gameLose: "Игра окончена! 😔"
+};
+
+// ==================== COIN BALANCE ====================
+function getCoinBalance() {
+    const stored = localStorage.getItem(COIN_BALANCE_KEY);
+    return stored ? parseInt(stored, 10) : 0;
 }
 
-// Инициализация
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('splash-screen').style.display = 'none';
-  initializeApp();
+function setCoinBalance(amount) {
+    localStorage.setItem(COIN_BALANCE_KEY, Math.max(0, amount).toString());
+    updateCoinBalanceDisplay();
+}
+
+function addCoins(amount) {
+    if (amount <= 0) return;
+    const current = getCoinBalance();
+    const updated = current + amount;
+    setCoinBalance(updated);
+    animateCoinIncrease(amount);
+}
+
+function updateCoinBalanceDisplay() {
+    const display = document.getElementById('coin-balance-display');
+    if (display) {
+        display.textContent = getCoinBalance().toLocaleString();
+    }
+}
+
+function animateCoinIncrease(amount) {
+    const display = document.getElementById('coin-balance-display');
+    if (!display) return;
+    display.style.transform = 'scale(1.15)';
+    display.style.transition = 'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+    setTimeout(() => {
+        display.style.transform = 'scale(1)';
+    }, 200);
+    const sparkle = document.querySelector('.coin-sparkle');
+    if (sparkle) {
+        sparkle.style.animation = 'none';
+        sparkle.offsetHeight;
+        sparkle.style.animation = 'sparkleFloat 0.6s ease-in-out';
+    }
+}
+
+// ==================== ACTION CARDS TOGGLE ====================
+function setupActionCards() {
+    const cardHeaders = document.querySelectorAll('.action-card-header');
+    cardHeaders.forEach(header => {
+        header.addEventListener('click', function(e) {
+            e.stopPropagation();
+            vibrate();
+            const cardType = this.getAttribute('data-card');
+            const card = this.closest('.action-card');
+            const isExpanded = card.classList.contains('expanded');
+
+            if (isExpanded) {
+                card.classList.remove('expanded');
+            } else {
+                card.classList.add('expanded');
+                if (cardType === 'top') {
+                    fetchLeaderboard();
+                }
+            }
+        });
+    });
+}
+
+// ==================== INITIALIZATION ====================
+document.addEventListener('DOMContentLoaded', function() {
+    initializeApp();
 });
 
+function vibrate() {
+    if (navigator.vibrate) navigator.vibrate(50);
+}
+
 function initializeApp() {
-  initializeTelegramWebApp();
-  setupNavigation();
-  initializeGames();
-  initializeTasks();
-  setupSettingsPanel();
-  loadThemePreference();
-  setupShareButton();
-  initGame2048();
-  setupLeaderboardRefresh();
-  setupLeaderboardShare();
-  loadUserData();
-  loadTournament();
+    const splash = document.getElementById('splash-screen');
+    if (splash) splash.style.display = 'none';
+    document.body.style.opacity = '1';
+    updateCoinBalanceDisplay();
+    initializeTelegramWebApp();
+    setupNavigation();
+    initializeGames();
+    initializeExchanges();
+    setupSettingsPanel();
+    loadThemePreference();
+    setLanguage();
+    loadUserData();
+    setupShareButton();
+    initGame2048();
+    setupLeaderboardRefresh();
+    setupLeaderboardShare();
+    setupActionCards();
 }
 
 function initializeTelegramWebApp() {
-  if (window.Telegram?.WebApp) {
-    const tg = window.Telegram.WebApp;
-    tg.ready();
-    tg.expand();
-  }
-}
-
-// Навигация
-function setupNavigation() {
-  const navItems = document.querySelectorAll('.nav-item');
-  const sections = document.querySelectorAll('.content-section');
-  navItems.forEach(item => {
-    item.addEventListener('click', function() {
-      vibrate();
-      const target = this.getAttribute('data-section');
-      navItems.forEach(n => n.classList.remove('active'));
-      this.classList.add('active');
-      sections.forEach(s => s.classList.remove('active'));
-      document.getElementById(target)?.classList.add('active');
-      if (target === 'game-section') fetchLeaderboard();
-      if (target === 'tournaments-section') loadTournament();
-      if (target === 'profile-section') loadProfileData(currentUserId);
-    });
-  });
+    if (window.Telegram && window.Telegram.WebApp) {
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+        const themeParams = tg.themeParams;
+        if (themeParams) {
+            if (themeParams.bg_color) document.documentElement.style.setProperty('--tg-theme-bg-color',
+            themeParams.bg_color);
+            if (themeParams.text_color) document.documentElement.style.setProperty('--tg-theme-text-color',
+                themeParams.text_color);
+            if (themeParams.button_color) document.documentElement.style.setProperty('--tg-theme-button-color',
+                themeParams.button_color);
+            if (themeParams.button_text_color) document.documentElement.style.setProperty(
+                '--tg-theme-button-text-color', themeParams.button_text_color);
+        }
+    }
 }
 
 function initializeGames() {
-  const grid = document.getElementById('games-grid');
-  if (!grid) return;
-  grid.innerHTML = GAMES_DATA.map(g => `
-    <div class="game-card ${g.highlight ? 'highlight' : ''}">
-      <div class="game-image"><img src="${g.image}" alt="${g.name}" onerror="this.style.display='none'"><span>${g.fallback}</span></div>
-      <div class="game-info">
-        <h3>${g.name}</h3><p class="game-description">${g.description}</p>
-        <div class="game-stats"><span>⭐ ${g.rating}</span><span>👥 ${g.players}</span></div>
-      </div>
-      <button class="play-button" data-link="${g.fullLink}">Играть</button>
-    </div>
-  `).join('');
-  document.querySelectorAll('.play-button').forEach(btn => {
-    btn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      vibrate();
-      const link = this.dataset.link;
-      if (link) {
-        if (window.Telegram?.WebApp) {
-          if (link.startsWith('https://t.me/')) window.Telegram.WebApp.openTelegramLink(link);
-          else window.Telegram.WebApp.openLink(link);
-        } else window.open(link, '_blank');
-      }
-    });
-  });
+    const gamesGrid = document.getElementById('games-grid');
+    if (!gamesGrid) return;
+    gamesGrid.innerHTML = GAMES_DATA.map(game => `
+        <div class="game-card ${game.highlight ? 'highlight' : ''}" data-game-id="${game.id}">
+            <div class="game-image">
+                <img src="${game.image}" alt="${game.name}" class="game-img" onerror="this.style.display='none'">
+                <div class="image-fallback">${game.fallback}</div>
+            </div>
+            <div class="game-info">
+                <div class="game-header">
+                    <h3>${game.name}</h3>
+                    ${game.badge ? `<span class="game-badge">${game.badge}</span>` : ''}
+                </div>
+                <p class="game-description">${game.description}</p>
+                <div class="game-stats">
+                    <div class="rating">
+                        <div class="stars">${generateStars(game.rating)}</div>
+                        <span class="rating-value">${game.rating}</span>
+                    </div>
+                    <div class="players">
+                        <span class="players-icon">👥</span>
+                        <span class="players-count">${game.players}</span>
+                    </div>
+                </div>
+            </div>
+            <button class="play-button" data-link="${game.fullLink || ''}">Играть</button>
+        </div>
+    `).join('');
+    setupGameButtons();
 }
 
-function initializeTasks() {
-  const list = document.getElementById('tasks-list');
-  if (!list) return;
-  list.innerHTML = TASKS_DATA.map(t => `
-    <div class="task-card">
-      <div class="task-image"><img src="${t.image}" alt="${t.name}" onerror="this.style.display='none'"><span>${t.fallback}</span></div>
-      <div class="task-info"><h3>${t.name}</h3><p>${t.description}</p></div>
-      <div class="task-reward">+${t.reward} 🪙</div>
-      <button class="task-btn" data-task-id="${t.id}" data-url="${t.url}">Перейти</button>
-    </div>
-  `).join('');
-  document.querySelectorAll('.task-btn').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      vibrate();
-      if (!currentUserId) return showNotification('Откройте в Telegram');
-      const taskId = parseInt(btn.dataset.taskId);
-      const url = btn.dataset.url;
-      if (window.Telegram?.WebApp) window.Telegram.WebApp.openLink(url);
-      else window.open(url, '_blank');
-      try {
-        const res = await fetch(`${WORKER_URL}/completeTask`, {
-          method: 'POST',
-          headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({ userId: currentUserId.toString(), taskId })
-        });
-        const data = await res.json();
-        if (res.ok) {
-          userProfile.coins += data.reward;
-          updateProfileUI();
-          Telegram.WebApp.showPopup({ message: `✅ +${data.reward} монет за "${data.taskName}"` });
-        } else {
-          Telegram.WebApp.showPopup({ message: data.error || 'Лимит' });
-        }
-      } catch(e) {}
-    });
-  });
+function generateStars(rating) {
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+    let stars = '';
+    for (let i = 0; i < fullStars; i++) stars += '<span class="star filled">★</span>';
+    if (hasHalfStar) stars += '<span class="star half">★</span>';
+    for (let i = 0; i < emptyStars; i++) stars += '<span class="star">★</span>';
+    return stars;
 }
 
-// Профиль
+function initializeExchanges() {
+    const exchangesList = document.getElementById('exchanges-list');
+    if (!exchangesList) return;
+    exchangesList.innerHTML = EXCHANGES_DATA.map(exchange => `
+        <div class="exchange-card" data-exchange-id="${exchange.id}">
+            <div class="exchange-logo">
+                <img src="${exchange.image}" alt="${exchange.name}" class="exchange-img" onerror="this.style.display='none'">
+                <div class="image-fallback">${exchange.fallback}</div>
+            </div>
+            <div class="exchange-info">
+                <h3>${exchange.name}</h3>
+                <p>${exchange.description}</p>
+            </div>
+            <button class="exchange-button" data-url="${exchange.url}">Перейти</button>
+        </div>
+    `).join('');
+    setupExchangeButtons();
+}
+
 function loadUserData() {
-  if (window.Telegram?.WebApp) {
-    const user = window.Telegram.WebApp.initDataUnsafe?.user;
-    if (user) {
-      updateProfileDisplay(user);
-      currentUserId = user.id;
-      sendMiniAppStat(user);
-      loadProfileData(user.id);
-    }
-  }
-}
-async function sendMiniAppStat(user) {
-  let ref = null;
-  try { ref = window.Telegram.WebApp.initDataUnsafe?.start_param; } catch(e){}
-  await fetch(`${WORKER_URL}/track`, {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({ userId: user.id.toString(), firstName: user.first_name, username: user.username, ref })
-  });
-}
-function updateProfileDisplay(user) {
-  document.getElementById('user-name').textContent = user.first_name + (user.last_name ? ' '+user.last_name : '');
-  document.getElementById('user-username').textContent = user.username ? '@'+user.username : 'Telegram User';
-  const img = document.getElementById('avatar-img');
-  if (user.photo_url) {
-    img.src = user.photo_url;
-    img.style.display = 'block';
-    document.getElementById('avatar-fallback').style.display = 'none';
-  } else {
-    img.style.display = 'none';
-    document.getElementById('avatar-fallback').style.display = 'flex';
-    document.getElementById('avatar-fallback').textContent = user.first_name.charAt(0).toUpperCase();
-  }
-}
-async function loadProfileData(userId) {
-  if (!userId) return;
-  const [profileRes, subRes, achRes] = await Promise.all([
-    fetch(`${WORKER_URL}/getProfile?userId=${userId}`),
-    fetch(`${WORKER_URL}/checkSubscription?userId=${userId}`),
-    fetch(`${WORKER_URL}/achievements?userId=${userId}`)
-  ]);
-  if (profileRes.ok) {
-    userProfile = await profileRes.json();
-    updateProfileUI();
-    renderProfileStore();
-  }
-  if (subRes.ok) {
-    const subData = await subRes.json();
-    isPro = subData.isPro;
-    updateProStatus(subData);
-  }
-  if (achRes.ok) {
-    const achData = await achRes.json();
-    achievementsData = achData.achievements;
-    renderAchievements();
-  }
-}
-function updateProfileUI() {
-  document.getElementById('coins-amount').textContent = userProfile.coins;
-  if (game2048) updateBoosterUI();
-}
-function updateBoosterUI() {
-  ['undo','remove','extra_life'].forEach(type => {
-    const btn = document.getElementById(`booster-${type === 'extra_life' ? 'life' : type}`);
-    const countEl = btn?.querySelector('.booster-count');
-    if (countEl) countEl.textContent = userProfile.boosters[type] || 0;
-  });
-}
-
-// Ежедневный бонус
-document.getElementById('daily-bonus-btn')?.addEventListener('click', async () => {
-  if (!currentUserId) return;
-  const res = await fetch(`${WORKER_URL}/claimDaily`, {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({ userId: currentUserId.toString() })
-  });
-  const data = await res.json();
-  if (res.ok) {
-    userProfile.coins += data.bonus;
-    updateProfileUI();
-    Telegram.WebApp.showPopup({ message: `🎉 +${data.bonus} монет!` });
-  } else {
-    Telegram.WebApp.showPopup({ message: data.error || 'Уже получено' });
-  }
-});
-
-// PRO подписка
-function updateProStatus(subData) {
-  const container = document.getElementById('pro-status');
-  if (!container) return;
-  if (subData.isPro) {
-    container.innerHTML = `<span class="pro-badge">⭐ PRO</span> до ${new Date(subData.pro_until).toLocaleDateString()}`;
-  } else {
-    container.innerHTML = `<button id="subscribe-pro-btn" class="subscribe-btn">Стать PRO</button>`;
-    document.getElementById('subscribe-pro-btn')?.addEventListener('click', subscribePro);
-  }
-}
-async function subscribePro() {
-  if (!currentUserId) return;
-  vibrate();
-  Telegram.WebApp.requestInvoice({
-    title: 'PRO Подписка',
-    description: 'Games Verse PRO на 30 дней',
-    payload: 'pro_monthly',
-    currency: 'XTR',
-    prices: [{ label: 'PRO подписка', amount: 200 }]
-  }, async (result) => {
-    if (result.status === 'paid') {
-      const res = await fetch(`${WORKER_URL}/subscribe`, {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ userId: currentUserId.toString(), invoicePayload: 'pro_monthly' })
-      });
-      const data = await res.json();
-      isPro = true;
-      updateProStatus({ isPro: true, pro_until: data.pro_until });
-      Telegram.WebApp.showPopup({ message: '✅ Вы PRO!' });
-    }
-  });
-}
-
-// Магазин в профиле
-function renderProfileStore() {
-  const store = document.getElementById('profile-store');
-  if (!store) return;
-  store.innerHTML = `
-    <div class="store-card"><div class="store-icon">↩️</div><h3>Отменить ход</h3><p>${isPro ? '40' : '50'} 🪙</p><button class="store-buy-btn" data-booster="undo">Купить</button></div>
-    <div class="store-card"><div class="store-icon">💣</div><h3>Убрать плитку</h3><p>${isPro ? '80' : '100'} 🪙</p><button class="store-buy-btn" data-booster="remove">Купить</button></div>
-    <div class="store-card"><div class="store-icon">❤️</div><h3>Доп. жизнь</h3><p>${isPro ? '160' : '200'} 🪙</p><button class="store-buy-btn" data-booster="extra_life">Купить</button></div>
-    <div class="store-card"><div class="store-icon">▶️</div><h3>Реклама</h3><p>+${isPro ? '100' : '50'} 🪙</p><button id="watch-ad-btn">Смотреть</button></div>
-  `;
-  document.querySelectorAll('.store-buy-btn[data-booster]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      if (!currentUserId) return;
-      const boosterType = btn.dataset.booster;
-      const res = await fetch(`${WORKER_URL}/buyBooster`, {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ userId: currentUserId.toString(), boosterType })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        userProfile.coins = data.balance;
-        userProfile.boosters[boosterType] = (userProfile.boosters[boosterType] || 0) + 1;
-        updateProfileUI();
-        Telegram.WebApp.showPopup({ message: '✅ Куплено!' });
-      } else {
-        Telegram.WebApp.showPopup({ message: data.error || 'Ошибка' });
-      }
-    });
-  });
-  document.getElementById('watch-ad-btn')?.addEventListener('click', () => {
-    if (!currentUserId) return;
-    if (window.Telegram?.WebApp?.showAd) {
-      window.Telegram.WebApp.showAd((status) => {
-        if (status === 'finished') {
-          fetch(`${WORKER_URL}/adReward`, {
-            method: 'POST',
-            headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({ userId: currentUserId.toString() })
-          }).then(r => r.json()).then(d => {
-            if (d.success) {
-              userProfile.coins += d.reward;
-              updateProfileUI();
-              Telegram.WebApp.showPopup({ message: `🎬 +${d.reward} монет` });
-            }
-          });
+    if (window.Telegram && window.Telegram.WebApp) {
+        const user = window.Telegram.WebApp.initDataUnsafe?.user;
+        if (user) {
+            updateProfileDisplay(user);
+            currentUserId = user.id;
+            sendMiniAppStat(user);
+        } else {
+            showFallbackProfile();
+            currentUserId = null;
         }
-      });
     } else {
-      Telegram.WebApp.showPopup({ message: 'Реклама недоступна' });
+        showFallbackProfile();
+        currentUserId = null;
     }
-  });
 }
 
-// Достижения
-function renderAchievements() {
-  const grid = document.getElementById('achievements-grid');
-  if (!grid) return;
-  grid.innerHTML = achievementsData.map(a => `
-    <div class="achievement-item ${a.unlocked ? 'unlocked' : ''}" ${a.unlocked ? '' : `onclick="claimAchievement(${a.id})"`}>
-      <div class="achievement-icon">${a.icon}</div>
-      <div class="achievement-name">${a.name}</div>
-      <div class="achievement-reward">+${a.reward_coins} 🪙</div>
-    </div>
-  `).join('');
-}
-async function claimAchievement(id) {
-  if (!currentUserId) return;
-  const res = await fetch(`${WORKER_URL}/claimAchievement`, {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({ userId: currentUserId.toString(), achievementId: id })
-  });
-  const data = await res.json();
-  if (res.ok) {
-    userProfile.coins += data.reward;
-    updateProfileUI();
-    loadProfileData(currentUserId);
-  } else {
-    Telegram.WebApp.showPopup({ message: data.error || 'Не удалось' });
-  }
-}
-
-// Турниры
-async function loadTournament() {
-  const container = document.getElementById('current-tournament');
-  if (!container) return;
-  const res = await fetch(`${WORKER_URL}/tournaments/current`);
-  const data = await res.json();
-  if (!data.active) { container.innerHTML = '<p>Нет активных турниров</p>'; return; }
-  currentTournament = data.tournament;
-  container.innerHTML = `
-    <div class="tournament-banner">
-      <h2>${currentTournament.name}</h2>
-      <div class="tournament-timer" id="tournament-timer"></div>
-      <div class="tournament-rewards"><span class="reward-item">🥇 5000 🪙</span><span class="reward-item">🥈 3000 🪙</span><span class="reward-item">🥉 1000 🪙</span></div>
-    </div>
-    <div class="tournament-leaderboard" id="tournament-leaderboard"></div>
-  `;
-  updateTimer();
-  loadTournamentLeaderboard();
-  setInterval(updateTimer, 1000);
-}
-function updateTimer() {
-  if (!currentTournament) return;
-  const now = new Date();
-  const end = new Date(currentTournament.end_time);
-  const diff = end - now;
-  const timerEl = document.getElementById('tournament-timer');
-  if (!timerEl) return;
-  if (diff <= 0) { timerEl.textContent = 'Завершён'; return; }
-  const h = Math.floor(diff / 3600000);
-  const m = Math.floor((diff % 3600000) / 60000);
-  const s = Math.floor((diff % 60000) / 1000);
-  timerEl.textContent = `${h}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-}
-async function loadTournamentLeaderboard() {
-  const res = await fetch(`${WORKER_URL}/tournaments/leaderboard?tournamentId=${currentTournament.id}`);
-  const data = await res.json();
-  const list = document.getElementById('tournament-leaderboard');
-  list.innerHTML = data.leaderboard.map((p, i) => `
-    <div class="leaderboard-item ${p.user_id == currentUserId ? 'current-user' : ''}">
-      <div class="leaderboard-rank">#${i+1}</div>
-      <div class="leaderboard-info">${escapeHtml(p.first_name)}</div>
-      <div class="leaderboard-score">${p.score}</div>
-    </div>
-  `).join('');
-}
-
-// 2048 Game
-class Game2048 {
-  constructor(boardEl, scoreEl, bestEl, statusEl) {
-    this.boardElement = boardEl;
-    this.scoreElement = scoreEl;
-    this.bestScoreElement = bestEl;
-    this.statusElement = statusEl;
-    this.size = 4;
-    this.grid = [];
-    this.score = 0;
-    this.bestScore = parseInt(localStorage.getItem('bestScore2048')) || 0;
-    this.updateBestScoreUI();
-    this.init();
-    this.setupSwipeEvents();
-    this.setupKeyboardEvents();
-  }
-  init() {
-    this.grid = Array(this.size).fill().map(() => Array(this.size).fill(0));
-    this.score = 0;
-    this.updateScoreUI();
-    this.statusElement.textContent = '';
-    this.addRandomTile();
-    this.addRandomTile();
-    this.render();
-  }
-  addRandomTile() {
-    const empty = [];
-    for (let i=0;i<4;i++) for (let j=0;j<4;j++) if (this.grid[i][j]===0) empty.push({x:i,y:j});
-    if (empty.length) {
-      const {x,y}=empty[Math.floor(Math.random()*empty.length)];
-      this.grid[x][y]=Math.random()<0.9?2:4;
-      return true;
-    }
-    return false;
-  }
-  move(dir) {
-    const old = JSON.stringify(this.grid);
-    let gained=0;
-    const slide = (arr, reverse)=>{
-      let line = reverse?[...arr].reverse():[...arr];
-      let filtered=line.filter(v=>v!==0);
-      for (let i=0;i<filtered.length-1;i++) {
-        if(filtered[i]===filtered[i+1]){filtered[i]*=2; gained+=filtered[i]; filtered.splice(i+1,1);}
-      }
-      while(filtered.length<4) filtered.push(0);
-      return reverse?filtered.reverse():filtered;
+async function sendMiniAppStat(user) {
+    if (!user || !user.id) return;
+    let ref = null;
+    try {
+        if (window.Telegram && window.Telegram.WebApp) {
+            const startParam = window.Telegram.WebApp.initDataUnsafe?.start_param;
+            if (startParam) ref = startParam;
+        }
+    } catch (e) {}
+    const payload = {
+        userId: user.id.toString(),
+        firstName: user.first_name || '',
+        username: user.username || '',
+        ref: ref || null
     };
-    if(dir==='left') for(let i=0;i<4;i++) this.grid[i]=slide(this.grid[i],false);
-    else if(dir==='right') for(let i=0;i<4;i++) this.grid[i]=slide(this.grid[i],true);
-    else if(dir==='up') for(let j=0;j<4;j++){let col=[];for(let i=0;i<4;i++) col.push(this.grid[i][j]); col=slide(col,false); for(let i=0;i<4;i++) this.grid[i][j]=col[i];}
-    else if(dir==='down') for(let j=0;j<4;j++){let col=[];for(let i=0;i<4;i++) col.push(this.grid[i][j]); col=slide(col,true); for(let i=0;i<4;i++) this.grid[i][j]=col[i];}
-    if(JSON.stringify(this.grid)!==old) {
-      this.score+=gained;
-      this.updateScoreUI();
-      this.addRandomTile();
-      this.render();
-      if(this.checkWin()) { this.statusElement.textContent='Вы победили!'; this.submitScore(); }
-      else if(this.checkLose()) { this.statusElement.textContent='Игра окончена'; this.submitScore(); }
+    try {
+        await fetch(WORKER_URL + '/track', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+    } catch (err) {
+        console.error('Ошибка отправки статистики Mini App:', err);
     }
-  }
-  checkWin(){ return this.grid.some(row=>row.includes(2048)); }
-  checkLose(){
-    for(let i=0;i<4;i++) for(let j=0;j<4;j++) if(this.grid[i][j]===0) return false;
-    for(let i=0;i<3;i++) for(let j=0;j<4;j++) if(this.grid[i][j]===this.grid[i+1][j]) return false;
-    for(let i=0;i<4;i++) for(let j=0;j<3;j++) if(this.grid[i][j]===this.grid[i][j+1]) return false;
-    return true;
-  }
-  render(){
-    this.boardElement.innerHTML='';
-    for(let i=0;i<4;i++) for(let j=0;j<4;j++){
-      const tile=document.createElement('div'); tile.className='tile-cell';
-      if(this.grid[i][j]){ tile.classList.add('tile-'+this.grid[i][j]); tile.textContent=this.grid[i][j]; }
-      this.boardElement.appendChild(tile);
+}
+
+function updateProfileDisplay(user) {
+    const userName = document.getElementById('user-name');
+    if (userName) userName.textContent = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+    const userUsername = document.getElementById('user-username');
+    if (userUsername) userUsername.textContent = user.username ? '@' + user.username : 'Telegram User';
+    updateUserAvatar(user);
+    if (user.is_premium) showPremiumBadge();
+}
+
+function updateUserAvatar(user) {
+    const avatarImg = document.getElementById('avatar-img');
+    const avatarFallback = document.getElementById('avatar-fallback');
+    if (!avatarImg) return;
+    if (user.photo_url) {
+        avatarImg.src = user.photo_url;
+        avatarImg.style.display = 'block';
+        avatarImg.onerror = () => { avatarImg.style.display = 'none';
+            showAvatarFallback(user, avatarFallback); };
+        avatarFallback.style.display = 'none';
+    } else {
+        avatarImg.style.display = 'none';
+        showAvatarFallback(user, avatarFallback);
     }
-  }
-  updateScoreUI(){ this.scoreElement.textContent=this.score; if(this.score>this.bestScore){ this.bestScore=this.score; localStorage.setItem('bestScore2048',this.bestScore); this.updateBestScoreUI(); } }
-  updateBestScoreUI(){ this.bestScoreElement.textContent=this.bestScore; }
-  submitScore(){
-    if(!currentUserId) return;
-    const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
-    if(!user) return;
-    fetch(`${WORKER_URL}/submit-score`,{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({userId:currentUserId.toString(), firstName:user.first_name, username:user.username||'', score:this.score, avatarUrl:user.photo_url||''})
+}
+
+function showAvatarFallback(user, avatarFallback) {
+    if (user.first_name) avatarFallback.textContent = user.first_name.charAt(0).toUpperCase();
+    else avatarFallback.textContent = 'T';
+    avatarFallback.style.display = 'flex';
+}
+
+function showPremiumBadge() {
+    const profileInfo = document.querySelector('.profile-info');
+    if (profileInfo && !document.querySelector('.premium-badge')) {
+        const premiumBadge = document.createElement('div');
+        premiumBadge.className = 'premium-badge';
+        premiumBadge.innerHTML = '⭐ Premium';
+        profileInfo.appendChild(premiumBadge);
+    }
+}
+
+function showFallbackProfile() {
+    const userName = document.getElementById('user-name');
+    const userUsername = document.getElementById('user-username');
+    const avatarFallback = document.getElementById('avatar-fallback');
+    if (userName) userName.textContent = 'Telegram User';
+    if (userUsername) userUsername.textContent = 'Открой в Telegram';
+    if (avatarFallback) { avatarFallback.textContent = 'T';
+        avatarFallback.style.display = 'flex'; }
+}
+
+const headerElement = document.querySelector('.header');
+const mainContent = document.querySelector('.main-content');
+
+function toggleHeaderForSection(sectionId) {
+    if (!headerElement) return;
+    if (sectionId === 'profile-section' || sectionId === 'game-section') {
+        headerElement.style.display = 'none';
+        if (mainContent) mainContent.style.paddingTop = '8px';
+    } else {
+        headerElement.style.display = 'block';
+        if (mainContent) mainContent.style.paddingTop = '';
+    }
+}
+
+function setupNavigation() {
+    const navItems = document.querySelectorAll('.nav-item');
+    const sections = document.querySelectorAll('.content-section');
+    navItems.forEach(item => {
+        item.addEventListener('click', function() {
+            vibrate();
+            const targetSection = this.getAttribute('data-section');
+            navItems.forEach(nav => nav.classList.remove('active'));
+            this.classList.add('active');
+            sections.forEach(section => {
+                section.classList.remove('active');
+                if (section.id === targetSection) section.classList.add('active');
+            });
+            toggleHeaderForSection(targetSection);
+            if (targetSection === 'game-section') {
+                updateCoinBalanceDisplay();
+                const topCard = document.getElementById('action-card-top');
+                if (topCard && topCard.classList.contains('expanded')) {
+                    fetchLeaderboard();
+                }
+            }
+        });
     });
-    // Отправка в турнир
-    if(currentTournament) {
-      fetch(`${WORKER_URL}/tournaments/submit-score`,{
-        method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({userId:currentUserId.toString(), score:this.score})
-      });
+    const activeSection = document.querySelector('.content-section.active');
+    if (activeSection && activeSection.id === 'game-section') {
+        updateCoinBalanceDisplay();
     }
-  }
-  setupSwipeEvents(){
-    let sx=0,sy=0;
-    this.boardElement.addEventListener('touchstart',e=>{sx=e.touches[0].clientX; sy=e.touches[0].clientY;});
-    this.boardElement.addEventListener('touchend',e=>{
-      if(!sx) return;
-      let dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
-      if(Math.abs(dx)<20&&Math.abs(dy)<20) return;
-      if(Math.abs(dx)>Math.abs(dy)) dx>0?this.move('right'):this.move('left');
-      else dy>0?this.move('down'):this.move('up');
-      sx=0;sy=0; vibrate();
+    if (activeSection) toggleHeaderForSection(activeSection.id);
+}
+
+function setupGameButtons() {
+    document.querySelectorAll('.play-button').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.stopPropagation();
+            vibrate();
+            const link = this.getAttribute('data-link');
+            if (link) {
+                if (window.Telegram && window.Telegram.WebApp) {
+                    if (link.startsWith('https://t.me/')) window.Telegram.WebApp.openTelegramLink(
+                    link);
+                    else window.Telegram.WebApp.openLink(link);
+                } else {
+                    window.open(link, '_blank');
+                }
+            }
+        });
     });
-  }
-  setupKeyboardEvents(){
-    window.addEventListener('keydown',e=>{
-      if(document.querySelector('#game-section.active')){
-        const k=e.key;
-        if(k==='ArrowLeft'){this.move('left');e.preventDefault();vibrate();}
-        else if(k==='ArrowRight'){this.move('right');e.preventDefault();vibrate();}
-        else if(k==='ArrowUp'){this.move('up');e.preventDefault();vibrate();}
-        else if(k==='ArrowDown'){this.move('down');e.preventDefault();vibrate();}
-      }
+}
+
+function setupExchangeButtons() {
+    document.querySelectorAll('.exchange-button').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.stopPropagation();
+            vibrate();
+            const exchangeUrl = this.getAttribute('data-url');
+            if (exchangeUrl) {
+                if (window.Telegram && window.Telegram.WebApp) window.Telegram.WebApp.openLink(
+                exchangeUrl);
+                else window.open(exchangeUrl, '_blank');
+            }
+        });
     });
-  }
-  resetGame(){ this.init(); }
 }
 
-function initGame2048(){
-  const board=document.getElementById('game-board-2048');
-  if(board && !game2048){
-    game2048=new Game2048(board, document.getElementById('game-score'), document.getElementById('best-score'), document.getElementById('game-status'));
-    document.getElementById('new-game-btn').addEventListener('click',()=>{vibrate();game2048.resetGame();});
-  }
+function setupSettingsPanel() {
+    const settingsButton = document.getElementById('settings-button');
+    const settingsPanel = document.getElementById('settings-panel');
+    const closeSettings = document.getElementById('close-settings');
+    if (settingsButton) settingsButton.addEventListener('click', () => { vibrate();
+        settingsPanel.classList.add('active'); });
+    if (closeSettings) closeSettings.addEventListener('click', () => { vibrate();
+        settingsPanel.classList.remove('active'); });
+    if (settingsPanel) settingsPanel.addEventListener('click', (e) => { if (e.target === settingsPanel)
+            settingsPanel.classList.remove('active'); });
+    document.querySelectorAll('.theme-option').forEach(option => {
+        option.addEventListener('click', function() {
+            vibrate();
+            const theme = this.getAttribute('data-theme');
+            document.querySelectorAll('.theme-option').forEach(opt => opt.classList.remove(
+            'active'));
+            this.classList.add('active');
+            if (theme === 'dark') document.body.classList.add('dark-theme');
+            else document.body.classList.remove('dark-theme');
+            localStorage.setItem('theme', theme);
+        });
+    });
 }
 
-// Бустеры в 2048
-async function useBooster(type) {
-  if(!currentUserId) return;
-  if(!userProfile.boosters[type]||userProfile.boosters[type]<=0){
-    Telegram.WebApp.showPopup({message:'Нет бустеров!'}); return;
-  }
-  const res = await fetch(`${WORKER_URL}/useBooster`,{
-    method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({userId:currentUserId.toString(), boosterType:type})
-  });
-  if(res.ok){
-    userProfile.boosters[type]--;
-    updateBoosterUI();
-    if(type==='undo') game2048.undo();
-    else if(type==='remove') game2048.removeRandomTile();
-    else if(type==='extra_life') game2048.extraLife();
-  }
+function setLanguage() {
+    document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        if (translations[key]) element.textContent = translations[key];
+    });
 }
-document.getElementById('booster-undo')?.addEventListener('click',()=>useBooster('undo'));
-document.getElementById('booster-remove')?.addEventListener('click',()=>useBooster('remove'));
-document.getElementById('booster-life')?.addEventListener('click',()=>useBooster('extra_life'));
 
-// Заглушки для бустеров в Game2048 (допишите реальную логику при желании)
-Game2048.prototype.undo = function(){ alert('Отмена хода не реализована'); };
-Game2048.prototype.removeRandomTile = function(){
-  const tiles=[];
-  for(let i=0;i<4;i++) for(let j=0;j<4;j++) if(this.grid[i][j]) tiles.push([i,j]);
-  if(tiles.length) { const [x,y]=tiles[Math.floor(Math.random()*tiles.length)]; this.grid[x][y]=0; this.render(); }
-};
-Game2048.prototype.extraLife = function(){
-  this.removeRandomTile(); this.removeRandomTile();
-  this.statusElement.textContent='Продолжайте!';
-};
-
-// Лидерборд
-async function fetchLeaderboard(){
-  const res=await fetch(`${WORKER_URL}/leaderboard`);
-  const data=await res.json();
-  const list=document.getElementById('leaderboard-list');
-  list.innerHTML = data.leaderboard.map((p,i)=>`
-    <div class="leaderboard-item ${p.user_id==currentUserId?'current-user':''}">
-      <div class="leaderboard-rank">#${i+1}</div>
-      <div class="leaderboard-avatar">${p.first_name.charAt(0)}</div>
-      <div class="leaderboard-info">${escapeHtml(p.first_name)}</div>
-      <div class="leaderboard-score">${p.score}</div>
-    </div>
-  `).join('');
+function loadThemePreference() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    if (savedTheme === 'dark') document.body.classList.add('dark-theme');
+    document.querySelectorAll('.theme-option').forEach(opt => {
+        opt.classList.remove('active');
+        if (opt.getAttribute('data-theme') === savedTheme) opt.classList.add('active');
+    });
 }
-function setupLeaderboardRefresh(){ document.getElementById('refresh-leaderboard')?.addEventListener('click',()=>{vibrate();fetchLeaderboard();}); }
-function setupLeaderboardShare(){
-  document.getElementById('leaderboard-list')?.addEventListener('click',e=>{
-    const btn=e.target.closest('.leaderboard-share-btn');
-    if(btn){
-      const name=btn.dataset.shareName, score=btn.dataset.shareScore;
-      if(name&&score) shareText(`🏆 ${name} набрал ${score} очков в 2048! https://t.me/${BOT_USERNAME}`);
+
+function setupShareButton() {
+    const shareButton = document.getElementById('share-friends-button');
+    if (shareButton) {
+        shareButton.addEventListener('click', function() {
+            vibrate();
+            let botUrl;
+            if (currentUserId) {
+                botUrl = `https://t.me/${BOT_USERNAME}?start=ref_${currentUserId}`;
+            } else {
+                botUrl = `https://t.me/${BOT_USERNAME}`;
+            }
+            const shareText = 'Играй в лучшие мини-игры Telegram вместе с HADRON! 🎮';
+            if (window.Telegram && window.Telegram.WebApp) {
+                const shareUrl =
+                    `https://t.me/share/url?url=${encodeURIComponent(botUrl)}&text=${encodeURIComponent(shareText)}`;
+                try {
+                    window.Telegram.WebApp.openTelegramLink(shareUrl);
+                } catch (error) {
+                    fallbackCopyToClipboard(botUrl);
+                }
+            } else {
+                if (navigator.share) {
+                    navigator.share({ title: 'Games Verse', text: shareText, url: botUrl }).catch(() =>
+                        fallbackCopyToClipboard(botUrl));
+                } else {
+                    fallbackCopyToClipboard(botUrl);
+                }
+            }
+        });
     }
-  });
 }
 
-// Шеринг
-function setupShareButton(){
-  document.getElementById('share-friends-button')?.addEventListener('click',()=>{
-    vibrate();
-    const link = currentUserId ? `https://t.me/${BOT_USERNAME}?start=ref_${currentUserId}` : `https://t.me/${BOT_USERNAME}`;
-    const text = 'Играй в лучшие мини-игры Telegram вместе со мной! 🎮';
+function fallbackCopyToClipboard(text) {
+    try {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showNotification();
+    } catch (err) {
+        showNotification('Не удалось скопировать ссылку');
+    }
+}
+
+function showNotification(customMessage) {
+    const notification = document.getElementById('notification');
+    if (!notification) return;
+    notification.textContent = customMessage || translations.linkCopied;
+    notification.classList.add('show');
+    setTimeout(() => notification.classList.remove('show'), 2000);
+}
+
+// ==================== 2048 GAME ====================
+class Game2048 {
+    constructor(boardElement, scoreElement, bestScoreElement, statusElement) {
+        this.boardElement = boardElement;
+        this.scoreElement = scoreElement;
+        this.bestScoreElement = bestScoreElement;
+        this.statusElement = statusElement;
+        this.size = 4;
+        this.grid = [];
+        this.score = 0;
+        this.bestScore = localStorage.getItem('bestScore2048') ? parseInt(localStorage.getItem(
+        'bestScore2048')) : 0;
+        this.lastAddedTile = null;
+        this.mergedPositions = new Set();
+        this.moveMap = null;
+        this.previousScore = 0;
+        this.updateBestScoreUI();
+        this.init();
+        this.setupSwipeEvents();
+        this.setupKeyboardEvents();
+    }
+
+    init() {
+        this.grid = Array(this.size).fill().map(() => Array(this.size).fill(0));
+        this.score = 0;
+        this.previousScore = 0;
+        this.updateScoreUI();
+        this.statusElement.textContent = '';
+        this.lastAddedTile = null;
+        this.mergedPositions.clear();
+        this.moveMap = null;
+        this.addRandomTile();
+        this.addRandomTile();
+        this.render();
+    }
+
+    addRandomTile() {
+        const emptyCells = [];
+        for (let i = 0; i < this.size; i++) {
+            for (let j = 0; j < this.size; j++) {
+                if (this.grid[i][j] === 0) emptyCells.push({ x: i, y: j });
+            }
+        }
+        if (emptyCells.length > 0) {
+            const { x, y } = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            this.grid[x][y] = Math.random() < 0.9 ? 2 : 4;
+            this.lastAddedTile = { x, y };
+            return true;
+        }
+        return false;
+    }
+
+    move(direction) {
+        const oldGrid = JSON.parse(JSON.stringify(this.grid));
+        let totalScoreGain = 0;
+        this.mergedPositions.clear();
+        this.moveMap = {};
+        const slideWithTracking = (row, isColumn, index, reverse) => {
+            let arr = row.filter(v => v !== 0);
+            let newRow = [];
+            let scoreGain = 0;
+            let merged = new Array(arr.length).fill(false);
+            for (let i = 0; i < arr.length; i++) {
+                if (i + 1 < arr.length && arr[i] === arr[i + 1] && !merged[i] && !merged[i + 1]) {
+                    let mergedVal = arr[i] * 2;
+                    newRow.push(mergedVal);
+                    scoreGain += mergedVal;
+                    merged[i] = merged[i + 1] = true;
+                    i++;
+                } else {
+                    newRow.push(arr[i]);
+                }
+            }
+            while (newRow.length < this.size) newRow.push(0);
+            let oldVals = arr;
+            let oldPtr = 0;
+            for (let newPos = 0; newPos < this.size; newPos++) {
+                if (newRow[newPos] === 0) continue;
+                if (oldPtr < oldVals.length && oldVals[oldPtr] * 2 === newRow[newPos] &&
+                    oldPtr + 1 < oldVals.length && oldVals[oldPtr] === oldVals[oldPtr + 1]) {
+                    this.recordMove(oldPtr, oldVals, newPos, isColumn, index, reverse, true, false);
+                    this.recordMove(oldPtr + 1, oldVals, newPos, isColumn, index, reverse, true, true);
+                    oldPtr += 2;
+                } else if (oldPtr < oldVals.length && oldVals[oldPtr] === newRow[newPos]) {
+                    this.recordMove(oldPtr, oldVals, newPos, isColumn, index, reverse, false, false);
+                    oldPtr++;
+                }
+            }
+            return { newRow, scoreGain };
+        };
+        this.recordMove = (oldIdx, oldVals, newIdx, isColumn, lineIdx, reverse, merged, isSecond) => {
+            const originalLine = [];
+            if (!isColumn) {
+                originalLine.push(...this.grid[lineIdx]);
+            } else {
+                for (let r = 0; r < this.size; r++) originalLine.push(this.grid[r][lineIdx]);
+            }
+            if (reverse) originalLine.reverse();
+            let skip = 0;
+            let sourceIdx = -1;
+            for (let i = 0; i < originalLine.length; i++) {
+                if (originalLine[i] !== 0) {
+                    if (skip === oldIdx) { sourceIdx = i; break; }
+                    skip++;
+                }
+            }
+            if (sourceIdx === -1) return;
+            if (reverse) sourceIdx = this.size - 1 - sourceIdx;
+            let fromRow, fromCol;
+            if (!isColumn) { fromRow = lineIdx;
+                fromCol = sourceIdx; } else { fromRow = sourceIdx;
+                fromCol = lineIdx; }
+            let targetIdx = newIdx;
+            if (reverse) targetIdx = this.size - 1 - targetIdx;
+            let toRow, toCol;
+            if (!isColumn) { toRow = lineIdx;
+                toCol = targetIdx; } else { toRow = targetIdx;
+                toCol = lineIdx; }
+            const key = `${toRow},${toCol}`;
+            if (!this.moveMap[key]) { this.moveMap[key] = { fromRow, fromCol, merged }; }
+            if (merged) this.mergedPositions.add(key);
+        };
+        if (direction === 'left') {
+            for (let i = 0; i < this.size; i++) {
+                const { newRow, scoreGain } = slideWithTracking(this.grid[i], false, i, false);
+                this.grid[i] = newRow;
+                totalScoreGain += scoreGain;
+            }
+        } else if (direction === 'right') {
+            for (let i = 0; i < this.size; i++) {
+                const reversed = [...this.grid[i]].reverse();
+                const { newRow, scoreGain } = slideWithTracking(reversed, false, i, true);
+                totalScoreGain += scoreGain;
+                this.grid[i] = newRow.reverse();
+            }
+        } else if (direction === 'up') {
+            for (let j = 0; j < this.size; j++) {
+                const column = [];
+                for (let i = 0; i < this.size; i++) column.push(this.grid[i][j]);
+                const { newRow, scoreGain } = slideWithTracking(column, true, j, false);
+                totalScoreGain += scoreGain;
+                for (let i = 0; i < this.size; i++) this.grid[i][j] = newRow[i];
+            }
+        } else if (direction === 'down') {
+            for (let j = 0; j < this.size; j++) {
+                const column = [];
+                for (let i = 0; i < this.size; i++) column.push(this.grid[i][j]);
+                const reversed = column.reverse();
+                const { newRow, scoreGain } = slideWithTracking(reversed, true, j, true);
+                totalScoreGain += scoreGain;
+                const finalArr = newRow.reverse();
+                for (let i = 0; i < this.size; i++) this.grid[i][j] = finalArr[i];
+            }
+        }
+        if (totalScoreGain > 0) {
+            this.score += totalScoreGain;
+            this.updateScoreUI();
+            addCoins(totalScoreGain);
+        }
+        const changed = !this.gridsAreEqual(oldGrid, this.grid);
+        if (changed) {
+            this.addRandomTile();
+            this.render();
+            if (this.checkWin()) {
+                this.statusElement.textContent = translations.gameWin;
+                this.submitScoreToLeaderboard();
+            } else if (this.checkLose()) {
+                this.statusElement.textContent = translations.gameLose;
+                this.submitScoreToLeaderboard();
+            }
+        } else {
+            this.moveMap = null;
+        }
+    }
+
+    gridsAreEqual(a, b) {
+        for (let i = 0; i < this.size; i++)
+            for (let j = 0; j < this.size; j++)
+                if (a[i][j] !== b[i][j]) return false;
+        return true;
+    }
+
+    render() {
+        const board = this.boardElement;
+        board.innerHTML = '';
+        const tileSize = board.clientWidth / this.size;
+        for (let i = 0; i < this.size; i++) {
+            for (let j = 0; j < this.size; j++) {
+                const value = this.grid[i][j];
+                const tile = document.createElement('div');
+                tile.className = 'tile-cell';
+                if (value !== 0) {
+                    let tileClass = `tile-${value}`;
+                    if (value > 2048) tileClass = 'tile-super';
+                    tile.classList.add(tileClass);
+                    tile.textContent = value;
+                    const key = `${i},${j}`;
+                    if (this.moveMap && this.moveMap[key]) {
+                        const { fromRow, fromCol, merged } = this.moveMap[key];
+                        const deltaX = (fromCol - j) * tileSize;
+                        const deltaY = (fromRow - i) * tileSize;
+                        tile.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+                        tile.offsetHeight;
+                        tile.style.transform = '';
+                        if (merged) {
+                            tile.classList.add('tile-merge');
+                            tile.addEventListener('animationend', () => tile.classList.remove('tile-merge'), {
+                                once: true });
+                        }
+                    }
+                    if (this.lastAddedTile && this.lastAddedTile.x === i && this.lastAddedTile.y === j) {
+                        tile.classList.add('tile-new');
+                        tile.addEventListener('animationend', () => tile.classList.remove('tile-new'), { once: true });
+                    }
+                } else {
+                    tile.textContent = '';
+                }
+                board.appendChild(tile);
+            }
+        }
+        this.lastAddedTile = null;
+        this.moveMap = null;
+    }
+
+    updateScoreUI() {
+        this.scoreElement.textContent = this.score;
+        if (this.score > this.bestScore) {
+            this.bestScore = this.score;
+            localStorage.setItem('bestScore2048', this.bestScore);
+            this.updateBestScoreUI();
+        }
+    }
+
+    updateBestScoreUI() {
+        this.bestScoreElement.textContent = this.bestScore;
+    }
+
+    checkWin() {
+        return this.grid.some(row => row.includes(2048));
+    }
+
+    checkLose() {
+        for (let i = 0; i < this.size; i++)
+            for (let j = 0; j < this.size; j++)
+                if (this.grid[i][j] === 0) return false;
+        for (let i = 0; i < this.size; i++)
+            for (let j = 0; j < this.size; j++) {
+                const val = this.grid[i][j];
+                if (j < this.size - 1 && val === this.grid[i][j + 1]) return false;
+                if (i < this.size - 1 && val === this.grid[i + 1][j]) return false;
+            }
+        return true;
+    }
+
+    submitScoreToLeaderboard() {
+        if (!currentUserId) return;
+        const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
+        if (!user) return;
+        const payload = {
+            userId: currentUserId.toString(),
+            firstName: user.first_name || 'Игрок',
+            username: user.username || '',
+            score: this.score,
+            avatarUrl: user.photo_url || ''
+        };
+        fetch(WORKER_URL + '/submit-score', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        }).then(() => {
+            fetchLeaderboard();
+        }).catch(err => console.error('Ошибка отправки счёта:', err));
+    }
+
+    setupSwipeEvents() {
+        let touchStartX = 0,
+            touchStartY = 0;
+        this.boardElement.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            e.preventDefault();
+        });
+        this.boardElement.addEventListener('touchend', (e) => {
+            if (touchStartX === 0 && touchStartY === 0) return;
+            let deltaX = e.changedTouches[0].clientX - touchStartX;
+            let deltaY = e.changedTouches[0].clientY - touchStartY;
+            if (Math.abs(deltaX) < 20 && Math.abs(deltaY) < 20) return;
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                if (deltaX > 0) this.move('right');
+                else this.move('left');
+            } else {
+                if (deltaY > 0) this.move('down');
+                else this.move('up');
+            }
+            touchStartX = 0;
+            touchStartY = 0;
+            vibrate();
+        });
+    }
+
+    setupKeyboardEvents() {
+        window.addEventListener('keydown', (e) => {
+            if (document.querySelector('#game-section.active')) {
+                const key = e.key;
+                if (key === 'ArrowLeft') { this.move('left');
+                    e.preventDefault();
+                    vibrate(); } else if (key === 'ArrowRight') { this.move('right');
+                    e.preventDefault();
+                    vibrate(); } else if (key === 'ArrowUp') { this.move('up');
+                    e.preventDefault();
+                    vibrate(); } else if (key === 'ArrowDown') { this.move('down');
+                    e.preventDefault();
+                    vibrate(); }
+            }
+        });
+    }
+
+    resetGame() {
+        this.init();
+        this.render();
+    }
+}
+
+let game2048 = null;
+
+function initGame2048() {
+    const board = document.getElementById('game-board-2048');
+    const scoreEl = document.getElementById('game-score');
+    const bestEl = document.getElementById('best-score');
+    const statusEl = document.getElementById('game-status');
+    if (board && scoreEl && bestEl && statusEl && !game2048) {
+        game2048 = new Game2048(board, scoreEl, bestEl, statusEl);
+        const newGameBtn = document.getElementById('new-game-btn');
+        if (newGameBtn) {
+            newGameBtn.addEventListener('click', () => {
+                vibrate();
+                game2048.resetGame();
+            });
+        }
+    }
+}
+
+// ==================== LEADERBOARD ====================
+async function fetchLeaderboard() {
+    const list = document.getElementById('leaderboard-list');
+    if (!list) return;
+    list.innerHTML = '<div class="leaderboard-loading">Загрузка...</div>';
+    try {
+        const res = await fetch(WORKER_URL + '/leaderboard');
+        const data = await res.json();
+        renderLeaderboard(data.leaderboard || []);
+    } catch (err) {
+        console.error('Ошибка загрузки лидеров:', err);
+        list.innerHTML = '<div class="leaderboard-loading">Не удалось загрузить таблицу</div>';
+    }
+}
+
+function renderLeaderboard(leaderboard) {
+    const list = document.getElementById('leaderboard-list');
+    if (!list) return;
+    if (!leaderboard.length) {
+        list.innerHTML = '<div class="leaderboard-loading">Пока нет результатов</div>';
+        return;
+    }
+    list.innerHTML = leaderboard.map((player, index) => {
+        const isCurrentUser = currentUserId && player.userId.toString() === currentUserId.toString();
+        const rank = index + 1;
+        const avatarContent = player.avatarUrl ?
+            `<img src="${player.avatarUrl}" alt="${player.firstName}" onerror="this.style.display='none'; this.parentElement.textContent='${player.firstName.charAt(0).toUpperCase()}';" />` :
+            player.firstName.charAt(0).toUpperCase();
+        return `
+            <div class="leaderboard-item ${isCurrentUser ? 'current-user' : ''}">
+                <div class="leaderboard-rank">#${rank}</div>
+                <div class="leaderboard-avatar">${avatarContent}</div>
+                <div class="leaderboard-info">
+                    <div class="leaderboard-name">${escapeHtml(player.firstName)}</div>
+                </div>
+                <div class="leaderboard-score">
+                    ${player.score} <span>coin</span>
+                    <button class="leaderboard-share-btn" aria-label="Поделиться результатом" data-share-name="${escapeHtml(player.firstName)}" data-share-score="${player.score}">
+                        <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg>
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function escapeHtml(text) {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+}
+
+function setupLeaderboardRefresh() {
+    const refreshBtn = document.getElementById('refresh-leaderboard');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            vibrate();
+            fetchLeaderboard();
+        });
+    }
+}
+
+function setupLeaderboardShare() {
+    const leaderboardList = document.getElementById('leaderboard-list');
+    if (!leaderboardList) return;
+    leaderboardList.addEventListener('click', (e) => {
+        const shareBtn = e.target.closest('.leaderboard-share-btn');
+        if (!shareBtn) return;
+        e.stopPropagation();
+        const name = shareBtn.dataset.shareName;
+        const score = shareBtn.dataset.shareScore;
+        if (name && score) shareLeaderboardScore(name, parseInt(score, 10));
+    });
+}
+
+function shareLeaderboardScore(name, score) {
+    const shareText =
+        `🏆 ${name} набрал ${score} coin в 2048! Сможешь побить рекорд? Играй в Games Verse: https://t.me/${BOT_USERNAME}`;
     if (window.Telegram?.WebApp) {
-      window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
+        const shareUrl =
+            `https://t.me/share/url?url=${encodeURIComponent('https://t.me/' + BOT_USERNAME)}&text=${encodeURIComponent(shareText)}`;
+        window.Telegram.WebApp.openTelegramLink(shareUrl);
     } else if (navigator.share) {
-      navigator.share({ title:'Games Verse', text, url:link }).catch(()=>copyToClipboard(link));
-    } else copyToClipboard(link);
-  });
-}
-function copyToClipboard(text){
-  const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); showNotification();
-}
-
-function loadThemePreference(){
-  const saved=localStorage.getItem('theme')||'light';
-  if(saved==='dark') document.body.classList.add('dark-theme');
-}
-function setupSettingsPanel(){
-  document.getElementById('settings-button')?.addEventListener('click',()=>document.getElementById('settings-panel').classList.add('active'));
-  document.getElementById('close-settings')?.addEventListener('click',()=>document.getElementById('settings-panel').classList.remove('active'));
-  document.querySelectorAll('.theme-option').forEach(opt=>{
-    opt.addEventListener('click',function(){
-      const theme=this.dataset.theme;
-      document.querySelectorAll('.theme-option').forEach(o=>o.classList.remove('active'));
-      this.classList.add('active');
-      document.body.classList.toggle('dark-theme', theme==='dark');
-      localStorage.setItem('theme', theme);
-    });
-  });
+        navigator.share({ title: 'Games Verse', text: shareText, url: 'https://t.me/' + BOT_USERNAME }).catch(() =>
+            fallbackCopyToClipboard(shareText));
+    } else {
+        fallbackCopyToClipboard(shareText);
+    }
 }
