@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#667eea">
-    <title>Games Verse</title>
+    <title>2048 Verse</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -17,9 +17,9 @@
 
     <div class="app-container">
         <!-- Header -->
-        <header class="header">
+        <header class="header" id="main-header">
             <div class="header-content">
-                <h1 class="app-title">Games Verse</h1>
+                <h1 class="app-title">2048 Verse</h1>
                 <button class="settings-button" id="settings-button" aria-label="Настройки">⚙️</button>
             </div>
         </header>
@@ -42,7 +42,7 @@
         <!-- Main Content -->
         <main class="main-content">
             <!-- Games Section -->
-            <section id="games-section" class="content-section active">
+            <section id="games-section" class="content-section">
                 <div class="section-header">
                     <h2>Игры</h2>
                     <span class="section-subtitle">Лучшие игры Telegram</span>
@@ -78,56 +78,78 @@
                 <div class="exchanges-list" id="exchanges-list"></div>
             </section>
 
-            <!-- Tap Game Section -->
-            <section id="game-section" class="content-section game-fullscreen">
-                <div class="tap-game-container">
-                    <div class="tap-header">
-                        <div class="tap-balance">
-                            <span class="coin-icon">🪙</span>
-                            <span id="tap-coin-count">0</span>
+            <!-- 2048 Game Section (центральная) -->
+            <section id="game-section" class="content-section active">
+                <!-- Вкладки -->
+                <div class="game-tabs">
+                    <button class="game-tab active" data-tab="play">🎮 Игра</button>
+                    <button class="game-tab" data-tab="challenges">🏆 Испытания</button>
+                    <button class="game-tab" data-tab="achievements">⭐ Достижения</button>
+                </div>
+
+                <!-- Контент вкладок -->
+                <div class="game-tab-content active" id="tab-play">
+                    <div class="game-2048-container">
+                        <div class="game-header-2048">
+                            <h3 class="game-title-2048">2048</h3>
+                            <div class="game-scores">
+                                <div class="score-box">
+                                    <div class="score-label">Счёт</div>
+                                    <div class="score-value" id="game-score">0</div>
+                                </div>
+                                <div class="score-box">
+                                    <div class="score-label">Лучший</div>
+                                    <div class="score-value" id="best-score">0</div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="tap-per-click">
-                            за клик: <span id="tap-per-click">1</span>
+                        <div class="game-board-2048" id="game-board-2048"></div>
+                        <div class="game-controls">
+                            <button class="new-game-btn" id="new-game-btn">Новая игра</button>
+                            <div class="game-status" id="game-status"></div>
+                            <button class="replay-share-btn" id="replay-share-btn" style="display:none;">📤 Поделиться реплеем</button>
+                        </div>
+                        <div class="swipe-hint">👆 Свайпайте пальцем или используйте стрелки</div>
+                    </div>
+                    <!-- Replay viewer -->
+                    <div id="replay-viewer" style="display:none;">
+                        <div class="replay-controls">
+                            <button id="replay-play">▶️</button>
+                            <button id="replay-speed">1x</button>
+                            <div class="replay-progress"><span id="replay-step">0/0</span></div>
                         </div>
                     </div>
-
-                    <!-- Tap Area -->
-                    <div class="tap-area" id="tap-area">
-                        <div class="tap-coin" id="tap-coin">
-                            <span class="tap-coin-text">TAP</span>
+                    <!-- Таблица лидеров -->
+                    <div class="leaderboard-container" id="leaderboard-container">
+                        <div class="leaderboard-header">
+                            <h3 class="leaderboard-title">🏆 Таблица лидеров</h3>
+                            <button class="refresh-leaderboard" id="refresh-leaderboard">🔄</button>
                         </div>
-                        <div class="tap-particles" id="tap-particles"></div>
-                    </div>
-
-                    <!-- Boost Bar -->
-                    <div class="boost-bar" id="boost-bar" style="display: none;">
-                        <div class="boost-fill" id="boost-fill"></div>
-                        <span class="boost-text">⚡ x10</span>
-                    </div>
-
-                    <!-- Upgrades Shop -->
-                    <div class="shop-section">
-                        <h3 class="shop-title">⚡ Ускорение и прокачка</h3>
-                        <div class="shop-items" id="shop-items">
-                            <!-- Генерируется в JS -->
+                        <div class="leaderboard-list" id="leaderboard-list">
+                            <div class="leaderboard-loading">Загрузка...</div>
                         </div>
-                    </div>
-
-                    <div class="game-controls">
-                        <button class="new-game-btn" id="new-game-btn">Сбросить прогресс</button>
-                        <div class="game-status" id="game-status"></div>
                     </div>
                 </div>
 
-                <!-- Таблица лидеров -->
-                <div class="leaderboard-container" id="leaderboard-container">
-                    <div class="leaderboard-header">
-                        <h3 class="leaderboard-title">🏆 Таблица лидеров</h3>
-                        <button class="refresh-leaderboard" id="refresh-leaderboard">🔄</button>
+                <div class="game-tab-content" id="tab-challenges">
+                    <div class="challenges-container">
+                        <div class="challenge-card daily">
+                            <h4>🌅 Ежедневное испытание</h4>
+                            <p id="daily-desc">...</p>
+                            <div class="progress-bar"><div class="progress-fill" id="daily-progress" style="width:0%"></div></div>
+                            <span id="daily-status">Не выполнено</span>
+                        </div>
+                        <div class="challenge-card weekly">
+                            <h4>📅 Еженедельное испытание</h4>
+                            <p id="weekly-desc">...</p>
+                            <div class="progress-bar"><div class="progress-fill" id="weekly-progress" style="width:0%"></div></div>
+                            <span id="weekly-status">Не выполнено</span>
+                        </div>
                     </div>
-                    <div class="leaderboard-list" id="leaderboard-list">
-                        <div class="leaderboard-loading">Загрузка...</div>
-                    </div>
+                </div>
+
+                <div class="game-tab-content" id="tab-achievements">
+                    <div class="achievements-grid" id="achievements-list"></div>
                 </div>
             </section>
 
@@ -142,6 +164,10 @@
                         <h2 id="user-name">Пользователь</h2>
                         <p id="user-username">Открой в Telegram</p>
                     </div>
+                </div>
+                <div class="profile-achievements">
+                    <h3>Коллекция достижений</h3>
+                    <div class="profile-badges" id="profile-badges"></div>
                 </div>
                 <div class="profile-actions">
                     <button class="share-friends-button" id="share-friends-button">
@@ -162,7 +188,7 @@
 
         <!-- Bottom Navigation -->
         <nav class="bottom-nav">
-            <button class="nav-item active" data-section="games-section">
+            <button class="nav-item" data-section="games-section">
                 <span class="nav-icon">🎮</span>
                 <span class="nav-label">Игры</span>
             </button>
@@ -170,9 +196,9 @@
                 <span class="nav-icon">📊</span>
                 <span class="nav-label">Биржи</span>
             </button>
-            <button class="nav-item" data-section="game-section">
-                <span class="nav-icon">🪙</span>
-                <span class="nav-label">Тапалка</span>
+            <button class="nav-item active" data-section="game-section">
+                <span class="nav-icon">🎲</span>
+                <span class="nav-label">2048</span>
             </button>
             <button class="nav-item" data-section="profile-section">
                 <span class="nav-icon">👤</span>
