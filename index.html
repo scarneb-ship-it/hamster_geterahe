@@ -105,6 +105,7 @@
                         </div>
                         <div class="swipe-hint">👆 Свайпайте пальцем или используйте стрелки</div>
                         <button class="leaderboard-link-btn" id="goto-leaderboard-btn">🏆 Топ игроков</button>
+                        <button class="duel-btn" id="start-duel-btn">⚔️ Дуэль</button>
                     </div>
                     <div id="replay-viewer" style="display:none;">
                         <div class="replay-controls">
@@ -137,7 +138,7 @@
                 </div>
             </section>
 
-            <!-- Топ игроков (отдельная секция) -->
+            <!-- Топ игроков -->
             <section id="leaderboard-section" class="content-section">
                 <div class="leaderboard-container">
                     <div class="leaderboard-header">
@@ -211,6 +212,29 @@
         </nav>
 
         <div id="notification" class="notification">Ссылка скопирована в буфер обмена!</div>
+    </div>
+
+    <!-- Модальное окно дуэли -->
+    <div class="modal-overlay" id="duel-modal" style="display:none;">
+        <div class="modal-content duel-modal">
+            <button class="modal-close" id="close-duel-modal">✕</button>
+            <div id="duel-screen-waiting">
+                <h3>⚔️ Дуэль 1 на 1</h3>
+                <p>Ожидание соперника...</p>
+                <div class="duel-info">Seed: <span id="duel-seed-display">-</span></div>
+                <button class="cancel-duel-btn" id="cancel-duel-btn">Отменить</button>
+            </div>
+            <div id="duel-screen-ready" style="display:none;">
+                <h3>⚔️ Дуэль началась!</h3>
+                <p>У вас одинаковые плитки. Наберите больше очков.</p>
+                <button class="start-duel-game-btn" id="start-duel-game-btn">Играть</button>
+            </div>
+            <div id="duel-screen-result" style="display:none;">
+                <h3 id="duel-result-text">🏆 Вы победили!</h3>
+                <div class="duel-boards" id="duel-boards-container"></div>
+                <button class="share-duel-btn" id="share-duel-btn">📤 Поделиться дуэлью</button>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>
