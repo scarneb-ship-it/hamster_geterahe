@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#667eea">
-    <title>2048 Verse</title>
+    <title>Games Verse</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -13,15 +13,13 @@
     <div id="splash-screen">
         <img src="oblochka.jpg" alt="Загрузка..." id="splash-img">
     </div>
-
     <div class="app-container">
-        <header class="header" id="main-header">
+        <header class="header">
             <div class="header-content">
-                <h1 class="app-title">2048 Verse</h1>
+                <h1 class="app-title">Games Verse</h1>
                 <button class="settings-button" id="settings-button" aria-label="Настройки">⚙️</button>
             </div>
         </header>
-
         <div class="settings-panel" id="settings-panel">
             <div class="settings-content">
                 <h3 class="settings-title">Настройки</h3>
@@ -35,18 +33,14 @@
                 <button class="close-settings" id="close-settings">Готово</button>
             </div>
         </div>
-
         <main class="main-content">
-            <!-- Игры -->
-            <section id="games-section" class="content-section">
+            <section id="games-section" class="content-section active">
                 <div class="section-header">
                     <h2>Игры</h2>
                     <span class="section-subtitle">Лучшие игры Telegram</span>
                 </div>
                 <div class="games-grid" id="games-grid"></div>
             </section>
-
-            <!-- Биржи -->
             <section id="exchanges-section" class="content-section">
                 <div class="section-header">
                     <h2>Крипто-биржи</h2>
@@ -73,74 +67,29 @@
                 </div>
                 <div class="exchanges-list" id="exchanges-list"></div>
             </section>
-
-            <!-- 2048 -->
-            <section id="game-section" class="content-section active">
-                <div class="game-tabs">
-                    <button class="game-tab active" data-tab="play">🎮 Игра</button>
-                    <button class="game-tab" data-tab="challenges">🏆 Испытания</button>
-                    <button class="game-tab" data-tab="achievements">⭐ Достижения</button>
-                </div>
-
-                <div class="game-tab-content active" id="tab-play">
-                    <div class="game-2048-container">
-                        <div class="game-header-2048">
-                            <h3 class="game-title-2048">2048</h3>
-                            <div class="game-scores">
-                                <div class="score-box">
-                                    <div class="score-label">Счёт</div>
-                                    <div class="score-value" id="game-score">0</div>
-                                </div>
-                                <div class="score-box">
-                                    <div class="score-label">Лучший</div>
-                                    <div class="score-value" id="best-score">0</div>
-                                </div>
+            <section id="game-section" class="content-section game-fullscreen">
+                <div class="game-2048-container">
+                    <div class="game-header-2048">
+                        <h3 class="game-title-2048">2048</h3>
+                        <div class="game-scores">
+                            <div class="score-box">
+                                <div class="score-label">Счёт</div>
+                                <div class="score-value" id="game-score">0</div>
+                            </div>
+                            <div class="score-box">
+                                <div class="score-label">Лучший</div>
+                                <div class="score-value" id="best-score">0</div>
                             </div>
                         </div>
-                        <div class="game-board-2048" id="game-board-2048"></div>
-                        <div class="game-controls">
-                            <button class="new-game-btn" id="new-game-btn">Новая игра</button>
-                            <div class="game-status" id="game-status"></div>
-                            <button class="replay-share-btn" id="replay-share-btn" style="display:none;">📤 Реплей</button>
-                        </div>
-                        <div class="swipe-hint">👆 Свайпайте пальцем или используйте стрелки</div>
-                        <button class="leaderboard-link-btn" id="goto-leaderboard-btn">🏆 Топ игроков</button>
-                        <button class="duel-btn" id="start-duel-btn">⚔️ Дуэль</button>
                     </div>
-                    <div id="replay-viewer" style="display:none;">
-                        <div class="replay-controls">
-                            <button id="replay-play">▶️</button>
-                            <button id="replay-speed">1x</button>
-                            <div class="replay-progress"><span id="replay-step">0/0</span></div>
-                        </div>
+                    <div class="game-board-2048" id="game-board-2048"></div>
+                    <div class="game-controls">
+                        <button class="new-game-btn" id="new-game-btn">Новая игра</button>
+                        <div class="game-status" id="game-status"></div>
                     </div>
+                    <div class="swipe-hint">👆 Свайпайте пальцем или используйте стрелки</div>
                 </div>
-
-                <div class="game-tab-content" id="tab-challenges">
-                    <div class="challenges-container">
-                        <div class="challenge-card daily">
-                            <h4>🌅 Ежедневное</h4>
-                            <p id="daily-desc">...</p>
-                            <div class="progress-bar"><div class="progress-fill" id="daily-progress" style="width:0%"></div></div>
-                            <span id="daily-status">Не выполнено</span>
-                        </div>
-                        <div class="challenge-card weekly">
-                            <h4>📅 Еженедельное</h4>
-                            <p id="weekly-desc">...</p>
-                            <div class="progress-bar"><div class="progress-fill" id="weekly-progress" style="width:0%"></div></div>
-                            <span id="weekly-status">Не выполнено</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="game-tab-content" id="tab-achievements">
-                    <div class="achievements-grid" id="achievements-list"></div>
-                </div>
-            </section>
-
-            <!-- Топ игроков -->
-            <section id="leaderboard-section" class="content-section">
-                <div class="leaderboard-container">
+                <div class="leaderboard-container" id="leaderboard-container">
                     <div class="leaderboard-header">
                         <h3 class="leaderboard-title">🏆 Таблица лидеров</h3>
                         <button class="refresh-leaderboard" id="refresh-leaderboard">🔄</button>
@@ -150,8 +99,6 @@
                     </div>
                 </div>
             </section>
-
-            <!-- Профиль -->
             <section id="profile-section" class="content-section">
                 <div class="profile-header">
                     <div class="profile-avatar" id="user-avatar">
@@ -162,14 +109,6 @@
                         <h2 id="user-name">Пользователь</h2>
                         <p id="user-username">Открой в Telegram</p>
                     </div>
-                </div>
-                <div class="profile-achievements">
-                    <h3>Коллекция достижений</h3>
-                    <div class="profile-badges" id="profile-badges"></div>
-                </div>
-                <div class="profile-tiles">
-                    <h3>Коллекция плиток</h3>
-                    <div class="tiles-grid" id="profile-tiles-grid"></div>
                 </div>
                 <div class="profile-actions">
                     <button class="share-friends-button" id="share-friends-button">
@@ -187,9 +126,8 @@
                 </div>
             </section>
         </main>
-
         <nav class="bottom-nav">
-            <button class="nav-item" data-section="games-section">
+            <button class="nav-item active" data-section="games-section">
                 <span class="nav-icon">🎮</span>
                 <span class="nav-label">Игры</span>
             </button>
@@ -197,46 +135,17 @@
                 <span class="nav-icon">📊</span>
                 <span class="nav-label">Биржи</span>
             </button>
-            <button class="nav-item active" data-section="game-section">
+            <button class="nav-item" data-section="game-section">
                 <span class="nav-icon">🎲</span>
                 <span class="nav-label">2048</span>
-            </button>
-            <button class="nav-item" data-section="leaderboard-section">
-                <span class="nav-icon">🏆</span>
-                <span class="nav-label">Топ</span>
             </button>
             <button class="nav-item" data-section="profile-section">
                 <span class="nav-icon">👤</span>
                 <span class="nav-label">Профиль</span>
             </button>
         </nav>
-
         <div id="notification" class="notification">Ссылка скопирована в буфер обмена!</div>
     </div>
-
-    <!-- Модальное окно дуэли -->
-    <div class="modal-overlay" id="duel-modal" style="display:none;">
-        <div class="modal-content duel-modal">
-            <button class="modal-close" id="close-duel-modal">✕</button>
-            <div id="duel-screen-waiting">
-                <h3>⚔️ Дуэль 1 на 1</h3>
-                <p>Ожидание соперника...</p>
-                <div class="duel-info">Seed: <span id="duel-seed-display">-</span></div>
-                <button class="cancel-duel-btn" id="cancel-duel-btn">Отменить</button>
-            </div>
-            <div id="duel-screen-ready" style="display:none;">
-                <h3>⚔️ Дуэль началась!</h3>
-                <p>У вас одинаковые плитки. Наберите больше очков.</p>
-                <button class="start-duel-game-btn" id="start-duel-game-btn">Играть</button>
-            </div>
-            <div id="duel-screen-result" style="display:none;">
-                <h3 id="duel-result-text">🏆 Вы победили!</h3>
-                <div class="duel-boards" id="duel-boards-container"></div>
-                <button class="share-duel-btn" id="share-duel-btn">📤 Поделиться дуэлью</button>
-            </div>
-        </div>
-    </div>
-
     <script src="script.js"></script>
 </body>
 </html>
