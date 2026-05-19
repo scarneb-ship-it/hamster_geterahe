@@ -18,40 +18,16 @@ const EXCHANGES_DATA = [
 ];
 
 const translations = {
-    appTitle: "Games Verse",
-    settings: "Настройки",
-    theme: "Тема",
-    lightTheme: "Светлая",
-    darkTheme: "Темная",
-    done: "Готово",
-    games: "Игры",
-    bestGames: "Лучшие игры Telegram",
-    play: "Играть",
-    exchanges: "Биржи",
-    exchangesDesc: "Торгуйте криптовалютами безопасно",
-    user: "Пользователь",
-    shareWithFriends: "Поделиться с друзьями",
-    profile: "Профиль",
-    linkCopied: "Ссылка скопирована в буфер обмена!",
-    go: "Перейти",
-    game2048: "2048",
-    score: "Счёт",
-    best: "Лучший",
-    newGame: "Новая игра",
-    swipeHint: "👆 Свайпайте пальцем или используйте стрелки",
-    gameWin: "Вы победили! 🎉",
-    gameLose: "Игра окончена! 😔"
+    appTitle: "Games Verse", settings: "Настройки", theme: "Тема", lightTheme: "Светлая", darkTheme: "Темная", done: "Готово",
+    games: "Игры", bestGames: "Лучшие игры Telegram", play: "Играть", exchanges: "Биржи", exchangesDesc: "Торгуйте криптовалютами безопасно",
+    user: "Пользователь", shareWithFriends: "Поделиться с друзьями", profile: "Профиль", linkCopied: "Ссылка скопирована в буфер обмена!",
+    go: "Перейти", game2048: "2048", score: "Счёт", best: "Лучший", newGame: "Новая игра",
+    swipeHint: "👆 Свайпайте пальцем или используйте стрелки", gameWin: "Вы победили! 🎉", gameLose: "Игра окончена! 😔"
 };
 
 class SeededRandom {
-    constructor(seed) {
-        this.seed = seed % 2147483647;
-        if (this.seed <= 0) this.seed += 2147483646;
-    }
-    next() {
-        this.seed = (this.seed * 16807) % 2147483647;
-        return (this.seed - 1) / 2147483646;
-    }
+    constructor(seed) { this.seed = seed % 2147483647; if (this.seed <= 0) this.seed += 2147483646; }
+    next() { this.seed = (this.seed * 16807) % 2147483647; return (this.seed - 1) / 2147483646; }
 }
 
 const ACHIEVEMENTS = [
@@ -94,6 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAchievementsUI();
     loadChallengesUI();
     checkReplayParam();
+    checkDuelParam();
 });
 
 function vibrate() { if (navigator.vibrate) navigator.vibrate(50); }
@@ -101,8 +78,7 @@ function vibrate() { if (navigator.vibrate) navigator.vibrate(50); }
 function initializeTelegramWebApp() {
     if (window.Telegram && window.Telegram.WebApp) {
         const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
+        tg.ready(); tg.expand();
         const themeParams = tg.themeParams;
         if (themeParams) {
             if (themeParams.bg_color) document.documentElement.style.setProperty('--tg-theme-bg-color', themeParams.bg_color);
@@ -287,9 +263,7 @@ function setupSettingsPanel() {
 function loadThemePreference() {
     const theme = localStorage.getItem('theme') || 'light';
     document.body.classList.toggle('dark-theme', theme === 'dark');
-    document.querySelectorAll('.theme-option').forEach(o => {
-        o.classList.toggle('active', o.dataset.theme === theme);
-    });
+    document.querySelectorAll('.theme-option').forEach(o => o.classList.toggle('active', o.dataset.theme === theme));
 }
 
 function setupShareButton() {
@@ -330,7 +304,7 @@ function showNotification(msg) {
 
 /* ========== 2048 ========== */
 class Game2048 {
-    constructor(boardEl, scoreEl, bestEl, statusEl, replayBtn) {
+    constructor(boardEl, scoreEl, bestEl, statusEl, replayBtn, duelConfig = null) {
         this.boardEl = boardEl;
         this.scoreEl = scoreEl;
         this.bestEl = bestEl;
@@ -340,7 +314,10 @@ class Game2048 {
         this.grid = [];
         this.score = 0;
         this.bestScore = parseInt(localStorage.getItem('bestScore2048')) || 0;
-        this.seed = Date.now();
+        this.seed = duelConfig ? duelConfig.seed : Date.now();
+        this.duelMode = duelConfig !== null;
+        this.onDuelEnd = duelConfig ? duelConfig.onEnd : null;
+        this.duelId = duelConfig ? duelConfig.duelId : null;
         this.rng = new SeededRandom(this.seed);
         this.moveHistory = [];
         this.moveCount = 0;
@@ -440,11 +417,13 @@ class Game2048 {
                 this.gameOver = true; this.won = true;
                 this.submitScoreToLeaderboard();
                 this.showReplayButton();
+                if (this.duelMode && this.onDuelEnd) this.onDuelEnd(this.score, [...this.moveHistory]);
             } else if (this.checkLose()) {
                 this.statusEl.textContent = translations.gameLose;
                 this.gameOver = true;
                 this.submitScoreToLeaderboard();
                 this.showReplayButton();
+                if (this.duelMode && this.onDuelEnd) this.onDuelEnd(this.score, [...this.moveHistory]);
             }
         } else this.moveMap = null;
     }
@@ -556,7 +535,10 @@ class Game2048 {
     }
 
     resetGame() {
+        if (this.duelMode) return; // нельзя перезапустить дуэль
         this.seed = Date.now();
+        this.duelMode = false;
+        this.onDuelEnd = null;
         this.init();
         this.render();
         document.getElementById('replay-viewer').style.display = 'none';
@@ -694,6 +676,10 @@ function initGame2048() {
     document.getElementById('goto-leaderboard-btn').addEventListener('click', () => {
         document.querySelector('.nav-item[data-section="leaderboard-section"]').click();
     });
+    document.getElementById('start-duel-btn').addEventListener('click', () => openDuelModal());
+    document.getElementById('close-duel-modal').addEventListener('click', () => {
+        document.getElementById('duel-modal').style.display = 'none';
+    });
     if (replayMode) game2048.startReplay(replaySeed, replayMoves);
 }
 
@@ -796,12 +782,20 @@ function checkReplayParam() {
             const [seedStr, movesStr] = param.replace('replay_','').split('_');
             if (seedStr && movesStr) {
                 replaySeed = parseInt(seedStr);
-                replayMoves = movesStr.split('').map(c => ({
-                    'l':'left','r':'right','u':'up','d':'down'
-                }[c] || 'left'));
+                replayMoves = movesStr.split('').map(c => ({'l':'left','r':'right','u':'up','d':'down'}[c] || 'left'));
                 replayMode = true;
                 document.querySelector('.game-tab[data-tab="play"]')?.click();
             }
+        }
+    }
+}
+
+function checkDuelParam() {
+    if (window.Telegram?.WebApp) {
+        const param = window.Telegram.WebApp.initDataUnsafe?.start_param;
+        if (param?.startsWith('duel_')) {
+            const duelId = param.replace('duel_', '');
+            joinDuelFromInvite(duelId);
         }
     }
 }
@@ -858,4 +852,230 @@ function setupLeaderboardShare() {
 
 function escapeHtml(t) {
     return t.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+}
+
+/* ========== ДУЭЛЬ ========== */
+const DUEL_STORAGE_KEY = 'activeDuels';
+
+class DuelManager {
+    constructor() { this.currentDuel = null; }
+
+    createDuel() {
+        const seed = Date.now();
+        const duelId = this.generateDuelId();
+        const duel = {
+            duelId, seed,
+            creator: currentUserId?.toString(),
+            opponent: null,
+            status: 'waiting',
+            creatorResult: null,
+            opponentResult: null,
+            creatorReplay: null,
+            opponentReplay: null
+        };
+        localStorage.setItem(DUEL_STORAGE_KEY + '_' + duelId, JSON.stringify(duel));
+        this.currentDuel = duel;
+        return duel;
+    }
+
+    joinDuel(duelId) {
+        const json = localStorage.getItem(DUEL_STORAGE_KEY + '_' + duelId);
+        if (!json) return null;
+        const duel = JSON.parse(json);
+        if (duel.status !== 'waiting' || duel.creator === currentUserId?.toString()) return null;
+        duel.opponent = currentUserId?.toString();
+        duel.status = 'ready';
+        localStorage.setItem(DUEL_STORAGE_KEY + '_' + duelId, JSON.stringify(duel));
+        this.currentDuel = duel;
+        return duel;
+    }
+
+    submitResult(score, moves) {
+        if (!this.currentDuel) return;
+        const duel = this.currentDuel;
+        const isCreator = currentUserId?.toString() === duel.creator;
+        if (isCreator) {
+            duel.creatorResult = score;
+            duel.creatorReplay = moves;
+        } else {
+            duel.opponentResult = score;
+            duel.opponentReplay = moves;
+        }
+        if (duel.creatorResult !== null && duel.opponentResult !== null) duel.status = 'finished';
+        localStorage.setItem(DUEL_STORAGE_KEY + '_' + duel.duelId, JSON.stringify(duel));
+        this.currentDuel = duel;
+        return duel;
+    }
+
+    generateDuelId() { return Date.now().toString(36) + Math.random().toString(36).substr(2,5); }
+}
+
+const duelManager = new DuelManager();
+
+function openDuelModal() {
+    const modal = document.getElementById('duel-modal');
+    modal.style.display = 'flex';
+    document.getElementById('duel-screen-waiting').style.display = 'block';
+    document.getElementById('duel-screen-ready').style.display = 'none';
+    document.getElementById('duel-screen-result').style.display = 'none';
+
+    const duel = duelManager.createDuel();
+    document.getElementById('duel-seed-display').textContent = duel.seed;
+
+    document.getElementById('cancel-duel-btn').onclick = () => {
+        modal.style.display = 'none';
+        localStorage.removeItem(DUEL_STORAGE_KEY + '_' + duel.duelId);
+    };
+
+    // имитация присоединения соперника (для теста)
+    setTimeout(() => {
+        const stored = JSON.parse(localStorage.getItem(DUEL_STORAGE_KEY + '_' + duel.duelId));
+        if (stored && stored.status === 'waiting') {
+            stored.opponent = 'fake_opponent';
+            stored.status = 'ready';
+            localStorage.setItem(DUEL_STORAGE_KEY + '_' + duel.duelId, JSON.stringify(stored));
+            duelManager.currentDuel = stored;
+            document.getElementById('duel-screen-waiting').style.display = 'none';
+            document.getElementById('duel-screen-ready').style.display = 'block';
+        }
+    }, 3000);
+
+    document.getElementById('start-duel-game-btn').onclick = () => startDuelGame(duel);
+}
+
+function startDuelGame(duel) {
+    document.getElementById('duel-modal').style.display = 'none';
+    game2048 = new Game2048(
+        document.getElementById('game-board-2048'),
+        document.getElementById('game-score'),
+        document.getElementById('best-score'),
+        document.getElementById('game-status'),
+        document.getElementById('replay-share-btn'),
+        {
+            seed: duel.seed,
+            duelId: duel.duelId,
+            onEnd: (score, moves) => {
+                const updated = duelManager.submitResult(score, moves);
+                if (updated && updated.status === 'finished') {
+                    showDuelResult(updated);
+                } else {
+                    showNotification('Результат отправлен. Ожидаем соперника...');
+                }
+            }
+        }
+    );
+    game2048.init();
+    game2048.render();
+}
+
+function joinDuelFromInvite(duelId) {
+    const duel = duelManager.joinDuel(duelId);
+    if (duel) {
+        document.getElementById('duel-modal').style.display = 'flex';
+        document.getElementById('duel-screen-waiting').style.display = 'none';
+        document.getElementById('duel-screen-ready').style.display = 'block';
+        document.getElementById('duel-screen-result').style.display = 'none';
+        document.getElementById('start-duel-game-btn').onclick = () => startDuelGame(duel);
+    } else {
+        showNotification('Дуэль не найдена или уже началась.');
+    }
+}
+
+function showDuelResult(duel) {
+    const modal = document.getElementById('duel-modal');
+    modal.style.display = 'flex';
+    document.getElementById('duel-screen-waiting').style.display = 'none';
+    document.getElementById('duel-screen-ready').style.display = 'none';
+    document.getElementById('duel-screen-result').style.display = 'block';
+
+    const myId = currentUserId?.toString();
+    const myScore = duel.creator === myId ? duel.creatorResult : duel.opponentResult;
+    const oppScore = duel.creator === myId ? duel.opponentResult : duel.creatorResult;
+    const resultText = myScore > oppScore ? '🏆 Вы победили!' : (myScore < oppScore ? '😞 Вы проиграли' : '🤝 Ничья');
+    document.getElementById('duel-result-text').textContent = resultText;
+
+    const container = document.getElementById('duel-boards-container');
+    container.innerHTML = '';
+    const myReplay = duel.creator === myId ? duel.creatorReplay : duel.opponentReplay;
+    const oppReplay = duel.creator === myId ? duel.opponentReplay : duel.creatorReplay;
+    container.appendChild(createMiniBoard(duel.seed, myReplay, 'Вы'));
+    container.appendChild(createMiniBoard(duel.seed, oppReplay, 'Соперник'));
+
+    document.getElementById('share-duel-btn').onclick = () => {
+        const text = `⚔️ Дуэль 2048! ${resultText} Мой счёт: ${myScore}, соперник: ${oppScore}. Попробуй обыграть: https://t.me/${BOT_USERNAME}`;
+        if (window.Telegram?.WebApp) {
+            window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent('https://t.me/'+BOT_USERNAME)}&text=${encodeURIComponent(text)}`);
+        } else fallbackCopyToClipboard(text);
+    };
+}
+
+class Game2048Sim {
+    constructor(seed) {
+        this.size = 4;
+        this.grid = Array(this.size).fill().map(()=>Array(this.size).fill(0));
+        this.rng = new SeededRandom(seed);
+        this.addRandomTile();
+        this.addRandomTile();
+    }
+    addRandomTile() {
+        const empty = [];
+        for (let i=0;i<this.size;i++) for (let j=0;j<this.size;j++) if (this.grid[i][j]===0) empty.push({x:i,y:j});
+        if (empty.length) {
+            const {x,y} = empty[Math.floor(this.rng.next()*empty.length)];
+            this.grid[x][y] = this.rng.next() < 0.9 ? 2 : 4;
+        }
+    }
+    move(direction) {
+        const old = JSON.parse(JSON.stringify(this.grid));
+        let gained = 0;
+        const slide = (row) => {
+            let arr = row.filter(v=>v!==0);
+            let newRow = [];
+            for (let i=0;i<arr.length;i++) {
+                if (i+1<arr.length && arr[i]===arr[i+1]) {
+                    newRow.push(arr[i]*2);
+                    gained += arr[i]*2;
+                    i++;
+                } else newRow.push(arr[i]);
+            }
+            while (newRow.length<this.size) newRow.push(0);
+            return newRow;
+        };
+        if (direction==='left') for (let i=0;i<this.size;i++) this.grid[i] = slide(this.grid[i]);
+        else if (direction==='right') for (let i=0;i<this.size;i++) this.grid[i] = slide([...this.grid[i]].reverse()).reverse();
+        else if (direction==='up') for (let j=0;j<this.size;j++) { let col=[]; for (let i=0;i<this.size;i++) col.push(this.grid[i][j]); let res=slide(col); for (let i=0;i<this.size;i++) this.grid[i][j]=res[i]; }
+        else if (direction==='down') for (let j=0;j<this.size;j++) { let col=[]; for (let i=0;i<this.size;i++) col.push(this.grid[i][j]); let res=slide(col.reverse()).reverse(); for (let i=0;i<this.size;i++) this.grid[i][j]=res[i]; }
+        if (!this.gridsAreEqual(old, this.grid)) this.addRandomTile();
+    }
+    gridsAreEqual(a,b) {
+        for (let i=0;i<this.size;i++) for (let j=0;j<this.size;j++) if (a[i][j]!==b[i][j]) return false;
+        return true;
+    }
+}
+
+function createMiniBoard(seed, moves, label) {
+    const wrapper = document.createElement('div');
+    const boardDiv = document.createElement('div');
+    boardDiv.className = 'duel-board';
+    const sim = new Game2048Sim(seed);
+    moves.forEach(m => sim.move(m));
+    for (let i=0;i<4;i++) {
+        for (let j=0;j<4;j++) {
+            const val = sim.grid[i][j];
+            const tile = document.createElement('div');
+            tile.className = 'mini-tile';
+            if (val) {
+                tile.classList.add(val<=2048 ? `tile-${val}` : 'tile-super');
+                tile.textContent = val;
+            }
+            boardDiv.appendChild(tile);
+        }
+    }
+    const labelEl = document.createElement('div');
+    labelEl.textContent = label;
+    labelEl.style.textAlign = 'center';
+    labelEl.style.marginBottom = '4px';
+    wrapper.appendChild(labelEl);
+    wrapper.appendChild(boardDiv);
+    return wrapper;
 }
