@@ -6,9 +6,8 @@
     <meta name="theme-color" content="#667eea">
     <title>Games Verse</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://telegram.org/js/telegram-web-app.js">
-    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
     <!-- Splash Screen -->
@@ -79,109 +78,56 @@
                 <div class="exchanges-list" id="exchanges-list"></div>
             </section>
 
-            <!-- 2048 Game Section -->
+            <!-- Tap Game Section (замена 2048) -->
             <section id="game-section" class="content-section game-fullscreen">
-                <!-- Coin Balance Bar -->
-                <div class="coin-balance-bar">
-                    <div class="coin-balance-inner">
-                        <div class="coin-icon-wrapper">
-                            <span class="coin-icon-large">🪙</span>
+                <div class="tap-game-container">
+                    <div class="tap-header">
+                        <div class="tap-balance">
+                            <span class="coin-icon">🪙</span>
+                            <span id="tap-coin-count">0</span>
                         </div>
-                        <div class="coin-balance-info">
-                            <span class="coin-balance-label-text">Ваш баланс</span>
-                            <div class="coin-balance-row">
-                                <span class="coin-balance-value" id="coin-balance-display">0</span>
-                                <span class="coin-balance-currency">coin</span>
-                            </div>
-                        </div>
-                        <div class="coin-sparkle">✨</div>
-                    </div>
-                </div>
-
-                <!-- Action Cards Row -->
-                <div class="action-cards-wrapper">
-                    <div class="action-cards-row">
-                        <!-- Top Card -->
-                        <div class="action-card" id="action-card-top">
-                            <div class="action-card-header" data-card="top">
-                                <div class="action-card-icon-wrap">
-                                    <span class="action-card-icon">🏆</span>
-                                </div>
-                                <span class="action-card-title">Топ</span>
-                                <span class="action-card-chevron">▾</span>
-                            </div>
-                            <div class="action-card-body" id="card-body-top">
-                                <div class="leaderboard-container-inner" id="leaderboard-container">
-                                    <div class="leaderboard-header">
-                                        <h3 class="leaderboard-title">🏆 Таблица лидеров</h3>
-                                        <button class="refresh-leaderboard" id="refresh-leaderboard">🔄</button>
-                                    </div>
-                                    <div class="leaderboard-list" id="leaderboard-list">
-                                        <div class="leaderboard-loading">Нажмите чтобы загрузить</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Transfer Card -->
-                        <div class="action-card" id="action-card-transfer">
-                            <div class="action-card-header" data-card="transfer">
-                                <div class="action-card-icon-wrap transfer-icon-wrap">
-                                    <span class="action-card-icon">💸</span>
-                                </div>
-                                <span class="action-card-title">Перевести</span>
-                                <span class="action-card-chevron">▾</span>
-                            </div>
-                            <div class="action-card-body" id="card-body-transfer">
-                                <div class="card-placeholder">
-                                    <span class="placeholder-icon">🔧</span>
-                                    <p class="placeholder-text">Переводы будут доступны позже</p>
-                                    <span class="placeholder-subtitle">Функционал в разработке</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Acceleration Card -->
-                        <div class="action-card" id="action-card-acceleration">
-                            <div class="action-card-header" data-card="acceleration">
-                                <div class="action-card-icon-wrap acceleration-icon-wrap">
-                                    <span class="action-card-icon">⚡</span>
-                                </div>
-                                <span class="action-card-title">Ускорение</span>
-                                <span class="action-card-chevron">▾</span>
-                            </div>
-                            <div class="action-card-body" id="card-body-acceleration">
-                                <div class="card-placeholder">
-                                    <span class="placeholder-icon">🚀</span>
-                                    <p class="placeholder-text">Ускорение будет доступно позже</p>
-                                    <span class="placeholder-subtitle">Функционал в разработке</span>
-                                </div>
-                            </div>
+                        <div class="tap-per-click">
+                            за клик: <span id="tap-per-click">1</span>
                         </div>
                     </div>
-                </div>
 
-                <!-- 2048 Game Container -->
-                <div class="game-2048-container">
-                    <div class="game-header-2048">
-                        <h3 class="game-title-2048">2048</h3>
-                        <div class="game-scores">
-                            <div class="score-box">
-                                <div class="score-label">Coin</div>
-                                <div class="score-value" id="game-score">0</div>
-                            </div>
-                            <div class="score-box best-score-box">
-                                <div class="score-label">Рекорд</div>
-                                <div class="score-value" id="best-score">0</div>
-                            </div>
+                    <!-- Tap Area -->
+                    <div class="tap-area" id="tap-area">
+                        <div class="tap-coin" id="tap-coin">
+                            <span class="tap-coin-text">TAP</span>
+                        </div>
+                        <div class="tap-particles" id="tap-particles"></div>
+                    </div>
+
+                    <!-- Boost Bar -->
+                    <div class="boost-bar" id="boost-bar" style="display: none;">
+                        <div class="boost-fill" id="boost-fill"></div>
+                        <span class="boost-text">⚡ x10</span>
+                    </div>
+
+                    <!-- Upgrades Shop -->
+                    <div class="shop-section">
+                        <h3 class="shop-title">⚡ Ускорение и прокачка</h3>
+                        <div class="shop-items" id="shop-items">
+                            <!-- Генерируется в JS -->
                         </div>
                     </div>
-                    <div class="game-board-2048" id="game-board-2048"></div>
+
                     <div class="game-controls">
-                        <button class="new-game-btn" id="new-game-btn">Новая игра</button>
+                        <button class="new-game-btn" id="new-game-btn">Сбросить прогресс</button>
                         <div class="game-status" id="game-status"></div>
                     </div>
-                    <div class="swipe-hint">👆 Свайпайте пальцем или используйте стрелки</div>
+                </div>
+
+                <!-- Таблица лидеров -->
+                <div class="leaderboard-container" id="leaderboard-container">
+                    <div class="leaderboard-header">
+                        <h3 class="leaderboard-title">🏆 Таблица лидеров</h3>
+                        <button class="refresh-leaderboard" id="refresh-leaderboard">🔄</button>
+                    </div>
+                    <div class="leaderboard-list" id="leaderboard-list">
+                        <div class="leaderboard-loading">Загрузка...</div>
+                    </div>
                 </div>
             </section>
 
@@ -202,7 +148,7 @@
                         <div class="share-icon">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                                 <path d="M18 8C19.6569 8 21 6.65685 21 5C21 3.34315 19.6569 2 18 2C16.3431 2 15 3.34315 15 5C15 6.65685 16.3431 8 18 8Z" stroke="currentColor" stroke-width="2"/>
-                                <path d="M6 15C7.65685 15 9 13.6569 9 12C9 10.3431 7.65685 9 6 9C4.34315 9 3 10.3431 3 12C3 13.6569 4.3431 15 6 15Z" stroke="currentColor" stroke-width="2"/>
+                                <path d="M6 15C7.65685 15 9 13.6569 9 12C9 10.3431 7.65685 9 6 9C4.34315 9 3 10.3431 3 12C3 13.6569 4.34315 15 6 15Z" stroke="currentColor" stroke-width="2"/>
                                 <path d="M18 22C19.6569 22 21 20.6569 21 19C21 17.3431 19.6569 16 18 16C16.3431 16 15 17.3431 15 19C15 20.6569 16.3431 22 18 22Z" stroke="currentColor" stroke-width="2"/>
                                 <path d="M8.59 13.51L15.42 17.49" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                                 <path d="M15.41 6.51L8.59 10.49" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -225,8 +171,8 @@
                 <span class="nav-label">Биржи</span>
             </button>
             <button class="nav-item" data-section="game-section">
-                <span class="nav-icon">🎲</span>
-                <span class="nav-label">2048</span>
+                <span class="nav-icon">🪙</span>
+                <span class="nav-label">Тапалка</span>
             </button>
             <button class="nav-item" data-section="profile-section">
                 <span class="nav-icon">👤</span>
@@ -237,7 +183,6 @@
         <div id="notification" class="notification">Ссылка скопирована в буфер обмена!</div>
     </div>
 
-    <script src="script.js">
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
