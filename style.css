@@ -1,3 +1,4 @@
+/* style.css */
 :root {
   --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   --primary-light: #667eea;
@@ -300,6 +301,7 @@ body.dark-theme {
   box-shadow: var(--shadow-dark);
 }
 
+/* Выделенная карточка */
 .game-card.highlight {
   background: linear-gradient(135deg, rgba(0, 176, 155, 0.1), rgba(150, 201, 61, 0.1));
   border: 1px solid rgba(0, 176, 155, 0.5);
@@ -954,8 +956,8 @@ body.dark-theme {
   opacity: 1;
 }
 
-/* ==================== TAP GAME STYLES ==================== */
-.tap-game-container {
+/* ==================== 2048 GAME STYLES ==================== */
+.game-2048-container {
     margin-top: 10px;
     background: var(--card-light);
     border-radius: 20px;
@@ -963,233 +965,128 @@ body.dark-theme {
     border: 1px solid var(--border-light);
     width: 100%;
     box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
 }
 
-.dark-theme .tap-game-container {
+.dark-theme .game-2048-container {
     background: var(--card-dark);
     border-color: var(--border-dark);
 }
 
-.tap-header {
+.game-header-2048 {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    width: 100%;
-    padding: 0 5px;
-}
-
-.tap-balance {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 22px;
-    font-weight: 700;
-}
-
-.coin-icon {
-    font-size: 24px;
-}
-
-.tap-per-click {
-    background: var(--primary-gradient);
-    color: white;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 600;
-}
-
-.tap-area {
-    position: relative;
-    width: 160px;
-    height: 160px;
-    margin: 10px auto;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-}
-
-.tap-coin {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background: linear-gradient(145deg, #FFD700, #FFA500);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 0 30px rgba(255, 215, 0, 0.5), inset 0 -8px 0 rgba(0,0,0,0.2);
-    transition: transform 0.1s ease-out;
-    user-select: none;
-    position: relative;
-    z-index: 2;
-}
-
-.tap-coin:active {
-    transform: scale(0.92);
-    box-shadow: 0 0 45px rgba(255, 215, 0, 0.8), inset 0 -4px 0 rgba(0,0,0,0.2);
-}
-
-.tap-coin-text {
-    font-size: 28px;
-    font-weight: 800;
-    color: #8B4513;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-}
-
-.tap-particles {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    pointer-events: none;
-    z-index: 10;
-}
-
-.tap-particle {
-    position: absolute;
-    font-size: 18px;
-    font-weight: 700;
-    color: #FFD700;
-    text-shadow: 0 0 8px rgba(0,0,0,0.5);
-    animation: flyUp 0.8s ease-out forwards;
-    white-space: nowrap;
-}
-
-@keyframes flyUp {
-    0% {
-        opacity: 1;
-        transform: translate(-50%, 0) scale(0.8);
-    }
-    50% {
-        opacity: 1;
-        transform: translate(-50%, -60px) scale(1.1);
-    }
-    100% {
-        opacity: 0;
-        transform: translate(-50%, -100px) scale(0.5);
-    }
-}
-
-/* Boost Bar */
-.boost-bar {
-    width: 100%;
-    height: 12px;
-    background: rgba(0,0,0,0.1);
-    border-radius: 10px;
-    overflow: hidden;
-    position: relative;
-}
-
-.dark-theme .boost-bar {
-    background: rgba(255,255,255,0.1);
-}
-
-.boost-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #f59e0b, #ef4444);
-    border-radius: 10px;
-    transition: width 0.1s linear;
-}
-
-.boost-text {
-    position: absolute;
-    top: -2px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 11px;
-    font-weight: 700;
-    color: #fff;
-    text-shadow: 0 0 6px black;
-}
-
-/* Shop Section */
-.shop-section {
-    width: 100%;
-}
-
-.shop-title {
-    font-size: 16px;
-    font-weight: 700;
-    margin-bottom: 10px;
-    color: var(--text-primary-light);
-}
-
-.dark-theme .shop-title {
-    color: var(--text-primary-dark);
-}
-
-.shop-items {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.shop-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--surface-light);
-    border-radius: 14px;
-    padding: 12px;
-    border: 1px solid var(--border-light);
+    margin-bottom: 16px;
+    flex-wrap: wrap;
     gap: 10px;
 }
 
-.dark-theme .shop-item {
-    background: var(--surface-dark);
-    border-color: var(--border-dark);
+.game-title-2048 {
+    font-size: 24px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #e67e22, #f39c12);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin: 0;
 }
 
-.shop-item-info {
-    flex-grow: 1;
-    min-width: 0;
+.game-scores {
+    display: flex;
+    gap: 10px;
 }
 
-.shop-item-name {
-    font-weight: 600;
-    font-size: 14px;
-    margin-bottom: 2px;
-}
-
-.shop-item-desc {
-    font-size: 11px;
-    color: var(--text-secondary-light);
-}
-
-.dark-theme .shop-item-desc {
-    color: var(--text-secondary-dark);
-}
-
-.shop-item-btn {
+.score-box {
     background: var(--primary-gradient);
+    border-radius: 14px;
+    padding: 4px 12px;
+    text-align: center;
+    min-width: 60px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.score-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.8);
+    letter-spacing: 0.5px;
+}
+
+.score-value {
+    font-size: 18px;
+    font-weight: 800;
     color: white;
-    border: none;
-    padding: 8px 14px;
-    border-radius: 25px;
-    font-weight: 700;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-    flex-shrink: 0;
+    line-height: 1.2;
 }
 
-.shop-item-btn:disabled {
-    opacity: 0.5;
-    pointer-events: none;
+.game-board-2048 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    background-color: #bbada0;
+    border-radius: 16px;
+    padding: 8px;
+    margin-bottom: 16px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.shop-item-btn:active {
-    transform: scale(0.96);
+.dark-theme .game-board-2048 {
+    background: #8f7a66;
 }
 
-/* Game Controls */
+.tile-cell {
+    aspect-ratio: 1 / 1;
+    width: 100%;
+    background-color: rgba(238, 228, 218, 0.35);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: clamp(18px, 6vw, 28px);
+    transition: transform 0.15s ease-in-out;
+    box-sizing: border-box;
+    word-break: break-word;
+    text-align: center;
+    padding: 4px;
+    will-change: transform;
+}
+
+.tile-2 { background: #eee4da; color: #776e65; }
+.tile-4 { background: #ede0c8; color: #776e65; }
+.tile-8 { background: #f2b179; color: #f9f6f2; }
+.tile-16 { background: #f59563; color: #f9f6f2; }
+.tile-32 { background: #f67c5f; color: #f9f6f2; }
+.tile-64 { background: #f65e3b; color: #f9f6f2; }
+.tile-128 { background: #edcf72; color: #f9f6f2; font-size: clamp(16px, 5vw, 24px); }
+.tile-256 { background: #edcc61; color: #f9f6f2; font-size: clamp(16px, 5vw, 24px); }
+.tile-512 { background: #edc850; color: #f9f6f2; font-size: clamp(16px, 5vw, 24px); }
+.tile-1024 { background: #edc53f; color: #f9f6f2; font-size: clamp(14px, 4.5vw, 20px); }
+.tile-2048 { background: #edc22e; color: #f9f6f2; font-size: clamp(14px, 4.5vw, 20px); }
+.tile-super { background: #3c3a32; color: #f9f6f2; font-size: clamp(12px, 4vw, 18px); }
+
+.tile-new {
+    animation: pop 0.2s ease-in-out;
+}
+@keyframes pop {
+    0% { transform: scale(0); opacity: 0; }
+    80% { transform: scale(1.05); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.tile-merge {
+    animation: mergeAnim 0.2s ease-in-out;
+}
+@keyframes mergeAnim {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.2); background: #f5d76e; }
+    100% { transform: scale(1); }
+}
+
 .game-controls {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
     gap: 12px;
     margin-top: 4px;
@@ -1222,6 +1119,17 @@ body.dark-theme {
 .dark-theme .game-status {
     background: rgba(255,255,255,0.1);
     color: var(--text-primary-dark);
+}
+
+.swipe-hint {
+    text-align: center;
+    font-size: 10px;
+    color: var(--text-secondary-light);
+    margin-top: 10px;
+    opacity: 0.7;
+}
+.dark-theme .swipe-hint {
+    color: var(--text-secondary-dark);
 }
 
 /* ==================== LEADERBOARD STYLES ==================== */
@@ -1393,6 +1301,195 @@ body.dark-theme {
     color: var(--text-secondary-light);
 }
 
+/* ==================== GAME TABS ==================== */
+.game-tabs {
+    display: flex;
+    background: var(--card-light);
+    border-radius: 16px;
+    padding: 4px;
+    margin-bottom: 15px;
+    gap: 4px;
+}
+.dark-theme .game-tabs {
+    background: var(--card-dark);
+}
+.game-tab {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 10px 5px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-secondary-light);
+    cursor: pointer;
+    transition: 0.2s;
+}
+.dark-theme .game-tab {
+    color: var(--text-secondary-dark);
+}
+.game-tab.active {
+    background: var(--primary-gradient);
+    color: white;
+    box-shadow: 0 2px 8px rgba(102,126,234,0.3);
+}
+.game-tab-content {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+.game-tab-content.active {
+    display: block;
+}
+
+/* ==================== CHALLENGES ==================== */
+.challenges-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.challenge-card {
+    background: var(--card-light);
+    border-radius: 16px;
+    padding: 15px;
+    border: 1px solid var(--border-light);
+}
+.dark-theme .challenge-card {
+    background: var(--card-dark);
+    border-color: var(--border-dark);
+}
+.challenge-card h4 {
+    margin-bottom: 8px;
+    font-size: 16px;
+}
+.challenge-card p {
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+.progress-bar {
+    height: 8px;
+    background: rgba(0,0,0,0.1);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 5px;
+}
+.dark-theme .progress-bar {
+    background: rgba(255,255,255,0.1);
+}
+.progress-fill {
+    height: 100%;
+    background: var(--primary-gradient);
+    transition: width 0.3s;
+}
+.challenge-card span {
+    font-size: 12px;
+    color: var(--text-secondary-light);
+}
+
+/* ==================== ACHIEVEMENTS ==================== */
+.achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+}
+.achievement-item {
+    background: var(--card-light);
+    border-radius: 14px;
+    padding: 10px;
+    text-align: center;
+    border: 1px solid var(--border-light);
+    transition: 0.2s;
+}
+.dark-theme .achievement-item {
+    background: var(--card-dark);
+    border-color: var(--border-dark);
+}
+.achievement-item.earned {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 10px rgba(102,126,234,0.3);
+}
+.achievement-icon {
+    font-size: 28px;
+}
+.achievement-name {
+    font-weight: 700;
+    font-size: 13px;
+    margin: 5px 0;
+}
+.achievement-desc {
+    font-size: 11px;
+    color: var(--text-secondary-light);
+}
+
+/* ==================== REPLAY ==================== */
+.replay-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--card-light);
+    padding: 10px;
+    border-radius: 12px;
+    margin-top: 10px;
+}
+.dark-theme .replay-controls {
+    background: var(--card-dark);
+}
+.replay-controls button {
+    background: var(--primary-gradient);
+    border: none;
+    color: white;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.replay-progress {
+    font-size: 13px;
+    margin-left: auto;
+}
+.replay-share-btn {
+    background: linear-gradient(135deg, #e67e22, #f39c12);
+    border: none;
+    padding: 6px 14px;
+    border-radius: 20px;
+    color: white;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.replay-share-btn:active {
+    transform: scale(0.96);
+}
+
+/* ==================== PROFILE BADGES ==================== */
+.profile-achievements {
+    margin: 20px 0;
+}
+.profile-achievements h3 {
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+.profile-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.badge {
+    width: 36px;
+    height: 36px;
+    background: var(--card-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    border: 1px solid var(--border-light);
+}
+.dark-theme .badge {
+    background: var(--card-dark);
+    border-color: var(--border-dark);
+}
+
 /* Responsive */
 @media (max-width: 480px) {
   .app-container {
@@ -1468,12 +1565,29 @@ body.dark-theme {
     padding: 60px 12px 0 0;
   }
 
-  .tap-area {
-    width: 140px;
-    height: 140px;
+  .game-board-2048 {
+    gap: 6px;
+    padding: 6px;
   }
-  .tap-coin-text {
-    font-size: 24px;
+  .tile-cell {
+    border-radius: 10px;
+  }
+  .game-header-2048 {
+    margin-bottom: 12px;
+  }
+  .score-box {
+    min-width: 50px;
+    padding: 3px 8px;
+  }
+  .score-value {
+    font-size: 16px;
+  }
+  .game-title-2048 {
+    font-size: 20px;
+  }
+  .new-game-btn {
+    padding: 6px 14px;
+    font-size: 12px;
   }
 }
 
