@@ -14,8 +14,8 @@
   --border-dark: #2d3748;
   --success-color: #48bb78;
   --warning-color: #ed8936;
-  --shadow-light: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-dark: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  --shadow-light: 0 4px 6px -1px rgba(0,0,0,0.1),0 2px 4px -1px rgba(0,0,0,0.06);
+  --shadow-dark: 0 4px 6px -1px rgba(0,0,0,0.3),0 2px 4px -1px rgba(0,0,0,0.2);
   --highlight-gradient: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
 }
 
@@ -80,7 +80,7 @@ body.dark-theme { background: var(--surface-dark); color: var(--text-primary-dar
 .section-subtitle { font-size:13px; color:var(--text-secondary-light); }
 .dark-theme .section-subtitle { color:var(--text-secondary-dark); }
 
-/* Игры, биржи и т.д. – стили как раньше, без изменений */
+/* Игры */
 .games-grid { display:grid; grid-template-columns:1fr; gap:11px; }
 .game-card {
   background:var(--card-light); border-radius:15px; padding:14px; display:flex; align-items:center; gap:11px; position:relative; transition:0.3s; border:1px solid var(--border-light);
@@ -332,6 +332,53 @@ body.dark-theme { background: var(--surface-dark); color: var(--text-primary-dar
   box-shadow:0 2px 5px rgba(0,0,0,0.2); background:#bbada0;
 }
 .tile-50 { background:#a29bfe; } .tile-2000 { background:#fd79a8; } .tile-5000 { background:#e17055; } .tile-10000 { background:#6c5ce7; }
+
+/* Дуэль */
+.duel-btn {
+  width:100%; margin-top:10px; background:linear-gradient(135deg, #e74c3c, #c0392b);
+  border:none; padding:10px; border-radius:14px; color:#fff; font-weight:700; font-size:14px; cursor:pointer;
+}
+.duel-btn:active { transform:scale(0.96); }
+.modal-overlay {
+  position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6);
+  display:flex; align-items:center; justify-content:center; z-index:200;
+}
+.modal-content {
+  background:var(--surface-light); border-radius:20px; padding:24px; width:90%; max-width:360px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.3); position:relative;
+}
+.dark-theme .modal-content { background:var(--card-dark); }
+.modal-close { position:absolute; top:12px; right:12px; background:none; border:none; font-size:22px; cursor:pointer; color:var(--text-secondary-light); }
+.dark-theme .modal-close { color:var(--text-secondary-dark); }
+.duel-modal h3 { font-size:20px; margin-bottom:12px; }
+.duel-info { margin:12px 0; font-size:14px; }
+.cancel-duel-btn, .start-duel-game-btn, .share-duel-btn {
+  display:block; width:100%; margin-top:12px; padding:12px; border:none; border-radius:14px;
+  font-weight:700; font-size:14px; cursor:pointer; background:var(--primary-gradient); color:#fff;
+}
+.duel-boards {
+  display:flex; gap:8px; margin-top:15px; justify-content:center;
+}
+.duel-board {
+  width:45%; aspect-ratio:1; background:#bbada0; border-radius:12px; display:grid;
+  grid-template-columns:repeat(4,1fr); gap:4px; padding:4px;
+}
+.duel-board .mini-tile {
+  aspect-ratio:1; border-radius:6px; display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:10px; color:#776e65; background:rgba(238,228,218,0.35);
+}
+.mini-tile.tile-2 { background:#eee4da; color:#776e65; }
+.mini-tile.tile-4 { background:#ede0c8; color:#776e65; }
+.mini-tile.tile-8 { background:#f2b179; color:#f9f6f2; }
+.mini-tile.tile-16 { background:#f59563; color:#f9f6f2; }
+.mini-tile.tile-32 { background:#f67c5f; color:#f9f6f2; }
+.mini-tile.tile-64 { background:#f65e3b; color:#f9f6f2; }
+.mini-tile.tile-128 { background:#edcf72; color:#f9f6f2; }
+.mini-tile.tile-256 { background:#edcc61; color:#f9f6f2; }
+.mini-tile.tile-512 { background:#edc850; color:#f9f6f2; }
+.mini-tile.tile-1024 { background:#edc53f; color:#f9f6f2; }
+.mini-tile.tile-2048 { background:#edc22e; color:#f9f6f2; }
+.mini-tile.tile-super { background:#3c3a32; color:#f9f6f2; }
 
 @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
 @keyframes slideInUp { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
