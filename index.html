@@ -10,13 +10,11 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <!-- Splash Screen -->
     <div id="splash-screen">
         <img src="oblochka.jpg" alt="Загрузка..." id="splash-img">
     </div>
 
     <div class="app-container">
-        <!-- Header -->
         <header class="header" id="main-header">
             <div class="header-content">
                 <h1 class="app-title">2048 Verse</h1>
@@ -24,7 +22,6 @@
             </div>
         </header>
 
-        <!-- Settings Panel -->
         <div class="settings-panel" id="settings-panel">
             <div class="settings-content">
                 <h3 class="settings-title">Настройки</h3>
@@ -39,9 +36,8 @@
             </div>
         </div>
 
-        <!-- Main Content -->
         <main class="main-content">
-            <!-- Games Section -->
+            <!-- Игры -->
             <section id="games-section" class="content-section">
                 <div class="section-header">
                     <h2>Игры</h2>
@@ -50,7 +46,7 @@
                 <div class="games-grid" id="games-grid"></div>
             </section>
 
-            <!-- Exchanges Section -->
+            <!-- Биржи -->
             <section id="exchanges-section" class="content-section">
                 <div class="section-header">
                     <h2>Крипто-биржи</h2>
@@ -78,16 +74,14 @@
                 <div class="exchanges-list" id="exchanges-list"></div>
             </section>
 
-            <!-- 2048 Game Section (центральная) -->
+            <!-- 2048 -->
             <section id="game-section" class="content-section active">
-                <!-- Вкладки -->
                 <div class="game-tabs">
                     <button class="game-tab active" data-tab="play">🎮 Игра</button>
                     <button class="game-tab" data-tab="challenges">🏆 Испытания</button>
                     <button class="game-tab" data-tab="achievements">⭐ Достижения</button>
                 </div>
 
-                <!-- Контент вкладок -->
                 <div class="game-tab-content active" id="tab-play">
                     <div class="game-2048-container">
                         <div class="game-header-2048">
@@ -107,11 +101,11 @@
                         <div class="game-controls">
                             <button class="new-game-btn" id="new-game-btn">Новая игра</button>
                             <div class="game-status" id="game-status"></div>
-                            <button class="replay-share-btn" id="replay-share-btn" style="display:none;">📤 Поделиться реплеем</button>
+                            <button class="replay-share-btn" id="replay-share-btn" style="display:none;">📤 Реплей</button>
                         </div>
                         <div class="swipe-hint">👆 Свайпайте пальцем или используйте стрелки</div>
+                        <button class="leaderboard-link-btn" id="goto-leaderboard-btn">🏆 Топ игроков</button>
                     </div>
-                    <!-- Replay viewer -->
                     <div id="replay-viewer" style="display:none;">
                         <div class="replay-controls">
                             <button id="replay-play">▶️</button>
@@ -119,28 +113,18 @@
                             <div class="replay-progress"><span id="replay-step">0/0</span></div>
                         </div>
                     </div>
-                    <!-- Таблица лидеров -->
-                    <div class="leaderboard-container" id="leaderboard-container">
-                        <div class="leaderboard-header">
-                            <h3 class="leaderboard-title">🏆 Таблица лидеров</h3>
-                            <button class="refresh-leaderboard" id="refresh-leaderboard">🔄</button>
-                        </div>
-                        <div class="leaderboard-list" id="leaderboard-list">
-                            <div class="leaderboard-loading">Загрузка...</div>
-                        </div>
-                    </div>
                 </div>
 
                 <div class="game-tab-content" id="tab-challenges">
                     <div class="challenges-container">
                         <div class="challenge-card daily">
-                            <h4>🌅 Ежедневное испытание</h4>
+                            <h4>🌅 Ежедневное</h4>
                             <p id="daily-desc">...</p>
                             <div class="progress-bar"><div class="progress-fill" id="daily-progress" style="width:0%"></div></div>
                             <span id="daily-status">Не выполнено</span>
                         </div>
                         <div class="challenge-card weekly">
-                            <h4>📅 Еженедельное испытание</h4>
+                            <h4>📅 Еженедельное</h4>
                             <p id="weekly-desc">...</p>
                             <div class="progress-bar"><div class="progress-fill" id="weekly-progress" style="width:0%"></div></div>
                             <span id="weekly-status">Не выполнено</span>
@@ -153,7 +137,20 @@
                 </div>
             </section>
 
-            <!-- Profile Section -->
+            <!-- Топ игроков (отдельная секция) -->
+            <section id="leaderboard-section" class="content-section">
+                <div class="leaderboard-container">
+                    <div class="leaderboard-header">
+                        <h3 class="leaderboard-title">🏆 Таблица лидеров</h3>
+                        <button class="refresh-leaderboard" id="refresh-leaderboard">🔄</button>
+                    </div>
+                    <div class="leaderboard-list" id="leaderboard-list">
+                        <div class="leaderboard-loading">Загрузка...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Профиль -->
             <section id="profile-section" class="content-section">
                 <div class="profile-header">
                     <div class="profile-avatar" id="user-avatar">
@@ -168,6 +165,10 @@
                 <div class="profile-achievements">
                     <h3>Коллекция достижений</h3>
                     <div class="profile-badges" id="profile-badges"></div>
+                </div>
+                <div class="profile-tiles">
+                    <h3>Коллекция плиток</h3>
+                    <div class="tiles-grid" id="profile-tiles-grid"></div>
                 </div>
                 <div class="profile-actions">
                     <button class="share-friends-button" id="share-friends-button">
@@ -186,7 +187,6 @@
             </section>
         </main>
 
-        <!-- Bottom Navigation -->
         <nav class="bottom-nav">
             <button class="nav-item" data-section="games-section">
                 <span class="nav-icon">🎮</span>
@@ -199,6 +199,10 @@
             <button class="nav-item active" data-section="game-section">
                 <span class="nav-icon">🎲</span>
                 <span class="nav-label">2048</span>
+            </button>
+            <button class="nav-item" data-section="leaderboard-section">
+                <span class="nav-icon">🏆</span>
+                <span class="nav-label">Топ</span>
             </button>
             <button class="nav-item" data-section="profile-section">
                 <span class="nav-icon">👤</span>
