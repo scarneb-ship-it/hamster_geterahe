@@ -3,159 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#121212">
-    <title>Games Verse</title>
+    <meta name="theme-color" content="#f39c12">
+    <title>Hamster GameDev Hub</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <!-- Splash Screen -->
-    <div id="splash-screen">
-        <img src="oblochka.jpg" alt="Загрузка..." id="splash-img">
-    </div>
-
     <div class="app-container">
-        <!-- Header -->
-        <header class="header">
-            <div class="header-content">
-                <h1 class="app-title">Games Verse</h1>
+        <!-- Top bar with balance -->
+        <div class="top-bar">
+            <div class="balance-display">
+                <span class="coin-icon">🪙</span>
+                <span id="coin-balance">0</span>
             </div>
-        </header>
+            <div class="app-title">Hamster Hub</div>
+        </div>
 
-        <!-- Main Content -->
+        <!-- Main content tabs -->
         <main class="main-content">
-            <!-- Games Section -->
-            <section id="games-section" class="content-section active">
-                <div class="section-header">
-                    <h2>Игры</h2>
-                    <span class="section-subtitle">Лучшие игры Telegram</span>
-                </div>
-                <div class="games-grid" id="games-grid"></div>
-            </section>
-
-            <!-- Exchanges Section -->
-            <section id="exchanges-section" class="content-section">
-                <div class="section-header">
-                    <h2>Крипто-биржи</h2>
-                    <span class="section-subtitle">Торгуйте криптовалютами безопасно</span>
-                </div>
-                <div class="gamefi-banner">
-                    <img src="images/gamefi.jpg" alt="GameFi Trading" class="gamefi-image">
-                    <div class="gamefi-overlay">
-                        <div class="gamefi-content">
-                            <h3 class="gamefi-title">Торгуйте монетами GameFi</h3>
-                            <p class="gamefi-description">На популярных криптобиржах с лучшими условиями</p>
-                            <div class="gamefi-stats">
-                                <div class="stat">
-                                    <span class="stat-number">100+</span>
-                                    <span class="stat-label">GameFi токенов</span>
-                                </div>
-                                <div class="stat">
-                                    <span class="stat-number">24/7</span>
-                                    <span class="stat-label">Торговля</span>
-                                </div>
-                            </div>
+            <!-- 2048 Game Tab -->
+            <section id="game-tab" class="tab-content active">
+                <div class="game-container">
+                    <div class="game-header">
+                        <h2>2048</h2>
+                        <div class="scores">
+                            <div class="score-box"><span class="label">Счёт</span><span id="score">0</span></div>
+                            <div class="score-box"><span class="label">Рекорд</span><span id="best-score">0</span></div>
                         </div>
                     </div>
-                </div>
-                <div class="exchanges-list" id="exchanges-list"></div>
-            </section>
-
-            <!-- 2048 Game Section -->
-            <section id="game-section" class="content-section game-fullscreen">
-                <div class="game-tabs">
-                    <button class="game-tab active" data-tab="game">🎮 Игра</button>
-                    <button class="game-tab" data-tab="leaderboard">🏆 Топы</button>
-                </div>
-                <div class="game-tab-content" id="game-tab-game">
-                    <div class="game-2048-container">
-                        <div class="game-header-2048">
-                            <h3 class="game-title-2048">2048</h3>
-                            <div class="game-scores">
-                                <div class="score-box">
-                                    <div class="score-label">Счёт</div>
-                                    <div class="score-value" id="game-score">0</div>
-                                </div>
-                                <div class="score-box">
-                                    <div class="score-label">Лучший</div>
-                                    <div class="score-value" id="best-score">0</div>
-                                </div>
-                            </div>
+                    <div class="game-board" id="game-board"></div>
+                    <div class="game-controls">
+                        <button class="btn-new-game" id="new-game-btn">Новая игра</button>
+                        <div class="boosts">
+                            <button class="boost-btn" id="boost-undo" title="Отменить ход (50 монет)">↩️ 50</button>
+                            <button class="boost-btn" id="boost-remove" title="Убрать плитку (100 монет)">🧹 100</button>
                         </div>
-                        <div class="game-board-2048" id="game-board-2048"></div>
-                        <div class="game-controls">
-                            <button class="new-game-btn" id="new-game-btn">Новая игра</button>
-                            <div class="game-status" id="game-status"></div>
-                        </div>
-                        <div class="swipe-hint">👆 Свайпайте пальцем или используйте стрелки</div>
                     </div>
-                </div>
-                <div class="game-tab-content" id="game-tab-leaderboard" style="display:none;">
-                    <div class="leaderboard-container" id="leaderboard-container">
-                        <div class="leaderboard-header">
-                            <h3 class="leaderboard-title">🏆 Таблица лидеров</h3>
-                            <button class="refresh-leaderboard" id="refresh-leaderboard">🔄</button>
-                        </div>
-                        <div class="leaderboard-list" id="leaderboard-list">
-                            <div class="leaderboard-loading">Загрузка...</div>
-                        </div>
+                    <div id="game-message" class="game-message"></div>
+                    <div class="daily-goal">
+                        <span>🎯 Ежедневная цель: <span id="daily-target">5000</span> очков</span>
+                        <span id="daily-progress">0 / 5000</span>
+                        <button id="claim-daily-btn" disabled>Забрать +200 🪙</button>
                     </div>
                 </div>
             </section>
 
-            <!-- Profile Section -->
-            <section id="profile-section" class="content-section">
-                <div class="profile-header">
-                    <div class="profile-avatar" id="user-avatar">
-                        <img src="" alt="User Avatar" id="avatar-img" style="display: none;">
-                        <span id="avatar-fallback">T</span>
+            <!-- Quests Tab -->
+            <section id="quests-tab" class="tab-content">
+                <h2>🎯 Задания</h2>
+                <div class="quests-section">
+                    <h3>🎮 Игры</h3>
+                    <div id="game-quests-list" class="quests-list"></div>
+                </div>
+                <div class="quests-section">
+                    <h3>📊 Биржи</h3>
+                    <div id="exchange-quests-list" class="quests-list"></div>
+                </div>
+            </section>
+
+            <!-- Referrals Tab -->
+            <section id="referrals-tab" class="tab-content">
+                <h2>👥 Рефералы</h2>
+                <div class="referral-stats">
+                    <div class="stat-card">
+                        <span class="stat-value" id="ref-count">0</span>
+                        <span class="stat-label">приглашено</span>
                     </div>
-                    <div class="profile-info">
-                        <h2 id="user-name">Пользователь</h2>
-                        <p id="user-username">Открой в Telegram</p>
+                    <div class="stat-card">
+                        <span class="stat-value" id="ref-earned">0</span>
+                        <span class="stat-label">монет заработано</span>
                     </div>
                 </div>
-                <div class="profile-actions">
-                    <button class="share-friends-button" id="share-friends-button">
-                        <div class="share-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                <path d="M18 8C19.6569 8 21 6.65685 21 5C21 3.34315 19.6569 2 18 2C16.3431 2 15 3.34315 15 5C15 6.65685 16.3431 8 18 8Z" stroke="currentColor" stroke-width="2"/>
-                                <path d="M6 15C7.65685 15 9 13.6569 9 12C9 10.3431 7.65685 9 6 9C4.34315 9 3 10.3431 3 12C3 13.6569 4.34315 15 6 15Z" stroke="currentColor" stroke-width="2"/>
-                                <path d="M18 22C19.6569 22 21 20.6569 21 19C21 17.3431 19.6569 16 18 16C16.3431 16 15 17.3431 15 19C15 20.6569 16.3431 22 18 22Z" stroke="currentColor" stroke-width="2"/>
-                                <path d="M8.59 13.51L15.42 17.49" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                <path d="M15.41 6.51L8.59 10.49" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            </svg>
-                        </div>
-                        <span>Поделиться с друзьями</span>
-                    </button>
+                <div class="ref-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="ref-progress-fill" style="width: 0%"></div>
+                    </div>
+                    <span id="ref-progress-text">0 / 5 друзей для бонуса</span>
+                </div>
+                <button class="share-btn" id="share-ref-btn">🔗 Пригласить друга</button>
+                <div id="ref-leaderboard" class="ref-leaderboard">
+                    <h3>🏆 Топ рефереров</h3>
+                    <div id="ref-leaderboard-list">Загрузка...</div>
+                </div>
+            </section>
+
+            <!-- Profile Tab -->
+            <section id="profile-tab" class="tab-content">
+                <div class="profile-card">
+                    <div class="avatar" id="user-avatar">
+                        <img id="avatar-img" src="" alt="Avatar" style="display:none">
+                        <span id="avatar-fallback">H</span>
+                    </div>
+                    <div class="user-info">
+                        <h3 id="user-name">Hamster</h3>
+                        <p id="user-username">@hamster_gamedev</p>
+                    </div>
+                </div>
+                <div class="balance-section">
+                    <h4>Мой баланс</h4>
+                    <div class="big-balance">
+                        <span class="coin-icon">🪙</span>
+                        <span id="profile-balance">0</span>
+                    </div>
+                </div>
+                <div class="achievements">
+                    <h4>🏅 Достижения</h4>
+                    <div id="achievements-list" class="achievements-list"></div>
+                </div>
+                <div class="settings-section">
+                    <h4>⚙️ Настройки</h4>
+                    <label class="setting-item">
+                        <span>Вибрация</span>
+                        <input type="checkbox" id="vibration-toggle" checked>
+                    </label>
+                    <label class="setting-item">
+                        <span>Звук</span>
+                        <input type="checkbox" id="sound-toggle">
+                    </label>
                 </div>
             </section>
         </main>
 
         <!-- Bottom Navigation -->
         <nav class="bottom-nav">
-            <button class="nav-item active" data-section="games-section">
-                <span class="nav-icon">🎮</span>
-                <span class="nav-label">Игры</span>
-            </button>
-            <button class="nav-item" data-section="exchanges-section">
-                <span class="nav-icon">📊</span>
-                <span class="nav-label">Биржи</span>
-            </button>
-            <button class="nav-item" data-section="game-section">
-                <span class="nav-icon">🎲</span>
-                <span class="nav-label">2048</span>
-            </button>
-            <button class="nav-item" data-section="profile-section">
-                <span class="nav-icon">👤</span>
-                <span class="nav-label">Профиль</span>
-            </button>
+            <button class="nav-btn active" data-tab="game-tab">🎲<span>2048</span></button>
+            <button class="nav-btn" data-tab="quests-tab">📋<span>Задания</span></button>
+            <button class="nav-btn" data-tab="referrals-tab">👥<span>Рефералы</span></button>
+            <button class="nav-btn" data-tab="profile-tab">👤<span>Профиль</span></button>
         </nav>
-
-        <div id="notification" class="notification">Ссылка скопирована в буфер обмена!</div>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>
