@@ -1,8 +1,15 @@
-// script.js – без изменений в логике, просто с улучшенным дизайном
+// script.js
 const BOT_USERNAME = 'khadron_bot';
 let currentUserId = null;
-
 const WORKER_URL = 'https://gamesverse-bot.scarneb.workers.dev';
+
+// Глобальные данные реферальной программы
+let referralInfo = {
+    count: 0,
+    frame: false,
+    undo: false,
+    neon: false
+};
 
 const GAMES_DATA = [
     {
@@ -97,8 +104,19 @@ const EXCHANGES_DATA = [
 const translations = {
     appTitle: "Games Verse",
     settings: "Настройки",
+    theme: "Тема",
+    lightTheme: "Светлая",
+    darkTheme: "Темная",
     done: "Готово",
+    games: "Игры",
+    bestGames: "Лучшие игры Telegram",
     play: "Играть",
+    exchanges: "Биржи",
+    exchangesDesc: "Торгуйте криптовалютами безопасно",
+    user: "Пользователь",
+    shareWithFriends: "Поделиться с друзьями",
+    profile: "Профиль",
+    linkCopied: "Ссылка скопирована в буфер обмена!",
     go: "Перейти",
     game2048: "2048",
     score: "Счёт",
@@ -106,8 +124,7 @@ const translations = {
     newGame: "Новая игра",
     swipeHint: "👆 Свайпайте пальцем или используйте стрелки",
     gameWin: "Вы победили! 🎉",
-    gameLose: "Игра окончена! 😔",
-    linkCopied: "Ссылка скопирована в буфер обмена!",
+    gameLose: "Игра окончена! 😔"
 };
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -125,11 +142,11 @@ function initializeApp() {
 
     initializeTelegramWebApp();
     setupNavigation();
-    initializeTasksSection();
+    initializeGames();
+    initializeExchanges();
     setupSettingsPanel();
-    setLanguage();
     loadUserData();
-    setupReferralShare();
+    setupShareButton();
     initGame2048();
     setupLeaderboardRefresh();
     setupLeaderboardShare();
@@ -151,59 +168,38 @@ function initializeTelegramWebApp() {
     }
 }
 
-function initializeTasksSection() {
-    const gamesGrid = document.getElementById('tasks-games-grid');
-    if (gamesGrid) {
-        gamesGrid.innerHTML = GAMES_DATA.map(game => `
-            <div class="game-card ${game.highlight ? 'highlight' : ''}" data-game-id="${game.id}">
-                <div class="game-image">
-                    <img src="${game.image}" alt="${game.name}" class="game-img" onerror="this.style.display='none'">
-                    <div class="image-fallback">${game.fallback}</div>
-                </div>
-                <div class="game-info">
-                    <div class="game-header">
-                        <h3>${game.name}</h3>
-                        ${game.badge ? `<span class="game-badge">${game.badge}</span>` : ''}
-                    </div>
-                    <p class="game-description">${game.description}</p>
-                    <div class="game-stats">
-                        <div class="rating">
-                            <div class="stars">${generateStars(game.rating)}</div>
-                            <span class="rating-value">${game.rating}</span>
-                        </div>
-                        <div class="players">
-                            <span class="players-icon">👥</span>
-                            <span class="players-count">${game.players}</span>
-                        </div>
-                    </div>
-                </div>
-                <button class="play-button" data-link="${game.fullLink || ''}">
-                    Играть
-                </button>
+function initializeGames() {
+    const gamesGrid = document.getElementById('games-grid');
+    if (!gamesGrid) return;
+    gamesGrid.innerHTML = GAMES_DATA.map(game => `
+        <div class="game-card ${game.highlight ? 'highlight' : ''}" data-game-id="${game.id}">
+            <div class="game-image">
+                <img src="${game.image}" alt="${game.name}" class="game-img" onerror="this.style.display='none'">
+                <div class="image-fallback">${game.fallback}</div>
             </div>
-        `).join('');
-        setupGameButtons(gamesGrid);
-    }
-
-    const exchangesList = document.getElementById('tasks-exchanges-list');
-    if (exchangesList) {
-        exchangesList.innerHTML = EXCHANGES_DATA.map(exchange => `
-            <div class="exchange-card" data-exchange-id="${exchange.id}">
-                <div class="exchange-logo">
-                    <img src="${exchange.image}" alt="${exchange.name}" class="exchange-img" onerror="this.style.display='none'">
-                    <div class="image-fallback">${exchange.fallback}</div>
+            <div class="game-info">
+                <div class="game-header">
+                    <h3>${game.name}</h3>
+                    ${game.badge ? `<span class="game-badge">${game.badge}</span>` : ''}
                 </div>
-                <div class="exchange-info">
-                    <h3>${exchange.name}</h3>
-                    <p>${exchange.description}</p>
+                <p class="game-description">${game.description}</p>
+                <div class="game-stats">
+                    <div class="rating">
+                        <div class="stars">${generateStars(game.rating)}</div>
+                        <span class="rating-value">${game.rating}</span>
+                    </div>
+                    <div class="players">
+                        <span class="players-icon">👥</span>
+                        <span class="players-count">${game.players}</span>
+                    </div>
                 </div>
-                <button class="exchange-button" data-url="${exchange.url}">
-                    Перейти
-                </button>
             </div>
-        `).join('');
-        setupExchangeButtons(exchangesList);
-    }
+            <button class="play-button" data-link="${game.fullLink || ''}">
+                Играть
+            </button>
+        </div>
+    `).join('');
+    setupGameButtons();
 }
 
 function generateStars(rating) {
@@ -217,36 +213,25 @@ function generateStars(rating) {
     return stars;
 }
 
-function setupGameButtons(container) {
-    container.querySelectorAll('.play-button').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.stopPropagation();
-            vibrate();
-            const link = this.getAttribute('data-link');
-            if (link) {
-                if (window.Telegram && window.Telegram.WebApp) {
-                    if (link.startsWith('https://t.me/')) window.Telegram.WebApp.openTelegramLink(link);
-                    else window.Telegram.WebApp.openLink(link);
-                } else {
-                    window.open(link, '_blank');
-                }
-            }
-        });
-    });
-}
-
-function setupExchangeButtons(container) {
-    container.querySelectorAll('.exchange-button').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.stopPropagation();
-            vibrate();
-            const exchangeUrl = this.getAttribute('data-url');
-            if (exchangeUrl) {
-                if (window.Telegram && window.Telegram.WebApp) window.Telegram.WebApp.openLink(exchangeUrl);
-                else window.open(exchangeUrl, '_blank');
-            }
-        });
-    });
+function initializeExchanges() {
+    const exchangesList = document.getElementById('exchanges-list');
+    if (!exchangesList) return;
+    exchangesList.innerHTML = EXCHANGES_DATA.map(exchange => `
+        <div class="exchange-card" data-exchange-id="${exchange.id}">
+            <div class="exchange-logo">
+                <img src="${exchange.image}" alt="${exchange.name}" class="exchange-img" onerror="this.style.display='none'">
+                <div class="image-fallback">${exchange.fallback}</div>
+            </div>
+            <div class="exchange-info">
+                <h3>${exchange.name}</h3>
+                <p>${exchange.description}</p>
+            </div>
+            <button class="exchange-button" data-url="${exchange.url}">
+                Перейти
+            </button>
+        </div>
+    `).join('');
+    setupExchangeButtons();
 }
 
 function loadUserData() {
@@ -256,6 +241,7 @@ function loadUserData() {
             updateProfileDisplay(user);
             currentUserId = user.id;
             sendMiniAppStat(user);
+            fetchReferralInfo(user.id);
         } else {
             showFallbackProfile();
             currentUserId = null;
@@ -291,6 +277,98 @@ async function sendMiniAppStat(user) {
         });
     } catch (err) {
         console.error('Ошибка отправки статистики Mini App:', err);
+    }
+}
+
+async function fetchReferralInfo(userId) {
+    try {
+        const res = await fetch(`${WORKER_URL}/referral-info?userId=${userId}`);
+        const data = await res.json();
+        referralInfo = {
+            count: data.count || 0,
+            frame: data.frame || false,
+            undo: data.undo || false,
+            neon: data.neon || false
+        };
+    } catch (err) {
+        console.error('Ошибка загрузки рефералов:', err);
+        referralInfo = { count: 0, frame: false, undo: false, neon: false };
+    }
+    updateReferralUI();
+    applyUndoAbility();
+    applyNeonTheme();
+}
+
+function updateReferralUI() {
+    const countEl = document.getElementById('referral-count');
+    const progressBar = document.querySelector('.progress-bar');
+    const steps = document.querySelectorAll('.step');
+    const rewardsGrid = document.getElementById('rewards-grid');
+    if (!countEl || !progressBar || !rewardsGrid) return;
+
+    countEl.textContent = referralInfo.count || 0;
+    const progress = Math.min(100, (referralInfo.count / 10) * 100);
+    progressBar.style.setProperty('--progress', `${progress}%`);
+
+    steps.forEach(step => {
+        const target = parseInt(step.dataset.target);
+        if (referralInfo.count >= target) step.classList.add('reached');
+        else step.classList.remove('reached');
+    });
+
+    const rewards = [
+        {
+            icon: '🖼️',
+            name: 'Красивая рамка',
+            desc: 'Выделит ваш профиль в топе 2048',
+            unlocked: referralInfo.frame,
+            target: 3
+        },
+        {
+            icon: '↩️',
+            name: 'Отмена хода',
+            desc: 'Пожизненная возможность отменить 1 ход в 2048',
+            unlocked: referralInfo.undo,
+            target: 5
+        },
+        {
+            icon: '🌈',
+            name: 'Неоновый дизайн',
+            desc: 'Неоновое оформление игры 2048',
+            unlocked: referralInfo.neon,
+            target: 10
+        }
+    ];
+
+    rewardsGrid.innerHTML = rewards.map(r => `
+        <div class="reward-card ${r.unlocked ? 'unlocked' : ''}">
+            <div class="reward-icon">${r.icon}</div>
+            <div class="reward-info">
+                <div class="reward-name">${r.name} (${r.target} друзей)</div>
+                <div class="reward-desc">${r.desc}</div>
+            </div>
+            <div class="reward-status">${r.unlocked ? '✅' : '🔒'}</div>
+        </div>
+    `).join('');
+}
+
+function applyUndoAbility() {
+    const btn = document.getElementById('undo-move-btn');
+    if (!btn) return;
+    if (referralInfo.undo && game2048) {
+        btn.style.display = 'inline-block';
+    } else {
+        btn.style.display = 'none';
+    }
+}
+
+function applyNeonTheme() {
+    const container = document.getElementById('game-2048-container');
+    if (!container) return;
+    if (referralInfo.neon) {
+        container.classList.add('neon-theme');
+    } else {
+        container.classList.remove('neon-theme');
     }
 }
 
@@ -376,19 +454,54 @@ function setupNavigation() {
                 const leaderboardContainer = document.getElementById('leaderboard-container');
                 const gameContainer = document.getElementById('game-2048-container');
                 if (gameContainer.style.display !== 'none') {
-                    // игра видна
+                    // ничего
                 } else {
                     fetchLeaderboard();
                 }
+            }
+            if (targetSection === 'profile-section') {
+                if (currentUserId) fetchReferralInfo(currentUserId);
             }
         });
     });
 
     const activeSection = document.querySelector('.content-section.active');
-    if (activeSection) {
-        toggleHeaderForSection(activeSection.id);
-        if (activeSection.id === 'game-section') fetchLeaderboard();
+    if (activeSection && activeSection.id === 'game-section') {
+        fetchLeaderboard();
     }
+    if (activeSection) toggleHeaderForSection(activeSection.id);
+}
+
+function setupGameButtons() {
+    document.querySelectorAll('.play-button').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.stopPropagation();
+            vibrate();
+            const link = this.getAttribute('data-link');
+            if (link) {
+                if (window.Telegram && window.Telegram.WebApp) {
+                    if (link.startsWith('https://t.me/')) window.Telegram.WebApp.openTelegramLink(link);
+                    else window.Telegram.WebApp.openLink(link);
+                } else {
+                    window.open(link, '_blank');
+                }
+            }
+        });
+    });
+}
+
+function setupExchangeButtons() {
+    document.querySelectorAll('.exchange-button').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.stopPropagation();
+            vibrate();
+            const exchangeUrl = this.getAttribute('data-url');
+            if (exchangeUrl) {
+                if (window.Telegram && window.Telegram.WebApp) window.Telegram.WebApp.openLink(exchangeUrl);
+                else window.open(exchangeUrl, '_blank');
+            }
+        });
+    });
 }
 
 function setupSettingsPanel() {
@@ -400,15 +513,8 @@ function setupSettingsPanel() {
     if (settingsPanel) settingsPanel.addEventListener('click', (e) => { if (e.target === settingsPanel) settingsPanel.classList.remove('active'); });
 }
 
-function setLanguage() {
-    document.querySelectorAll('[data-i18n]').forEach(element => {
-        const key = element.getAttribute('data-i18n');
-        if (translations[key]) element.textContent = translations[key];
-    });
-}
-
-function setupReferralShare() {
-    const shareButton = document.getElementById('referrals-share-button');
+function setupShareButton() {
+    const shareButton = document.getElementById('share-friends-button');
     if (shareButton) {
         shareButton.addEventListener('click', function() {
             vibrate();
@@ -479,6 +585,7 @@ class Game2048 {
         this.lastAddedTile = null;
         this.mergedPositions = new Set();
         this.moveMap = null;
+        this.history = []; // для отмены хода
 
         this.updateBestScoreUI();
         this.init();
@@ -494,8 +601,28 @@ class Game2048 {
         this.lastAddedTile = null;
         this.mergedPositions.clear();
         this.moveMap = null;
+        this.history = [];
         this.addRandomTile();
         this.addRandomTile();
+        this.render();
+    }
+
+    saveState() {
+        this.history.push({
+            grid: JSON.parse(JSON.stringify(this.grid)),
+            score: this.score,
+            bestScore: this.bestScore
+        });
+    }
+
+    undo() {
+        if (this.history.length === 0 || !referralInfo.undo) return;
+        const prev = this.history.pop();
+        this.grid = prev.grid;
+        this.score = prev.score;
+        this.bestScore = prev.bestScore;
+        this.updateScoreUI();
+        this.updateBestScoreUI();
         this.render();
     }
 
@@ -516,6 +643,7 @@ class Game2048 {
     }
 
     move(direction) {
+        this.saveState(); // сохраняем состояние до хода
         const oldGrid = JSON.parse(JSON.stringify(this.grid));
         let totalScoreGain = 0;
         this.mergedPositions.clear();
@@ -656,6 +784,7 @@ class Game2048 {
                 this.submitScoreToLeaderboard();
             }
         } else {
+            this.history.pop(); // убираем сохранение, если ход не состоялся
             this.moveMap = null;
         }
     }
@@ -818,7 +947,16 @@ function initGame2048() {
                 game2048.resetGame();
             });
         }
+        const undoBtn = document.getElementById('undo-move-btn');
+        if (undoBtn) {
+            undoBtn.addEventListener('click', () => {
+                vibrate();
+                game2048.undo();
+            });
+        }
     }
+    applyUndoAbility();
+    applyNeonTheme();
 }
 
 /* =============== Переключение Игра / Топы =============== */
@@ -884,8 +1022,11 @@ function renderLeaderboard(leaderboard) {
             ? `<img src="${player.avatarUrl}" alt="${player.firstName}" onerror="this.style.display='none'; this.parentElement.textContent='${player.firstName.charAt(0).toUpperCase()}';" />`
             : player.firstName.charAt(0).toUpperCase();
 
+        let extraClass = '';
+        if (isCurrentUser && referralInfo.frame) extraClass = 'has-frame';
+
         return `
-            <div class="leaderboard-item ${isCurrentUser ? 'current-user' : ''}">
+            <div class="leaderboard-item ${isCurrentUser ? 'current-user' : ''} ${extraClass}">
                 <div class="leaderboard-rank">#${rank}</div>
                 <div class="leaderboard-avatar">
                     ${avatarContent}
