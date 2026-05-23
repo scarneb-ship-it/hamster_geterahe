@@ -34,8 +34,45 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- 2048 Game Section (1-я вкладка) -->
-            <section id="game-section" class="content-section active">
+            <!-- Games Section -->
+            <section id="games-section" class="content-section active">
+                <div class="section-header">
+                    <h2>Игры</h2>
+                    <span class="section-subtitle">Лучшие игры Telegram</span>
+                </div>
+                <div class="games-grid" id="games-grid"></div>
+            </section>
+
+            <!-- Exchanges Section -->
+            <section id="exchanges-section" class="content-section">
+                <div class="section-header">
+                    <h2>Крипто-биржи</h2>
+                    <span class="section-subtitle">Торгуйте криптовалютами безопасно</span>
+                </div>
+                <div class="gamefi-banner">
+                    <img src="images/gamefi.jpg" alt="GameFi Trading" class="gamefi-image">
+                    <div class="gamefi-overlay">
+                        <div class="gamefi-content">
+                            <h3 class="gamefi-title">Торгуйте монетами GameFi</h3>
+                            <p class="gamefi-description">На популярных криптобиржах с лучшими условиями</p>
+                            <div class="gamefi-stats">
+                                <div class="stat">
+                                    <span class="stat-number">100+</span>
+                                    <span class="stat-label">GameFi токенов</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-number">24/7</span>
+                                    <span class="stat-label">Торговля</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="exchanges-list" id="exchanges-list"></div>
+            </section>
+
+            <!-- 2048 Game Section -->
+            <section id="game-section" class="content-section game-fullscreen">
                 <div class="game-tabs">
                     <button class="game-tab active" id="tab-game-btn">Игра</button>
                     <button class="game-tab" id="tab-leaderboard-btn">Топы</button>
@@ -58,11 +95,12 @@
                     <div class="game-board-2048" id="game-board-2048"></div>
                     <div class="game-controls">
                         <button class="new-game-btn" id="new-game-btn">Новая игра</button>
+                        <button class="undo-move-btn" id="undo-move-btn" style="display:none;">↩ Отменить ход</button>
                         <div class="game-status" id="game-status"></div>
                     </div>
                     <div class="swipe-hint">👆 Свайпайте пальцем или используйте стрелки</div>
                 </div>
-                <!-- Таблица лидеров -->
+
                 <div class="leaderboard-container" id="leaderboard-container" style="display: none;">
                     <div class="leaderboard-header">
                         <h3 class="leaderboard-title">🏆 Таблица лидеров</h3>
@@ -70,69 +108,6 @@
                     </div>
                     <div class="leaderboard-list" id="leaderboard-list">
                         <div class="leaderboard-loading">Загрузка...</div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Задания (игры + биржи) -->
-            <section id="tasks-section" class="content-section">
-                <div class="section-header">
-                    <h2>Игры</h2>
-                    <span class="section-subtitle">Лучшие игры Telegram</span>
-                </div>
-                <div class="games-grid compact" id="tasks-games-grid"></div>
-
-                <div class="section-header" style="margin-top: 24px;">
-                    <h2>Крипто-биржи</h2>
-                    <span class="section-subtitle">Торгуйте криптовалютами безопасно</span>
-                </div>
-                <div class="gamefi-banner compact">
-                    <img src="images/gamefi.jpg" alt="GameFi Trading" class="gamefi-image">
-                    <div class="gamefi-overlay">
-                        <div class="gamefi-content">
-                            <h3 class="gamefi-title">Торгуйте монетами GameFi</h3>
-                            <p class="gamefi-description">На популярных криптобиржах с лучшими условиями</p>
-                            <div class="gamefi-stats">
-                                <div class="stat">
-                                    <span class="stat-number">100+</span>
-                                    <span class="stat-label">GameFi токенов</span>
-                                </div>
-                                <div class="stat">
-                                    <span class="stat-number">24/7</span>
-                                    <span class="stat-label">Торговля</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="exchanges-list compact" id="tasks-exchanges-list"></div>
-            </section>
-
-            <!-- Рефералы -->
-            <section id="referrals-section" class="content-section">
-                <div class="section-header">
-                    <h2>Реферальная программа</h2>
-                    <span class="section-subtitle">Приглашай друзей и получай бонусы</span>
-                </div>
-                <div class="referrals-content">
-                    <div class="referrals-info">
-                        <p>Пригласите друга в наш бот, и вы оба получите эксклюзивные награды! Скопируйте ссылку или поделитесь напрямую.</p>
-                    </div>
-                    <button class="share-friends-button" id="referrals-share-button">
-                        <div class="share-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                <path d="M18 8C19.6569 8 21 6.65685 21 5C21 3.34315 19.6569 2 18 2C16.3431 2 15 3.34315 15 5C15 6.65685 16.3431 8 18 8Z" stroke="currentColor" stroke-width="2"/>
-                                <path d="M6 15C7.65685 15 9 13.6569 9 12C9 10.3431 7.65685 9 6 9C4.34315 9 3 10.3431 3 12C3 13.6569 4.34315 15 6 15Z" stroke="currentColor" stroke-width="2"/>
-                                <path d="M18 22C19.6569 22 21 20.6569 21 19C21 17.3431 19.6569 16 18 16C16.3431 16 15 17.3431 15 19C15 20.6569 16.3431 22 18 22Z" stroke="currentColor" stroke-width="2"/>
-                                <path d="M8.59 13.51L15.42 17.49" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                <path d="M15.41 6.51L8.59 10.49" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            </svg>
-                        </div>
-                        <span>Пригласить друга</span>
-                    </button>
-                    <div class="referral-stats">
-                        <span class="stat-number" id="referral-count">0</span>
-                        <span class="stat-label">приглашённых друзей</span>
                     </div>
                 </div>
             </section>
@@ -149,22 +124,58 @@
                         <p id="user-username">Открой в Telegram</p>
                     </div>
                 </div>
+
+                <!-- Реферальная программа -->
+                <div class="referral-program" id="referral-program">
+                    <h3 class="referral-title">🎁 Пригласи друзей</h3>
+                    <p class="referral-subtitle">Получай награды за каждого друга</p>
+                    <div class="referral-count">
+                        <span class="referral-number" id="referral-count">0</span>
+                        <span class="referral-label">друзей</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="referral-progress"></div>
+                        <div class="progress-steps">
+                            <span class="step" data-target="3">3</span>
+                            <span class="step" data-target="5">5</span>
+                            <span class="step" data-target="10">10</span>
+                        </div>
+                    </div>
+                    <div class="rewards-grid" id="rewards-grid">
+                        <!-- Заполняется через JS -->
+                    </div>
+                </div>
+
+                <div class="profile-actions">
+                    <button class="share-friends-button" id="share-friends-button">
+                        <div class="share-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                <path d="M18 8C19.6569 8 21 6.65685 21 5C21 3.34315 19.6569 2 18 2C16.3431 2 15 3.34315 15 5C15 6.65685 16.3431 8 18 8Z" stroke="currentColor" stroke-width="2"/>
+                                <path d="M6 15C7.65685 15 9 13.6569 9 12C9 10.3431 7.65685 9 6 9C4.34315 9 3 10.3431 3 12C3 13.6569 4.34315 15 6 15Z" stroke="currentColor" stroke-width="2"/>
+                                <path d="M18 22C19.6569 22 21 20.6569 21 19C21 17.3431 19.6569 16 18 16C16.3431 16 15 17.3431 15 19C15 20.6569 16.3431 22 18 22Z" stroke="currentColor" stroke-width="2"/>
+                                <path d="M8.59 13.51L15.42 17.49" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                <path d="M15.41 6.51L8.59 10.49" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <span>Поделиться с друзьями</span>
+                    </button>
+                </div>
             </section>
         </main>
 
         <!-- Bottom Navigation -->
         <nav class="bottom-nav">
-            <button class="nav-item active" data-section="game-section">
+            <button class="nav-item active" data-section="games-section">
+                <span class="nav-icon">🎮</span>
+                <span class="nav-label">Игры</span>
+            </button>
+            <button class="nav-item" data-section="exchanges-section">
+                <span class="nav-icon">📊</span>
+                <span class="nav-label">Биржи</span>
+            </button>
+            <button class="nav-item" data-section="game-section">
                 <span class="nav-icon">🎲</span>
                 <span class="nav-label">2048</span>
-            </button>
-            <button class="nav-item" data-section="tasks-section">
-                <span class="nav-icon">📋</span>
-                <span class="nav-label">Задания</span>
-            </button>
-            <button class="nav-item" data-section="referrals-section">
-                <span class="nav-icon">👥</span>
-                <span class="nav-label">Рефералы</span>
             </button>
             <button class="nav-item" data-section="profile-section">
                 <span class="nav-icon">👤</span>
