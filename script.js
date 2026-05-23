@@ -1,4 +1,4 @@
-// script.js
+// script.js – без изменений в логике, просто с улучшенным дизайном
 const BOT_USERNAME = 'khadron_bot';
 let currentUserId = null;
 
@@ -97,19 +97,8 @@ const EXCHANGES_DATA = [
 const translations = {
     appTitle: "Games Verse",
     settings: "Настройки",
-    theme: "Тема",
-    lightTheme: "Светлая",
-    darkTheme: "Темная",
     done: "Готово",
-    games: "Игры",
-    bestGames: "Лучшие игры Telegram",
     play: "Играть",
-    exchanges: "Биржи",
-    exchangesDesc: "Торгуйте криптовалютами безопасно",
-    user: "Пользователь",
-    shareWithFriends: "Поделиться с друзьями",
-    profile: "Профиль",
-    linkCopied: "Ссылка скопирована в буфер обмена!",
     go: "Перейти",
     game2048: "2048",
     score: "Счёт",
@@ -117,7 +106,8 @@ const translations = {
     newGame: "Новая игра",
     swipeHint: "👆 Свайпайте пальцем или используйте стрелки",
     gameWin: "Вы победили! 🎉",
-    gameLose: "Игра окончена! 😔"
+    gameLose: "Игра окончена! 😔",
+    linkCopied: "Ссылка скопирована в буфер обмена!",
 };
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -135,7 +125,7 @@ function initializeApp() {
 
     initializeTelegramWebApp();
     setupNavigation();
-    initializeTasksSection(); // теперь единая инициализация заданий
+    initializeTasksSection();
     setupSettingsPanel();
     setLanguage();
     loadUserData();
@@ -383,16 +373,13 @@ function setupNavigation() {
             toggleHeaderForSection(targetSection);
 
             if (targetSection === 'game-section') {
-                // по умолчанию показываем игру
                 const leaderboardContainer = document.getElementById('leaderboard-container');
                 const gameContainer = document.getElementById('game-2048-container');
                 if (gameContainer.style.display !== 'none') {
-                    // игра уже видна
+                    // игра видна
                 } else {
                     fetchLeaderboard();
                 }
-            } else if (targetSection === 'tasks-section') {
-                // данные уже загружены при старте
             }
         });
     });
