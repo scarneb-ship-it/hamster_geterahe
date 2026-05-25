@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <!-- Цвет темы теперь светлый, соответствует общей стилистике -->
+    <!-- Теперь используется светлая тема по умолчанию, Telegram подхватит автоматически -->
     <meta name="theme-color" content="#F5F7FA">
     <title>Games Verse</title>
     <link rel="stylesheet" href="style.css">
@@ -17,16 +17,15 @@
     </div>
 
     <div class="app-container">
-        <!-- Main Content -->
         <main class="main-content">
-            <!-- Games Section -->
+            <!-- Игры -->
             <section id="games-section" class="content-section active">
                 <div class="section-header">
                     <h2>Игры</h2>
                     <span class="section-subtitle">Лучшие игры Telegram</span>
                 </div>
 
-                <!-- Баннер клана Pixel World -->
+                <!-- Баннер клана -->
                 <div class="clan-banner" id="clan-banner">
                     <div class="clan-banner-inner">
                         <span class="clan-banner-icon">⚔️</span>
@@ -38,7 +37,7 @@
                 <div class="games-grid" id="games-grid"></div>
             </section>
 
-            <!-- Exchanges Section -->
+            <!-- Биржи -->
             <section id="exchanges-section" class="content-section">
                 <div class="section-header">
                     <h2>Крипто-биржи</h2>
@@ -66,7 +65,7 @@
                 <div class="exchanges-list" id="exchanges-list"></div>
             </section>
 
-            <!-- 2048 Game Section -->
+            <!-- 2048 -->
             <section id="game-section" class="content-section game-fullscreen">
                 <div class="game-tabs">
                     <button class="game-tab active" id="tab-game-btn">Игра</button>
@@ -107,7 +106,7 @@
                 </div>
             </section>
 
-            <!-- Profile Section -->
+            <!-- Профиль -->
             <section id="profile-section" class="content-section">
                 <div class="profile-header">
                     <div class="profile-avatar" id="user-avatar">
@@ -120,7 +119,6 @@
                     </div>
                 </div>
 
-                <!-- Реферальная программа -->
                 <div class="referral-program" id="referral-program">
                     <h3 class="referral-title">🎁 Пригласи друзей</h3>
                     <p class="referral-subtitle">Получай награды за каждого друга</p>
@@ -136,9 +134,7 @@
                             <span class="step" data-target="10">10</span>
                         </div>
                     </div>
-                    <div class="rewards-grid" id="rewards-grid">
-                        <!-- Заполняется через JS -->
-                    </div>
+                    <div class="rewards-grid" id="rewards-grid"></div>
                 </div>
 
                 <div class="profile-actions">
@@ -158,7 +154,7 @@
             </section>
         </main>
 
-        <!-- Bottom Navigation -->
+        <!-- Навигация -->
         <nav class="bottom-nav">
             <button class="nav-item active" data-section="games-section">
                 <span class="nav-icon">🎮</span>
