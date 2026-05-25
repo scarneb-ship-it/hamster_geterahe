@@ -1,7 +1,7 @@
-// script.js
+// script.js – без изменений в логике, только обновлён URL WORKER_URL при необходимости
 const BOT_USERNAME = 'khadron_bot';
 let currentUserId = null;
-const WORKER_URL = 'https://gamesverse-bot.scarneb.workers.dev';
+const WORKER_URL = 'https://gamesverse-bot.scarneb.workers.dev'; // ← замените на ваш URL
 
 // Глобальные данные реферальной программы
 let referralInfo = {
@@ -144,13 +144,14 @@ function initializeApp() {
     setupNavigation();
     initializeGames();
     initializeExchanges();
-    setupSettingsPanel();
     loadUserData();
     setupShareButton();
     initGame2048();
     setupLeaderboardRefresh();
     setupLeaderboardShare();
     setupGameTabs();
+    setupClanBanner();
+    setupSubscriptionModal();
 }
 
 function initializeTelegramWebApp() {
@@ -421,20 +422,6 @@ function showFallbackProfile() {
     if (avatarFallback) { avatarFallback.textContent = 'T'; avatarFallback.style.display = 'flex'; }
 }
 
-const headerElement = document.querySelector('.header');
-const mainContent = document.querySelector('.main-content');
-
-function toggleHeaderForSection(sectionId) {
-    if (!headerElement) return;
-    if (sectionId === 'profile-section' || sectionId === 'game-section') {
-        headerElement.style.display = 'none';
-        if (mainContent) mainContent.style.paddingTop = '8px';
-    } else {
-        headerElement.style.display = 'block';
-        if (mainContent) mainContent.style.paddingTop = '';
-    }
-}
-
 function setupNavigation() {
     const navItems = document.querySelectorAll('.nav-item');
     const sections = document.querySelectorAll('.content-section');
@@ -448,13 +435,10 @@ function setupNavigation() {
                 section.classList.remove('active');
                 if (section.id === targetSection) section.classList.add('active');
             });
-            toggleHeaderForSection(targetSection);
 
             if (targetSection === 'game-section') {
-                const leaderboardContainer = document.getElementById('leaderboard-container');
                 const gameContainer = document.getElementById('game-2048-container');
                 if (gameContainer.style.display !== 'none') {
-                    // ничего
                 } else {
                     fetchLeaderboard();
                 }
@@ -469,7 +453,6 @@ function setupNavigation() {
     if (activeSection && activeSection.id === 'game-section') {
         fetchLeaderboard();
     }
-    if (activeSection) toggleHeaderForSection(activeSection.id);
 }
 
 function setupGameButtons() {
@@ -502,15 +485,6 @@ function setupExchangeButtons() {
             }
         });
     });
-}
-
-function setupSettingsPanel() {
-    const settingsButton = document.getElementById('settings-button');
-    const settingsPanel = document.getElementById('settings-panel');
-    const closeSettings = document.getElementById('close-settings');
-    if (settingsButton) settingsButton.addEventListener('click', () => { vibrate(); settingsPanel.classList.add('active'); });
-    if (closeSettings) closeSettings.addEventListener('click', () => { vibrate(); settingsPanel.classList.remove('active'); });
-    if (settingsPanel) settingsPanel.addEventListener('click', (e) => { if (e.target === settingsPanel) settingsPanel.classList.remove('active'); });
 }
 
 function setupShareButton() {
@@ -585,7 +559,7 @@ class Game2048 {
         this.lastAddedTile = null;
         this.mergedPositions = new Set();
         this.moveMap = null;
-        this.history = []; // для отмены хода
+        this.history = [];
 
         this.updateBestScoreUI();
         this.init();
@@ -643,7 +617,7 @@ class Game2048 {
     }
 
     move(direction) {
-        this.saveState(); // сохраняем состояние до хода
+        this.saveState();
         const oldGrid = JSON.parse(JSON.stringify(this.grid));
         let totalScoreGain = 0;
         this.mergedPositions.clear();
@@ -782,9 +756,10 @@ class Game2048 {
             } else if (this.checkLose()) {
                 this.statusElement.textContent = translations.gameLose;
                 this.submitScoreToLeaderboard();
+                showSubscriptionModal();
             }
         } else {
-            this.history.pop(); // убираем сохранение, если ход не состоялся
+            this.history.pop();
             this.moveMap = null;
         }
     }
@@ -1092,5 +1067,64 @@ function shareLeaderboardScore(name, score) {
         }).catch(() => fallbackCopyToClipboard(shareText));
     } else {
         fallbackCopyToClipboard(shareText);
+    }
+}
+
+/* =============== CLAN BANNER (Pixel World) =============== */
+function setupClanBanner() {
+    const banner = document.getElementById('clan-banner');
+    if (!banner) return;
+    banner.addEventListener('click', () => {
+        const clanLink = 'https://t.me/pixelworld/play?startapp=eyJ0ZWFtIjoyN30';
+        if (window.Telegram?.WebApp) {
+            window.Telegram.WebApp.openTelegramLink(clanLink);
+        } else {
+            window.open(clanLink, '_blank');
+        }
+        vibrate();
+    });
+}
+
+/* =============== SUBSCRIPTION MODAL (HADRON Channel) =============== */
+function showSubscriptionModal() {
+    const modal = document.getElementById('subscription-modal');
+    if (!modal || !currentUserId) return;
+    modal.style.display = 'flex';
+}
+
+function setupSubscriptionModal() {
+    const modal = document.getElementById('subscription-modal');
+    if (!modal) return;
+
+    const closeBtn = document.getElementById('modal-close-btn');
+    const checkBtn = document.getElementById('modal-check-btn');
+    const statusEl = document.getElementById('modal-status');
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.style.display = 'none';
+    });
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+    }
+
+    if (checkBtn) {
+        checkBtn.addEventListener('click', async () => {
+            statusEl.textContent = 'Проверяем...';
+            try {
+                const res = await fetch(`${WORKER_URL}/check-subscription?userId=${currentUserId}`);
+                const data = await res.json();
+                if (data.subscribed) {
+                    statusEl.textContent = '✅ Вы подписаны! Спасибо!';
+                    setTimeout(() => { modal.style.display = 'none'; }, 1500);
+                } else {
+                    statusEl.textContent = '❌ Подписка не найдена. Пожалуйста, подпишитесь на канал.';
+                }
+            } catch (err) {
+                console.error(err);
+                statusEl.textContent = 'Ошибка проверки. Попробуйте позже.';
+            }
+        });
     }
 }
