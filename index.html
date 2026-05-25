@@ -16,22 +16,6 @@
     </div>
 
     <div class="app-container">
-        <!-- Header -->
-        <header class="header">
-            <div class="header-content">
-                <h1 class="app-title">Games Verse</h1>
-                <button class="settings-button" id="settings-button" aria-label="Настройки">⚙️</button>
-            </div>
-        </header>
-
-        <!-- Settings Panel -->
-        <div class="settings-panel" id="settings-panel">
-            <div class="settings-content">
-                <h3 class="settings-title">Настройки</h3>
-                <button class="close-settings" id="close-settings">Готово</button>
-            </div>
-        </div>
-
         <!-- Main Content -->
         <main class="main-content">
             <!-- Games Section -->
@@ -40,6 +24,16 @@
                     <h2>Игры</h2>
                     <span class="section-subtitle">Лучшие игры Telegram</span>
                 </div>
+
+                <!-- Баннер клана Pixel World -->
+                <div class="clan-banner" id="clan-banner">
+                    <div class="clan-banner-inner">
+                        <span class="clan-banner-icon">⚔️</span>
+                        <span class="clan-banner-text">Вступай в наш клан в Pixel World! Жми сюда →</span>
+                        <span class="clan-banner-icon">🛡️</span>
+                    </div>
+                </div>
+
                 <div class="games-grid" id="games-grid"></div>
             </section>
 
@@ -149,7 +143,7 @@
                 <div class="profile-actions">
                     <button class="share-friends-button" id="share-friends-button">
                         <div class="share-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
                                 <path d="M18 8C19.6569 8 21 6.65685 21 5C21 3.34315 19.6569 2 18 2C16.3431 2 15 3.34315 15 5C15 6.65685 16.3431 8 18 8Z" stroke="currentColor" stroke-width="2"/>
                                 <path d="M6 15C7.65685 15 9 13.6569 9 12C9 10.3431 7.65685 9 6 9C4.34315 9 3 10.3431 3 12C3 13.6569 4.34315 15 6 15Z" stroke="currentColor" stroke-width="2"/>
                                 <path d="M18 22C19.6569 22 21 20.6569 21 19C21 17.3431 19.6569 16 18 16C16.3431 16 15 17.3431 15 19C15 20.6569 16.3431 22 18 22Z" stroke="currentColor" stroke-width="2"/>
@@ -184,6 +178,18 @@
         </nav>
 
         <div id="notification" class="notification">Ссылка скопирована в буфер обмена!</div>
+
+        <!-- Модальное окно подписки -->
+        <div id="subscription-modal" class="modal-overlay" style="display: none;">
+            <div class="modal-content">
+                <h3>📢 Подпишись на HADRON</h3>
+                <p>Присоединяйся к нашему Telegram‑каналу, чтобы первым узнавать о новостях, розыгрышах и эксклюзивных наградах!</p>
+                <a href="https://t.me/+GNfQDYSAYc4wNDBi" target="_blank" class="modal-btn modal-sub-btn" id="modal-sub-btn">Подписаться</a>
+                <button class="modal-btn modal-check-btn" id="modal-check-btn">Проверить подписку</button>
+                <button class="modal-btn modal-close-btn" id="modal-close-btn">Закрыть</button>
+                <p class="modal-status" id="modal-status"></p>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>
