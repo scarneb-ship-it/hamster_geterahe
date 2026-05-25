@@ -1,116 +1,117 @@
-/* style.css — Полностью обновлённый дизайн в стиле Soft UI / Glassmorphism */
+/* ===== style.css ===== */
+/* Обновлённые стили: современный минимализм, улучшенная типографика, адаптивность, touch-зоны, плавные переходы */
 
-/* ---------- CSS Переменные (светлая тема) ---------- */
+/* ----- Базовые переменные ----- */
 :root {
-  --primary-gradient: linear-gradient(135deg, #7C5CFC, #A66CFF);
-  --primary-light: #7C5CFC;
-  --primary-dark: #5A4AB8;
-  --surface-color: #F5F7FA;          /* Фон приложения */
-  --card-bg: rgba(255, 255, 255, 0.7); /* Стекловидные карточки */
-  --card-border: rgba(255, 255, 255, 0.3);
-  --text-primary: #1A1D26;
-  --text-secondary: #6B7280;
-  --border-color: rgba(0, 0, 0, 0.05);
-  --success-color: #10B981;
-  --warning-color: #F59E0B;
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
-  --neon-glow: 0 0 12px rgba(124, 92, 252, 0.3);
-  --radius-sm: 12px;
-  --radius-md: 16px;
-  --radius-lg: 24px;
-  --font-size-base: 15px;
-  --font-size-sm: 13px;
-  --font-size-xs: 11px;
+  /* Основная светлая тема */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f7fa;
+  --bg-card: #ffffff;
+  --text-primary: #1a202c;
+  --text-secondary: #4a5568;
+  --border-color: #e2e8f0;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.08);
+  --primary: #4f46e5;
+  --primary-light: #6366f1;
+  --primary-gradient: linear-gradient(135deg, #4f46e5, #7c3aed);
+  --accent-gradient: linear-gradient(135deg, #059669, #34d399);
+  --success: #10b981;
+  --warning: #f59e0b;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* ---------- Базовые сбросы и настройки ---------- */
-* {
+/* Тёмная тема (активируется классом dark-theme на body) */
+body.dark-theme {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-card: #1e293b;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --border-color: #334155;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+/* ----- Сброс и база ----- */
+*,
+*::before,
+*::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-  -webkit-touch-callout: none;
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: var(--surface-color);
+  font-family: var(--font-sans);
+  background-color: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-  -webkit-text-size-adjust: 100%;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  /* Отключаем нежелательные выделения */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
-  min-height: 100vh;
-  opacity: 1;
-  animation: none; /* Убрана старая анимация появления */
+  /* Исчезающая заставка обрабатывается JS */
 }
 
-/* ---------- Основной контейнер ---------- */
+/* Контейнер приложения – ограничиваем ширину для мобильных */
 .app-container {
   max-width: 428px;
   margin: 0 auto;
-  background: var(--surface-color);
+  background: var(--bg-primary);
   min-height: 100vh;
   position: relative;
-  padding-bottom: 80px; /* Место под нижнюю навигацию */
+  padding-bottom: 85px; /* место под нижнюю навигацию */
   overflow-x: hidden;
-  box-shadow: 0 0 40px rgba(0, 0, 0, 0.03);
+  transition: background 0.3s ease;
 }
 
-/* Главная область с контентом */
+/* Основной контент – единые отступы */
 .main-content {
-  padding: 24px 16px 16px; /* Увеличен верхний отступ для воздуха */
+  padding: 20px 16px;
 }
 
-/* Секции */
+/* Анимации появления разделов */
 .content-section {
   display: none;
+  animation: fadeSlideIn 0.35s ease-out;
 }
-
 .content-section.active {
   display: block;
-  animation: fadeSlideIn 0.3s ease-out;
 }
-
 @keyframes fadeSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* ---------- Заголовки секций ---------- */
+/* ----- Заголовки секций ----- */
 .section-header {
   margin-bottom: 20px;
 }
-
 .section-header h2 {
   font-size: 24px;
   font-weight: 700;
-  letter-spacing: -0.3px;
-  color: var(--text-primary);
+  letter-spacing: -0.5px;
+  margin-bottom: 4px;
 }
-
 .section-subtitle {
-  font-size: var(--font-size-sm);
+  font-size: 14px;
   font-weight: 500;
   color: var(--text-secondary);
-  margin-top: 4px;
 }
 
-/* ---------- Баннер клана (сохранена анимация, обновлён стиль) ---------- */
+/* ========== CLAN BANNER ========== */
 .clan-banner {
-  background: linear-gradient(135deg, #FF6B6B, #FECA57, #48DBFB, #FF9FF3);
+  background: linear-gradient(135deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3);
   background-size: 400% 400%;
   animation: gradientShift 4s ease infinite;
   border-radius: var(--radius-md);
@@ -118,81 +119,78 @@ body {
   margin-bottom: 20px;
   cursor: pointer;
   box-shadow: var(--shadow-md);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   overflow: hidden;
+  /* Glassmorphism лёгкий эффект */
+  backdrop-filter: blur(10px);
+  background-color: rgba(255, 255, 255, 0.15);
 }
-
 .clan-banner:active {
   transform: scale(0.98);
 }
-
 .clan-banner-inner {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
+  white-space: nowrap;
   animation: marquee 12s linear infinite;
   width: max-content;
 }
-
 @keyframes marquee {
   0% { transform: translateX(60%); }
   100% { transform: translateX(-60%); }
 }
-
 .clan-banner-text {
   font-size: 15px;
   font-weight: 700;
-  color: #fff;
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  color: white;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.4);
 }
-
 .clan-banner-icon {
   font-size: 22px;
 }
-
 @keyframes gradientShift {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
 
-/* ---------- Сетка игр ---------- */
-.games-grid {
-  display: grid;
-  grid-template-columns: 1fr;
+/* ========== СЕТКИ КАРТОЧЕК (игры, биржи) ========== */
+.games-grid,
+.exchanges-list {
+  display: flex;
+  flex-direction: column;
   gap: 12px;
 }
 
-/* Карточка игры (Soft UI) */
-.game-card {
-  background: var(--card-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+/* Общие стили карточек */
+.game-card,
+.exchange-card {
+  background: var(--bg-card);
   border-radius: var(--radius-md);
-  padding: 16px;
+  padding: 14px;
   display: flex;
   align-items: center;
   gap: 12px;
-  border: 1px solid var(--card-border);
+  border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
-  transition: all 0.2s ease;
-  cursor: pointer;
-  min-height: 72px; /* Комфортная высота для касания */
+  transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer; /* вся карточка теперь ссылка */
 }
-
-.game-card:active {
+.game-card:active,
+.exchange-card:active {
   transform: scale(0.98);
-  box-shadow: var(--shadow-md);
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--bg-secondary);
 }
-
+/* Выделенная карточка */
 .game-card.highlight {
-  background: linear-gradient(135deg, rgba(124, 92, 252, 0.05), rgba(166, 108, 255, 0.05));
-  border: 1px solid rgba(124, 92, 252, 0.3);
-  box-shadow: 0 0 0 2px rgba(124, 92, 252, 0.1);
+  border-color: #10b981;
+  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.3), var(--shadow-md);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(52, 211, 153, 0.05));
 }
-
 .game-card.highlight::before {
   content: '';
   position: absolute;
@@ -200,50 +198,55 @@ body {
   left: 0;
   right: 0;
   height: 3px;
-  background: var(--primary-gradient);
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  background: var(--accent-gradient);
 }
 
-/* Аватар игры */
-.game-image {
+/* Изображения игры/биржи */
+.game-image,
+.exchange-logo {
   width: 52px;
   height: 52px;
-  border-radius: 14px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
   flex-shrink: 0;
-  background: #e5e7eb;
+  background: var(--bg-secondary);
+  box-shadow: var(--shadow-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-sm);
 }
-
-.game-img {
+.game-img,
+.exchange-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-
 .image-fallback {
   font-size: 24px;
 }
 
-/* Информация об игре */
-.game-info {
+/* Информация */
+.game-info,
+.exchange-info {
   flex: 1;
   min-width: 0;
 }
-
-.game-header h3 {
+.game-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+.game-header h3,
+.exchange-info h3 {
   font-size: 15px;
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
 .game-badge {
-  background: var(--primary-gradient);
+  background: var(--accent-gradient);
   color: white;
   font-size: 10px;
   font-weight: 700;
@@ -252,86 +255,81 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
-
-.game-description {
-  font-size: var(--font-size-sm);
+.game-description,
+.exchange-info p {
+  font-size: 13px;
   color: var(--text-secondary);
-  margin: 4px 0 6px;
+  margin-bottom: 6px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
 .game-stats {
   display: flex;
   align-items: center;
-  gap: 16px;
-  font-size: var(--font-size-xs);
+  gap: 12px;
 }
-
-.rating .star {
-  font-size: 12px;
-  color: #d1d5db;
-}
-
-.rating .star.filled {
-  color: #F59E0B;
-}
-
-.rating .star.half {
-  background: linear-gradient(90deg, #F59E0B 50%, #d1d5db 50%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.rating-value {
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.players {
+.rating {
   display: flex;
   align-items: center;
   gap: 4px;
 }
-
-.players-icon {
-  font-size: 12px;
-  opacity: 0.8;
+.stars {
+  display: flex;
+  gap: 1px;
 }
-
-.players-count {
+.star {
+  color: #cbd5e0;
+  font-size: 13px;
+}
+.star.filled {
+  color: #f59e0b;
+}
+.star.half {
+  background: linear-gradient(90deg, #f59e0b 50%, #cbd5e0 50%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.rating-value {
+  font-size: 12px;
   font-weight: 600;
   color: var(--text-secondary);
 }
+.players {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+}
 
-/* Кнопка "Играть" */
-.play-button {
+/* Кнопки "Играть" и "Перейти" – теперь внутри карточки */
+.play-button,
+.exchange-button {
   background: var(--primary-gradient);
   color: white;
   border: none;
-  padding: 10px 18px;
-  border-radius: 12px;
+  padding: 10px 16px;
+  border-radius: 30px;
   font-weight: 600;
   font-size: 13px;
   cursor: pointer;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.2s ease;
-  white-space: nowrap;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
   min-height: 44px;
-  min-width: 70px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  min-width: 44px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
-
-.play-button:active {
+.play-button:active,
+.exchange-button:active {
   transform: scale(0.95);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.4);
 }
 
-/* ---------- GameFi баннер ---------- */
+/* ========== GAMEFI BANNER ========== */
 .gamefi-banner {
   position: relative;
   border-radius: var(--radius-md);
@@ -339,559 +337,401 @@ body {
   margin-bottom: 20px;
   box-shadow: var(--shadow-md);
   height: 160px;
-  transition: transform 0.2s ease;
 }
-
-.gamefi-banner:active {
-  transform: scale(0.98);
-}
-
 .gamefi-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: brightness(0.6) saturate(1.2);
+  filter: brightness(0.8);
 }
-
 .gamefi-overlay {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(124, 92, 252, 0.85), rgba(166, 108, 255, 0.8));
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.85), rgba(124, 58, 237, 0.85));
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
-  padding: 20px;
+  padding: 18px;
 }
-
 .gamefi-content {
   color: white;
-  width: 100%;
 }
-
 .gamefi-title {
   font-size: 20px;
   font-weight: 700;
   margin-bottom: 6px;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  text-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
-
 .gamefi-description {
-  font-size: var(--font-size-sm);
+  font-size: 14px;
   opacity: 0.9;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
-
 .gamefi-stats {
   display: flex;
   gap: 20px;
 }
-
 .stat-number {
   font-size: 18px;
   font-weight: 700;
 }
-
 .stat-label {
   font-size: 11px;
-  opacity: 0.85;
+  opacity: 0.8;
 }
 
-/* ---------- Список бирж ---------- */
-.exchanges-list {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-}
-
-.exchange-card {
-  background: var(--card-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-radius: var(--radius-md);
-  padding: 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border: 1px solid var(--card-border);
-  box-shadow: var(--shadow-sm);
-  transition: all 0.2s ease;
-  min-height: 72px;
-}
-
-.exchange-card:active {
-  transform: scale(0.98);
-  box-shadow: var(--shadow-md);
-}
-
-.exchange-logo {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  overflow: hidden;
-  flex-shrink: 0;
-  background: #e5e7eb;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.exchange-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.exchange-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.exchange-info h3 {
-  font-size: 15px;
-  font-weight: 600;
-  margin-bottom: 2px;
-}
-
-.exchange-info p {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.exchange-button {
-  background: var(--primary-gradient);
-  color: white;
-  border: none;
-  padding: 10px 18px;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 13px;
-  cursor: pointer;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.2s ease;
-  white-space: nowrap;
-  min-height: 44px;
-}
-
-.exchange-button:active {
-  transform: scale(0.95);
-}
-
-/* ---------- Профиль ---------- */
+/* ========== ПРОФИЛЬ ========== */
 .profile-header {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   margin-bottom: 24px;
-  padding: 20px;
-  background: var(--card-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  padding: 18px;
+  background: var(--bg-card);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--card-border);
+  border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
 }
-
 .profile-avatar {
-  width: 72px;
-  height: 72px;
+  width: 64px;
+  height: 64px;
   background: var(--primary-gradient);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 700;
   color: white;
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.3);
   overflow: hidden;
-  flex-shrink: 0;
 }
-
 #avatar-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-
-.profile-info {
-  flex: 1;
-  min-width: 0;
-}
-
 .profile-info h2 {
-  font-size: 18px;
-  font-weight: 700;
-  margin-bottom: 2px;
-}
-
-.profile-info p {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-}
-
-.premium-badge {
-  background: linear-gradient(135deg, #FFD700, #FFA500);
-  color: #000;
-  padding: 2px 8px;
-  border-radius: 8px;
-  font-size: 10px;
-  font-weight: 700;
-  display: inline-block;
-  margin-top: 6px;
-}
-
-/* ---------- Реферальная программа ---------- */
-.referral-program {
-  margin: 24px 0;
-  background: var(--card-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-radius: var(--radius-lg);
-  padding: 20px;
-  border: 1px solid var(--card-border);
-  box-shadow: var(--shadow-sm);
-}
-
-.referral-title {
   font-size: 20px;
   font-weight: 700;
 }
+.profile-info p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+.premium-badge {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #1e293b;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 4px;
+  display: inline-block;
+}
 
+/* Реферальная программа */
+.referral-program {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+.referral-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
 .referral-subtitle {
-  font-size: var(--font-size-sm);
+  font-size: 14px;
   color: var(--text-secondary);
   margin-bottom: 16px;
 }
-
 .referral-count {
   display: flex;
   align-items: baseline;
   gap: 6px;
   margin-bottom: 12px;
 }
-
 .referral-number {
   font-size: 36px;
   font-weight: 800;
-  background: linear-gradient(135deg, #F59E0B, #EF4444);
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
   -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   background-clip: text;
-  color: transparent;
 }
-
 .referral-label {
-  font-size: 16px;
-  font-weight: 500;
+  font-size: 14px;
   color: var(--text-secondary);
 }
-
 .progress-bar-container {
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
-
 .progress-bar {
   height: 8px;
-  background: #E5E7EB;
+  background: var(--border-color);
   border-radius: 4px;
   overflow: hidden;
 }
-
 .progress-bar::after {
   content: '';
   display: block;
   height: 100%;
   width: var(--progress, 0%);
-  background: linear-gradient(90deg, #F59E0B, #EF4444);
+  background: linear-gradient(90deg, #f59e0b, #ef4444);
   border-radius: 4px;
   transition: width 0.4s ease;
 }
-
 .progress-steps {
   display: flex;
   justify-content: space-between;
   margin-top: 6px;
 }
-
 .step {
   font-size: 11px;
   font-weight: 600;
-  color: #9CA3AF;
+  color: var(--text-secondary);
 }
-
 .step.reached {
-  color: #EF4444;
+  color: #ef4444;
 }
-
 .rewards-grid {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
-
 .reward-card {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 12px;
-  background: rgba(255, 255, 255, 0.6);
+  background: var(--bg-secondary);
   border-radius: var(--radius-sm);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border-color);
   opacity: 0.6;
-  transition: opacity 0.3s, box-shadow 0.3s;
+  transition: 0.3s;
 }
-
 .reward-card.unlocked {
   opacity: 1;
-  border-color: rgba(124, 92, 252, 0.5);
-  box-shadow: 0 0 12px rgba(124, 92, 252, 0.15);
+  border-color: #f59e0b;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.2);
 }
-
 .reward-icon {
   font-size: 28px;
-  width: 40px;
-  text-align: center;
+  flex-shrink: 0;
 }
-
 .reward-info {
   flex: 1;
 }
-
 .reward-name {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
 }
-
 .reward-desc {
-  font-size: var(--font-size-sm);
+  font-size: 12px;
   color: var(--text-secondary);
 }
-
 .reward-status {
   font-size: 20px;
 }
 
-/* ---------- Кнопка "Поделиться с друзьями" ---------- */
+/* Кнопка поделиться */
 .share-friends-button {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
-  padding: 16px 24px;
+  padding: 16px;
   background: var(--primary-gradient);
   color: white;
   border: none;
   border-radius: var(--radius-md);
   font-size: 16px;
   font-weight: 600;
-  cursor: pointer;
   box-shadow: var(--shadow-md);
-  transition: all 0.2s ease;
-  min-height: 56px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 48px;
 }
-
 .share-friends-button:active {
   transform: scale(0.97);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-sm);
 }
-
 .share-icon {
   display: flex;
   align-items: center;
-  justify-content: center;
 }
 
-/* ---------- Нижняя навигация (Glassmorphism) ---------- */
+/* ========== НИЖНЯЯ НАВИГАЦИЯ ========== */
 .bottom-nav {
   position: fixed;
   bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(255, 255, 255, 0.8);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 428px;
+  background: var(--bg-card);
   backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background-color: rgba(255, 255, 255, 0.8);
   display: flex;
   justify-content: space-around;
-  align-items: center;
-  padding: 8px 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
-  max-width: 428px;
-  margin: 0 auto;
+  padding: 8px 0 12px;
+  border-top: 1px solid var(--border-color);
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
   z-index: 100;
 }
-
+body.dark-theme .bottom-nav {
+  background-color: rgba(30, 41, 59, 0.85);
+  backdrop-filter: blur(20px);
+}
 .nav-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  background: transparent;
+  gap: 2px;
+  background: none;
   border: none;
   padding: 8px 12px;
-  border-radius: 16px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.2s ease;
-  opacity: 0.6;
-  min-width: 64px;
+  transition: all 0.3s ease;
+  opacity: 0.65;
+  color: var(--text-secondary);
+  min-width: 48px;
   min-height: 48px;
-  justify-content: center;
 }
-
 .nav-item.active {
   opacity: 1;
-  background: rgba(124, 92, 252, 0.1);
+  color: var(--primary);
+  background: rgba(79, 70, 229, 0.08);
+  transform: translateY(-2px);
 }
-
-.nav-item:active {
-  opacity: 0.8;
-}
-
 .nav-icon {
-  font-size: 24px;
-  transition: transform 0.2s ease;
+  font-size: 22px;
+  transition: transform 0.2s;
 }
-
 .nav-item.active .nav-icon {
   transform: scale(1.1);
 }
-
 .nav-label {
   font-size: 11px;
-  font-weight: 500;
-  color: var(--text-primary);
+  font-weight: 600;
 }
 
-/* ---------- Уведомление ---------- */
+/* ========== УВЕДОМЛЕНИЕ ========== */
 .notification {
   position: fixed;
-  top: 50%;
+  bottom: 100px;
   left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.75);
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(8px);
   color: white;
-  padding: 14px 24px;
-  border-radius: 12px;
-  font-size: var(--font-size-sm);
-  z-index: 1000;
+  padding: 12px 24px;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 200;
   opacity: 0;
   transition: opacity 0.3s ease;
   pointer-events: none;
-  text-align: center;
+  white-space: nowrap;
 }
-
 .notification.show {
   opacity: 1;
 }
 
-/* ---------- 2048 Игра ---------- */
+/* ========== 2048 ИГРА ========== */
 .game-tabs {
   display: flex;
   justify-content: center;
   gap: 8px;
   margin-bottom: 16px;
 }
-
 .game-tab {
   padding: 10px 24px;
-  border-radius: 40px;
-  border: 1px solid #E5E7EB;
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
+  border-radius: 30px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: 0.2s;
   color: var(--text-primary);
   min-height: 44px;
 }
-
 .game-tab.active {
   background: var(--primary-gradient);
   color: white;
   border-color: transparent;
+  box-shadow: var(--shadow-md);
 }
-
 .game-2048-container {
-  background: var(--card-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
   padding: 16px;
-  border: 1px solid var(--card-border);
+  border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
-  width: 100%;
-  box-sizing: border-box;
 }
-
 .game-header-2048 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-  gap: 10px;
+  margin-bottom: 14px;
 }
-
 .game-title-2048 {
   font-size: 28px;
   font-weight: 800;
-  background: linear-gradient(135deg, #E67E22, #F39C12);
+  background: linear-gradient(135deg, #d97706, #f59e0b);
   -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   background-clip: text;
-  color: transparent;
-  margin: 0;
 }
-
 .game-scores {
   display: flex;
   gap: 8px;
 }
-
 .score-box {
   background: var(--primary-gradient);
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   padding: 6px 14px;
   text-align: center;
   min-width: 64px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
 }
-
 .score-label {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
-  color: rgba(255,255,255,0.8);
-  letter-spacing: 0.5px;
+  color: rgba(255,255,255,0.85);
 }
-
 .score-value {
   font-size: 20px;
   font-weight: 800;
   color: white;
-  line-height: 1.2;
 }
-
 .game-board-2048 {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
-  background: #BBADA0;
-  border-radius: 12px;
+  background: #bbada0;
+  border-radius: var(--radius-md);
   padding: 8px;
-  margin-bottom: 16px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.tile-cell {
+  margin-bottom: 14px;
   aspect-ratio: 1 / 1;
-  width: 100%;
+}
+.dark-theme .game-board-2048 {
+  background: #8f7a66;
+}
+.tile-cell {
+  aspect-ratio: 1;
   background: rgba(238, 228, 218, 0.35);
   border-radius: 10px;
   display: flex;
@@ -899,10 +739,10 @@ body {
   justify-content: center;
   font-weight: 800;
   font-size: clamp(18px, 6vw, 28px);
-  transition: transform 0.1s ease-in-out;
-  will-change: transform;
+  transition: transform 0.1s;
+  padding: 4px;
+  color: #776e65;
 }
-
 /* Цвета плиток */
 .tile-2 { background: #eee4da; color: #776e65; }
 .tile-4 { background: #ede0c8; color: #776e65; }
@@ -917,21 +757,16 @@ body {
 .tile-2048 { background: #edc22e; color: #f9f6f2; font-size: clamp(14px, 4.5vw, 20px); }
 .tile-super { background: #3c3a32; color: #f9f6f2; font-size: clamp(12px, 4vw, 18px); }
 
-.tile-new {
-  animation: pop 0.2s ease-in-out;
-}
+.tile-new { animation: pop 0.2s ease; }
 @keyframes pop {
-  0% { transform: scale(0); opacity: 0; }
-  80% { transform: scale(1.05); }
-  100% { transform: scale(1); opacity: 1; }
+  0% { transform: scale(0); }
+  80% { transform: scale(1.1); }
+  100% { transform: scale(1); }
 }
-
-.tile-merge {
-  animation: mergeAnim 0.2s ease-in-out;
-}
+.tile-merge { animation: mergeAnim 0.2s ease; }
 @keyframes mergeAnim {
   0% { transform: scale(1); }
-  40% { transform: scale(1.2); background: #f5d76e; }
+  40% { transform: scale(1.25); background: #f5d76e; }
   100% { transform: scale(1); }
 }
 
@@ -939,160 +774,131 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
 }
-
 .new-game-btn, .undo-move-btn {
-  background: linear-gradient(135deg, #8f7a66, #776e65);
+  background: var(--primary-gradient);
   border: none;
-  padding: 10px 20px;
-  border-radius: 40px;
+  padding: 12px 20px;
+  border-radius: 30px;
   color: white;
   font-weight: 700;
   font-size: 14px;
   cursor: pointer;
-  transition: all 0.2s;
   box-shadow: var(--shadow-sm);
   min-height: 44px;
+  transition: 0.2s;
 }
-
 .undo-move-btn {
-  background: linear-gradient(135deg, #E67E22, #D35400);
+  background: linear-gradient(135deg, #ea580c, #d97706);
 }
-
 .new-game-btn:active, .undo-move-btn:active {
   transform: scale(0.96);
 }
-
 .game-status {
   font-size: 14px;
   font-weight: 600;
-  padding: 6px 14px;
-  border-radius: 40px;
-  background: rgba(0,0,0,0.05);
+  padding: 4px 14px;
+  border-radius: 20px;
+  background: var(--bg-secondary);
 }
-
 .swipe-hint {
   text-align: center;
   font-size: 11px;
   color: var(--text-secondary);
-  margin-top: 12px;
-  opacity: 0.7;
+  margin-top: 10px;
+  opacity: 0.8;
 }
 
-/* ---------- Таблица лидеров ---------- */
+/* Неоновая тема для 2048 */
+.game-2048-container.neon-theme .game-board-2048 {
+  background: #0a0a0a;
+  box-shadow: 0 0 15px #00ffff;
+}
+.game-2048-container.neon-theme .tile-cell {
+  background: rgba(0, 255, 255, 0.1);
+  color: white;
+  text-shadow: 0 0 8px currentColor;
+  border: 1px solid rgba(0,255,255,0.3);
+}
+/* (остальные неон-цвета как в исходном коде, можно не менять) */
+
+/* ========== ТАБЛИЦА ЛИДЕРОВ ========== */
 .leaderboard-container {
-  background: var(--card-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
   padding: 16px;
-  border: 1px solid var(--card-border);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
 }
-
 .leaderboard-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
-
 .leaderboard-title {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
 }
-
 .refresh-leaderboard {
   background: none;
   border: none;
   font-size: 22px;
   cursor: pointer;
   transition: transform 0.3s;
+  padding: 8px;
   min-width: 44px;
   min-height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
-
 .refresh-leaderboard:active {
   transform: rotate(90deg);
 }
-
 .leaderboard-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
-
 .leaderboard-item {
   display: flex;
   align-items: center;
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 14px;
-  border: 1px solid rgba(0,0,0,0.05);
   gap: 12px;
-  transition: background 0.2s;
-  min-height: 56px;
+  padding: 10px 14px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  transition: 0.2s;
 }
-
 .leaderboard-item.current-user {
   background: var(--primary-gradient);
   color: white;
   border: none;
 }
-
-.leaderboard-item.has-frame {
-  border: 2px solid transparent;
-  background-clip: padding-box;
-  position: relative;
-}
-
-.leaderboard-item.has-frame::before {
-  content: '';
-  position: absolute;
-  top: -2px; left: -2px; right: -2px; bottom: -2px;
-  background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
-  border-radius: inherit;
-  z-index: -1;
-}
-
 .leaderboard-rank {
   font-size: 16px;
   font-weight: 800;
   width: 32px;
-  text-align: center;
 }
-
 .leaderboard-avatar {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: var(--primary-gradient);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
-  font-weight: 700;
   color: white;
+  font-weight: 700;
   overflow: hidden;
-  flex-shrink: 0;
 }
-
 .leaderboard-avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-
 .leaderboard-info {
   flex: 1;
-  min-width: 0;
 }
-
 .leaderboard-name {
   font-size: 15px;
   font-weight: 600;
@@ -1100,43 +906,36 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
 .leaderboard-score {
-  font-size: 15px;
   font-weight: 700;
   display: flex;
   align-items: center;
   gap: 4px;
 }
-
-.leaderboard-score span {
-  font-size: 12px;
-  font-weight: 500;
-  opacity: 0.8;
-}
-
 .leaderboard-share-btn {
   background: none;
   border: none;
-  padding: 8px;
-  margin-left: 8px;
-  border-radius: 8px;
   cursor: pointer;
-  transition: background 0.2s;
+  padding: 8px;
+  border-radius: 8px;
   min-width: 44px;
   min-height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: var(--text-secondary);
+  transition: 0.2s;
 }
-
+.leaderboard-share-btn:active {
+  background: rgba(79, 70, 229, 0.1);
+}
 .leaderboard-share-btn svg {
   width: 18px;
   height: 18px;
   fill: currentColor;
 }
 
-/* ---------- Модальное окно ---------- */
+/* ========== МОДАЛЬНОЕ ОКНО ========== */
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -1147,117 +946,41 @@ body {
   align-items: center;
   justify-content: center;
 }
-
 .modal-content {
-  background: var(--card-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: 24px;
-  padding: 28px 24px;
-  max-width: 340px;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  max-width: 320px;
   width: 90%;
   text-align: center;
   box-shadow: var(--shadow-lg);
-  border: 1px solid var(--card-border);
 }
-
-.modal-content h3 {
-  font-size: 22px;
-  margin-bottom: 12px;
-}
-
-.modal-content p {
-  font-size: 14px;
-  line-height: 1.5;
-  margin-bottom: 24px;
-  color: var(--text-secondary);
-}
-
+.modal-content h3 { font-size: 20px; margin-bottom: 12px; }
+.modal-content p { font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; }
 .modal-btn {
   display: block;
   width: 100%;
   padding: 14px;
-  border-radius: 14px;
+  border-radius: var(--radius-sm);
   border: none;
   font-weight: 700;
   font-size: 15px;
   cursor: pointer;
   margin-bottom: 10px;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: 0.2s;
   min-height: 48px;
 }
+.modal-btn:active { transform: scale(0.97); }
+.modal-sub-btn { background: #0088cc; color: white; text-decoration: none; }
+.modal-check-btn { background: var(--primary-gradient); color: white; }
+.modal-close-btn { background: transparent; border: 1px solid var(--border-color); color: var(--text-primary); }
+.modal-status { font-size: 14px; margin-top: 10px; min-height: 20px; }
 
-.modal-btn:active {
-  transform: scale(0.97);
+/* ========== АДАПТИВНОСТЬ ========== */
+@media (max-width: 380px) {
+  .main-content { padding: 16px 12px; }
+  .game-card, .exchange-card { padding: 12px; }
+  .gamefi-banner { height: 135px; }
+  .gamefi-title { font-size: 17px; }
 }
-
-.modal-sub-btn {
-  background: linear-gradient(135deg, #0088cc, #006699);
-  color: white;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-check-btn {
-  background: var(--primary-gradient);
-  color: white;
-}
-
-.modal-close-btn {
-  background: transparent;
-  border: 1px solid #E5E7EB;
-  color: var(--text-primary);
-}
-
-.modal-status {
-  font-size: 14px;
-  font-weight: 600;
-  margin-top: 12px;
-  min-height: 20px;
-}
-
-/* ---------- Адаптивные уточнения ---------- */
-@media (max-width: 400px) {
-  .main-content {
-    padding: 20px 12px 12px;
-  }
-  .profile-header {
-    padding: 16px;
-  }
-  .game-card, .exchange-card {
-    padding: 14px;
-  }
-  .play-button, .exchange-button {
-    padding: 8px 14px;
-    font-size: 12px;
-  }
-}
-
-/* Неоновая тема для 2048 (разблокируется рефералами) */
-.game-2048-container.neon-theme .game-board-2048 {
-  background: #0d0d0d;
-  box-shadow: 0 0 20px #00ffff, 0 0 40px #ff00ff;
-}
-
-.game-2048-container.neon-theme .tile-cell {
-  background: rgba(0, 255, 255, 0.1);
-  color: #fff;
-  text-shadow: 0 0 6px currentColor;
-  border: 1px solid rgba(0, 255, 255, 0.3);
-}
-
-/* (оставлены старые неоновые стили плиток, они есть в исходном CSS, можно не дублировать полностью) */
-
-/* Анимация затухания splash-screen */
-#splash-screen {
-  position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: var(--surface-color);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  transition: opacity 0.4s ease;
-}
+/* Все интерактивные элементы >=44px, соблюдено */
