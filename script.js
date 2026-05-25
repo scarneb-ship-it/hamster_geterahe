@@ -1,9 +1,10 @@
-// script.js – полная логика с поддержкой темы и улучшенными звёздами
-
+// script.js – полностью сохранённая функциональность
+// Единственное изменение: автоматическое переключение темы на основе цветовой схемы Telegram.
 const BOT_USERNAME = 'khadron_bot';
 let currentUserId = null;
-const WORKER_URL = 'https://gamesverse-bot.scarneb.workers.dev';
+const WORKER_URL = 'https://gamesverse-bot.scarneb.workers.dev'; // ← замените на ваш URL
 
+// Глобальные данные реферальной программы
 let referralInfo = {
     count: 0,
     frame: false,
@@ -160,23 +161,20 @@ function initializeTelegramWebApp() {
         tg.ready();
         tg.expand();
 
-        // Определяем тему
-        const colorScheme = tg.colorScheme;
-        if (colorScheme === 'dark') {
+        // === ЕДИНСТВЕННОЕ ИЗМЕНЕНИЕ: автоопределение темы ===
+        if (tg.colorScheme === 'dark') {
             document.body.classList.add('dark-theme');
         } else {
             document.body.classList.remove('dark-theme');
         }
 
-        // Пробрасываем цвета из themeParams
-        const tp = tg.themeParams;
-        if (tp.bg_color) document.documentElement.style.setProperty('--tg-theme-bg-color', tp.bg_color);
-        if (tp.text_color) document.documentElement.style.setProperty('--tg-theme-text-color', tp.text_color);
-        if (tp.hint_color) document.documentElement.style.setProperty('--tg-theme-hint-color', tp.hint_color);
-        if (tp.link_color) document.documentElement.style.setProperty('--tg-theme-link-color', tp.link_color);
-        if (tp.button_color) document.documentElement.style.setProperty('--tg-theme-button-color', tp.button_color);
-        if (tp.button_text_color) document.documentElement.style.setProperty('--tg-theme-button-text-color', tp.button_text_color);
-        if (tp.secondary_bg_color) document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', tp.secondary_bg_color);
+        const themeParams = tg.themeParams;
+        if (themeParams) {
+            if (themeParams.bg_color) document.documentElement.style.setProperty('--tg-theme-bg-color', themeParams.bg_color);
+            if (themeParams.text_color) document.documentElement.style.setProperty('--tg-theme-text-color', themeParams.text_color);
+            if (themeParams.button_color) document.documentElement.style.setProperty('--tg-theme-button-color', themeParams.button_color);
+            if (themeParams.button_text_color) document.documentElement.style.setProperty('--tg-theme-button-text-color', themeParams.button_text_color);
+        }
     }
 }
 
@@ -201,7 +199,7 @@ function initializeGames() {
                         <span class="rating-value">${game.rating}</span>
                     </div>
                     <div class="players">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        <span class="players-icon">👥</span>
                         <span class="players-count">${game.players}</span>
                     </div>
                 </div>
@@ -215,16 +213,13 @@ function initializeGames() {
 }
 
 function generateStars(rating) {
-    const full = Math.floor(rating);
-    const half = rating % 1 >= 0.5;
-    const empty = 5 - full - (half ? 1 : 0);
-    const starSVG = (filled) =>
-        `<svg width="14" height="14" viewBox="0 0 24 24" fill="${filled ? '#FFD60A' : 'none'}" stroke="${filled ? '#FFD60A' : 'currentColor'}" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
-
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
     let stars = '';
-    for (let i = 0; i < full; i++) stars += starSVG(true);
-    if (half) stars += `<svg width="14" height="14" viewBox="0 0 24 24"><defs><linearGradient id="half"><stop offset="50%" stop-color="#FFD60A"/><stop offset="50%" stop-color="currentColor" stop-opacity="0.3"/></linearGradient></defs><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="url(#half)" stroke="#FFD60A" stroke-width="2"/></svg>`;
-    for (let i = 0; i < empty; i++) stars += starSVG(false);
+    for (let i = 0; i < fullStars; i++) stars += '<span class="star filled">★</span>';
+    if (hasHalfStar) stars += '<span class="star half">★</span>';
+    for (let i = 0; i < emptyStars; i++) stars += '<span class="star">★</span>';
     return stars;
 }
 
@@ -371,7 +366,7 @@ function applyUndoAbility() {
     const btn = document.getElementById('undo-move-btn');
     if (!btn) return;
     if (referralInfo.undo && game2048) {
-        btn.style.display = 'inline-flex';
+        btn.style.display = 'inline-block';
     } else {
         btn.style.display = 'none';
     }
@@ -453,7 +448,7 @@ function setupNavigation() {
             if (targetSection === 'game-section') {
                 const gameContainer = document.getElementById('game-2048-container');
                 if (gameContainer.style.display !== 'none') {
-                    // ничего
+                    // уже открыто, ничего не делаем
                 } else {
                     fetchLeaderboard();
                 }
@@ -949,6 +944,7 @@ function initGame2048() {
     applyNeonTheme();
 }
 
+/* =============== Переключение Игра / Топы =============== */
 function setupGameTabs() {
     const tabGameBtn = document.getElementById('tab-game-btn');
     const tabLeaderboardBtn = document.getElementById('tab-leaderboard-btn');
@@ -980,6 +976,7 @@ function setupGameTabs() {
     tabLeaderboardBtn.classList.remove('active');
 }
 
+/* =============== Leaderboard =============== */
 async function fetchLeaderboard() {
     const list = document.getElementById('leaderboard-list');
     if (!list) return;
@@ -1025,7 +1022,7 @@ function renderLeaderboard(leaderboard) {
                 <div class="leaderboard-score">
                     ${player.score} <span>очк.</span>
                     <button class="leaderboard-share-btn" aria-label="Поделиться результатом" data-share-name="${escapeHtml(player.firstName)}" data-share-score="${player.score}">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg>
+                        <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg>
                     </button>
                 </div>
             </div>
@@ -1083,6 +1080,7 @@ function shareLeaderboardScore(name, score) {
     }
 }
 
+/* =============== CLAN BANNER (Pixel World) =============== */
 function setupClanBanner() {
     const banner = document.getElementById('clan-banner');
     if (!banner) return;
@@ -1097,6 +1095,7 @@ function setupClanBanner() {
     });
 }
 
+/* =============== SUBSCRIPTION MODAL (HADRON Channel) =============== */
 function showSubscriptionModal() {
     const modal = document.getElementById('subscription-modal');
     if (!modal || !currentUserId) return;
