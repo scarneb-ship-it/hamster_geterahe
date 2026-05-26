@@ -23,8 +23,8 @@
     </div>
   </div>
 
-  <!-- ========== ОСНОВНОЕ ПРИЛОЖЕНИЕ ========== -->
-  <div class="app" id="app">
+  <!-- ========== ОСНОВНОЕ ПРИЛОЖЕНИЕ (скрыто до подписки) ========== -->
+  <div class="app" id="app" style="display:none;">
 
     <!-- ====== ШАПКА С МОНЕТАМИ ====== -->
     <header class="app-header">
@@ -66,6 +66,14 @@
           </div>
         </div>
 
+        <!-- Фильтр категорий -->
+        <div class="filter-bar" id="filter-bar">
+          <button class="filter-chip active" data-cat="all">Все</button>
+          <button class="filter-chip" data-cat="ton">TON</button>
+          <button class="filter-chip" data-cat="gamefi">GameFi</button>
+          <button class="filter-chip" data-cat="casual">Casual</button>
+        </div>
+
         <div class="games-list" id="games-list"></div>
       </section>
 
@@ -89,6 +97,14 @@
                 <span id="click-per-sec">0/с</span>
               </div>
             </div>
+          </div>
+
+          <!-- Ежедневный бонус -->
+          <div class="daily-bonus" id="daily-bonus">
+            <span class="daily-bonus-icon">🎁</span>
+            <span class="daily-bonus-text">Ежедневный бонус:</span>
+            <span class="daily-bonus-timer" id="daily-timer">--:--:--</span>
+            <button class="daily-claim-btn" id="daily-claim-btn" disabled>Забрать +50⭐</button>
           </div>
 
           <!-- Кнопка кликера -->
@@ -174,6 +190,9 @@
             </div>
           </div>
         </div>
+
+        <!-- Проверка подписки (если сброшена) -->
+        <button class="check-sub-btn" id="recheck-sub-btn" style="display:none;">Проверить подписку на HADRON</button>
 
         <!-- Реферальная программа -->
         <div class="referral-card">
@@ -266,15 +285,14 @@
   <!-- ====== ВСПЛЫВАЮЩЕЕ УВЕДОМЛЕНИЕ ====== -->
   <div class="toast" id="toast"></div>
 
-  <!-- ====== МОДАЛКА ПОДПИСКИ ====== -->
+  <!-- ====== МОДАЛКА ОБЯЗАТЕЛЬНОЙ ПОДПИСКИ (без кнопки "Позже") ====== -->
   <div class="modal-overlay" id="sub-modal" style="display:none">
     <div class="modal-box">
       <div class="modal-emoji">⚛️</div>
       <h3>Подпишись на HADRON</h3>
-      <p>Узнавай первым о новых играх, розыгрышах и наградах! За подписку — <strong>+100 ⭐ звёзд</strong> прямо сейчас!</p>
+      <p>Чтобы пользоваться приложением, нужно быть подписанным на канал <strong>HADRON</strong>.</p>
       <a href="https://t.me/+GNfQDYSAYc4wNDBi" target="_blank" class="modal-btn modal-btn--primary" id="sub-link-btn">Подписаться на HADRON</a>
-      <button class="modal-btn modal-btn--secondary" id="sub-check-btn">✅ Я подписался (+100 ⭐)</button>
-      <button class="modal-btn modal-btn--ghost" id="sub-close-btn">Позже</button>
+      <button class="modal-btn modal-btn--secondary" id="sub-check-btn">✅ Я подписался</button>
       <p class="modal-status" id="sub-status"></p>
     </div>
   </div>
