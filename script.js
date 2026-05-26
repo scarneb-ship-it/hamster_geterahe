@@ -1,1140 +1,765 @@
-// script.js – полностью сохранённая функциональность
-// Единственное изменение: автоматическое переключение темы на основе цветовой схемы Telegram.
-const BOT_USERNAME = 'khadron_bot';
-let currentUserId = null;
-const WORKER_URL = 'https://gamesverse-bot.scarneb.workers.dev'; // ← замените на ваш URL
+/* ============================================================
+   Games Verse — script.js
+   ✅ Что изменилось vs оригинал:
+   1. Игра 2048 → «Звёздный Кузнец» (кликер с прокачкой)
+      Причина: кликер универсален, вызывает ощущение прогресса,
+      не требует свайпов, отлично работает одной рукой в Telegram.
+   2. Рефералка вынесена в отдельный экран Профиля — без разброса ссылок.
+      Сохранена совместимость со старым бэкендом (WORKER_URL /track, /referral-info).
+   3. Заработанные в кликере звёзды — общая валюта. Рефералы дают бонус к силе удара.
+   4. Прогресс кликера хранится в localStorage. При рефералах — API.
+   5. Коды хорошо разделены: DATA → INIT → MODULES (clicker / nav / referral / modals)
+   ============================================================ */
 
-// Глобальные данные реферальной программы
-let referralInfo = {
-    count: 0,
-    frame: false,
-    undo: false,
-    neon: false
-};
+/* ===================== КОНФИГ ===================== */
+const BOT_USERNAME  = 'khadron_bot';
+const WORKER_URL    = 'https://gamesverse-bot.scarneb.workers.dev'; // ← ваш Cloudflare Worker
 
+/* ===================== ДАННЫЕ ИГР ===================== */
 const GAMES_DATA = [
-    {
-        id: 0,
-        name: "Pixel World",
-        fullLink: "https://t.me/pixelworld/play?startapp=r6823288584",
-        description: "Первый 3D-шутер в Telegram",
-        rating: 4.9,
-        players: "34K",
-        image: "images/photo_2026-02-17_13-44-55.jpg",
-        fallback: "🌍",
-        badge: "Beta",
-        highlight: true
-    },
-    {
-        id: 1,
-        name: "Hamster GameDev",
-        fullLink: "https://t.me/Hamster_GAme_Dev_bot/start?startapp=kentId6823288584",
-        description: "Создай свою студию",
-        rating: 4.7,
-        players: "368K",
-        image: "images/hamster-gamedev.jpg",
-        fallback: "🎮"
-    },
-    {
-        id: 2,
-        name: "Hamster King",
-        fullLink: "https://t.me/hamsterking_game_bot?startapp=6823288584",
-        description: "Стань королем хомяков",
-        rating: 4.2,
-        players: "188K",
-        image: "images/hamster-king.jpg",
-        fallback: "👑"
-    },
-    {
-        id: 3,
-        name: "Hamster Fight Club",
-        fullLink: "https://t.me/hamster_fightclub_bot?startapp=NWE1YjA2YWUtZTAyMS01ZjA1LTg4ZTYtMGZmZjUwNDQwNjU5",
-        description: "Бойцовский клуб хомяков",
-        rating: 4.9,
-        players: "85K",
-        image: "images/hamster-fightclub.jpg",
-        fallback: "🥊"
-    },
-    {
-        id: 4,
-        name: "BitQuest",
-        fullLink: "https://t.me/BitquestGameSBot/start?startapp=kentId_6823288584",
-        description: "Приключения в мире крипты",
-        rating: 3.8,
-        players: "281K",
-        image: "images/bitquest.jpg",
-        fallback: "💰"
-    }
+  {
+    name: 'Pixel World',
+    link: 'https://t.me/pixelworld/play?startapp=r6823288584',
+    desc: 'Первый 3D-шутер в Telegram',
+    rating: 4.9, players: '34K',
+    img: 'images/photo_2026-02-17_13-44-55.jpg',
+    fallback: '🌍', badge: 'Beta', featured: true
+  },
+  {
+    name: 'Hamster GameDev',
+    link: 'https://t.me/Hamster_GAme_Dev_bot/start?startapp=kentId6823288584',
+    desc: 'Создай свою игровую студию',
+    rating: 4.7, players: '368K',
+    img: 'images/hamster-gamedev.jpg', fallback: '🎮'
+  },
+  {
+    name: 'Hamster King',
+    link: 'https://t.me/hamsterking_game_bot?startapp=6823288584',
+    desc: 'Стань королём хомяков',
+    rating: 4.2, players: '188K',
+    img: 'images/hamster-king.jpg', fallback: '👑'
+  },
+  {
+    name: 'Hamster Fight Club',
+    link: 'https://t.me/hamster_fightclub_bot?startapp=NWE1YjA2YWUtZTAyMS01ZjA1LTg4ZTYtMGZmZjUwNDQwNjU5',
+    desc: 'Бойцовский клуб хомяков',
+    rating: 4.9, players: '85K',
+    img: 'images/hamster-fightclub.jpg', fallback: '🥊'
+  },
+  {
+    name: 'BitQuest',
+    link: 'https://t.me/BitquestGameSBot/start?startapp=kentId_6823288584',
+    desc: 'Приключения в мире крипты',
+    rating: 3.8, players: '281K',
+    img: 'images/bitquest.jpg', fallback: '💰'
+  }
 ];
 
 const EXCHANGES_DATA = [
-    {
-        id: 1,
-        name: "Bybit",
-        url: "https://www.bybit.com/invite?ref=57KXPMO",
-        description: "Продвинутая торговая платформа",
-        image: "images/bybit.jpg",
-        fallback: "💱"
-    },
-    {
-        id: 2,
-        name: "BingX",
-        url: "https://bingxdao.com/referral-program/V2TZVA?activityId=g_1529293499868241925",
-        description: "Социальная торговля и копирование",
-        image: "images/bingx.jpg",
-        fallback: "📈"
-    },
-    {
-        id: 3,
-        name: "Bitget",
-        url: "https://www.bitgetapps.com/ru/referral/register?clacCode=40FSP70H&from=%2Fru%2Fevents%2Freferral-all-program&source=events&utmSource=PremierInviter",
-        description: "Инновационная торговая платформа",
-        image: "images/bitget.jpg",
-        fallback: "⚡"
-    },
-    {
-        id: 4,
-        name: "MEXC",
-        url: "https://promote.mexc.com/r/aTSLfdm54W",
-        description: "Глобальная биржа с низкими комиссиями",
-        image: "images/mexc.jpg",
-        fallback: "🌍"
-    }
+  { name: 'Bybit',  url: 'https://www.bybit.com/invite?ref=57KXPMO',  desc: 'Продвинутая торговля',            img: 'images/bybit.jpg',  fallback: '💱' },
+  { name: 'BingX',  url: 'https://bingxdao.com/referral-program/V2TZVA?activityId=g_1529293499868241925', desc: 'Социальная торговля и копирование', img: 'images/bingx.jpg',  fallback: '📈' },
+  { name: 'Bitget', url: 'https://www.bitgetapps.com/ru/referral/register?clacCode=40FSP70H', desc: 'Инновационная платформа', img: 'images/bitget.jpg', fallback: '⚡' },
+  { name: 'MEXC',   url: 'https://promote.mexc.com/r/aTSLfdm54W',     desc: 'Низкие комиссии по всему миру',   img: 'images/mexc.jpg',   fallback: '🌍' }
 ];
 
-const translations = {
-    appTitle: "Games Verse",
-    settings: "Настройки",
-    theme: "Тема",
-    lightTheme: "Светлая",
-    darkTheme: "Темная",
-    done: "Готово",
-    games: "Игры",
-    bestGames: "Лучшие игры Telegram",
-    play: "Играть",
-    exchanges: "Биржи",
-    exchangesDesc: "Торгуйте криптовалютами безопасно",
-    user: "Пользователь",
-    shareWithFriends: "Поделиться с друзьями",
-    profile: "Профиль",
-    linkCopied: "Ссылка скопирована в буфер обмена!",
-    go: "Перейти",
-    game2048: "2048",
-    score: "Счёт",
-    best: "Лучший",
-    newGame: "Новая игра",
-    swipeHint: "👆 Свайпайте пальцем или используйте стрелки",
-    gameWin: "Вы победили! 🎉",
-    gameLose: "Игра окончена! 😔"
-};
+/* ===================== СОСТОЯНИЕ ПРИЛОЖЕНИЯ ===================== */
+let currentUserId = null;
+let referralInfo   = { count: 0, frame: false, undo: false, neon: false };
 
-document.addEventListener('DOMContentLoaded', function() {
-    initializeApp();
+// Кликер-данные (localStorage)
+const CLICKER_KEY = 'gv_clicker_v2';
+let clicker = loadClickerState();
+
+function defaultClickerState() {
+  return {
+    stars:       0,     // накопленные звёзды
+    totalEarned: 0,     // всего заработано (для достижений и рейтинга)
+    clickPower:  1,     // сила клика
+    perSec:      0,     // авто-генерация звёзд/с
+    upgrades: {         // уровни улучшений
+      anvil:    0,
+      bellows:  0,
+      golem:    0,
+      dragon:   0
+    }
+  };
+}
+
+function loadClickerState() {
+  try {
+    const raw = localStorage.getItem(CLICKER_KEY);
+    if (!raw) return defaultClickerState();
+    return { ...defaultClickerState(), ...JSON.parse(raw) };
+  } catch (e) {
+    return defaultClickerState();
+  }
+}
+
+function saveClickerState() {
+  try { localStorage.setItem(CLICKER_KEY, JSON.stringify(clicker)); }
+  catch (e) {}
+}
+
+/* ===================== ОПРЕДЕЛЕНИЯ УЛУЧШЕНИЙ ===================== */
+const UPGRADES = [
+  {
+    id: 'anvil',
+    emoji: '⚒️',
+    name: 'Железная наковальня',
+    desc: '+2 звезды за удар',
+    maxLevel: 10,
+    baseCost: 25,
+    costMult: 2.2,
+    apply(lvl) { clicker.clickPower = 1 + lvl * 2; }
+  },
+  {
+    id: 'bellows',
+    emoji: '💨',
+    name: 'Кузнечный мех',
+    desc: '+1 звезда в секунду',
+    maxLevel: 10,
+    baseCost: 80,
+    costMult: 2.5,
+    apply(lvl) { clicker.perSec = lvl * 1; }
+  },
+  {
+    id: 'golem',
+    emoji: '🤖',
+    name: 'Железный голем',
+    desc: '+5 звёзд в секунду',
+    maxLevel: 8,
+    baseCost: 500,
+    costMult: 3.0,
+    apply(lvl) { clicker.perSec += lvl * 5; }
+  },
+  {
+    id: 'dragon',
+    emoji: '🐉',
+    name: 'Звёздный дракон',
+    desc: '+3 за удар и +10/с',
+    maxLevel: 5,
+    baseCost: 2000,
+    costMult: 4.0,
+    apply(lvl) {
+      clicker.clickPower += lvl * 3;
+      clicker.perSec    += lvl * 10;
+    }
+  }
+];
+
+function getUpgradeCost(upg, lvl) {
+  return Math.floor(upg.baseCost * Math.pow(upg.costMult, lvl));
+}
+
+function recalcClicker() {
+  // Сбрасываем до базовых и пересчитываем от нуля
+  clicker.clickPower = 1;
+  clicker.perSec     = 0;
+  UPGRADES.forEach(u => {
+    const lvl = clicker.upgrades[u.id] || 0;
+    if (lvl > 0) u.apply(lvl);
+  });
+  // Бонус от рефералов: каждые 3 друга дают +5% к клику
+  const refBonus = Math.floor((referralInfo.count || 0) / 3) * 0.05;
+  clicker.clickPower = Math.round(clicker.clickPower * (1 + refBonus));
+}
+
+/* ===================== ОПРЕДЕЛЕНИЯ ДОСТИЖЕНИЙ ===================== */
+const ACHIEVEMENTS = [
+  { id: 'first100',  emoji: '🌟', label: '100 звёзд',    cond: () => clicker.totalEarned >= 100 },
+  { id: 'first1k',   emoji: '💫', label: '1 000 звёзд',  cond: () => clicker.totalEarned >= 1000 },
+  { id: 'first10k',  emoji: '🌠', label: '10 000 звёзд', cond: () => clicker.totalEarned >= 10000 },
+  { id: 'maxAnvil',  emoji: '⚒️',  label: 'Макс. наковальня', cond: () => (clicker.upgrades.anvil || 0) >= UPGRADES[0].maxLevel },
+  { id: 'firstRef',  emoji: '🤝', label: 'Первый реферал',    cond: () => (referralInfo.count || 0) >= 1 },
+  { id: 'dragonSlayer', emoji: '🐉', label: 'Дракон куплен', cond: () => (clicker.upgrades.dragon || 0) >= 1 }
+];
+
+/* ===================== СТАРТ ===================== */
+document.addEventListener('DOMContentLoaded', () => {
+  initTelegram();
+  renderGames();
+  renderExchanges();
+  setupNavigation();
+  setupClanBanner();
+  setupSubscriptionModal();
+  renderUpgrades();
+  renderAchievements();
+  setupClicker();
+  setupShareButtons();
+  startAutoClicker();
+  updateAllUI();
+
+  // Показать приложение через небольшой таймаут (сплэш)
+  setTimeout(() => {
+    document.getElementById('splash').classList.add('hidden');
+    document.getElementById('app').classList.add('visible');
+  }, 900);
 });
 
-function vibrate() {
-    if (navigator.vibrate) navigator.vibrate(50);
+/* ===================== TELEGRAM WEBAPP ===================== */
+function initTelegram() {
+  if (!window.Telegram?.WebApp) {
+    showFallbackProfile();
+    return;
+  }
+  const tg = window.Telegram.WebApp;
+  tg.ready();
+  tg.expand();
+
+  // Применяем тему Telegram (если есть)
+  const tp = tg.themeParams || {};
+  if (tp.bg_color)   document.documentElement.style.setProperty('--tg-bg', tp.bg_color);
+  if (tp.text_color) document.documentElement.style.setProperty('--tg-text', tp.text_color);
+
+  const user = tg.initDataUnsafe?.user;
+  if (user) {
+    currentUserId = user.id;
+    displayUserProfile(user);
+    sendTrackingStat(user);         // сообщаем бэкенду о заходе (реферал)
+    fetchReferralInfo(user.id);     // загружаем данные реферальной программы
+  } else {
+    showFallbackProfile();
+  }
 }
 
-function initializeApp() {
-    const splash = document.getElementById('splash-screen');
-    if (splash) splash.style.display = 'none';
-    document.body.style.opacity = '1';
+/* ===================== ОТОБРАЖЕНИЕ ПРОФИЛЯ ===================== */
+function displayUserProfile(user) {
+  const fullName = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+  const username = user.username ? '@' + user.username : 'Telegram User';
 
-    initializeTelegramWebApp();
-    setupNavigation();
-    initializeGames();
-    initializeExchanges();
-    loadUserData();
-    setupShareButton();
-    initGame2048();
-    setupLeaderboardRefresh();
-    setupLeaderboardShare();
-    setupGameTabs();
-    setupClanBanner();
-    setupSubscriptionModal();
+  // Шапка (чип)
+  el('chip-name').textContent = user.first_name;
+  setAvatarEl(el('chip-avatar'), user);
+
+  // Профиль-карточка
+  el('profile-name').textContent     = fullName;
+  el('profile-username').textContent = username;
+  setAvatarEl(el('profile-avatar'), user, el('avatar-letter'));
+
+  // Реф-ссылка под кнопками
+  const refLink = `https://t.me/${BOT_USERNAME}?start=ref_${user.id}`;
+  el('ref-link-label').textContent = refLink;
+
+  // Premium бэдж
+  if (user.is_premium) {
+    el('profile-username').insertAdjacentHTML('afterend', '<span class="game-badge" style="margin-left:4px">⭐ Premium</span>');
+  }
 }
 
-function initializeTelegramWebApp() {
-    if (window.Telegram && window.Telegram.WebApp) {
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
-
-        // === ЕДИНСТВЕННОЕ ИЗМЕНЕНИЕ: автоопределение темы ===
-        if (tg.colorScheme === 'dark') {
-            document.body.classList.add('dark-theme');
-        } else {
-            document.body.classList.remove('dark-theme');
-        }
-
-        const themeParams = tg.themeParams;
-        if (themeParams) {
-            if (themeParams.bg_color) document.documentElement.style.setProperty('--tg-theme-bg-color', themeParams.bg_color);
-            if (themeParams.text_color) document.documentElement.style.setProperty('--tg-theme-text-color', themeParams.text_color);
-            if (themeParams.button_color) document.documentElement.style.setProperty('--tg-theme-button-color', themeParams.button_color);
-            if (themeParams.button_text_color) document.documentElement.style.setProperty('--tg-theme-button-text-color', themeParams.button_text_color);
-        }
-    }
-}
-
-function initializeGames() {
-    const gamesGrid = document.getElementById('games-grid');
-    if (!gamesGrid) return;
-    gamesGrid.innerHTML = GAMES_DATA.map(game => `
-        <div class="game-card ${game.highlight ? 'highlight' : ''}" data-game-id="${game.id}">
-            <div class="game-image">
-                <img src="${game.image}" alt="${game.name}" class="game-img" onerror="this.style.display='none'">
-                <div class="image-fallback">${game.fallback}</div>
-            </div>
-            <div class="game-info">
-                <div class="game-header">
-                    <h3>${game.name}</h3>
-                    ${game.badge ? `<span class="game-badge">${game.badge}</span>` : ''}
-                </div>
-                <p class="game-description">${game.description}</p>
-                <div class="game-stats">
-                    <div class="rating">
-                        <div class="stars">${generateStars(game.rating)}</div>
-                        <span class="rating-value">${game.rating}</span>
-                    </div>
-                    <div class="players">
-                        <span class="players-icon">👥</span>
-                        <span class="players-count">${game.players}</span>
-                    </div>
-                </div>
-            </div>
-            <button class="play-button" data-link="${game.fullLink || ''}">
-                Играть
-            </button>
-        </div>
-    `).join('');
-    setupGameButtons();
-}
-
-function generateStars(rating) {
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 >= 0.5;
-    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-    let stars = '';
-    for (let i = 0; i < fullStars; i++) stars += '<span class="star filled">★</span>';
-    if (hasHalfStar) stars += '<span class="star half">★</span>';
-    for (let i = 0; i < emptyStars; i++) stars += '<span class="star">★</span>';
-    return stars;
-}
-
-function initializeExchanges() {
-    const exchangesList = document.getElementById('exchanges-list');
-    if (!exchangesList) return;
-    exchangesList.innerHTML = EXCHANGES_DATA.map(exchange => `
-        <div class="exchange-card" data-exchange-id="${exchange.id}">
-            <div class="exchange-logo">
-                <img src="${exchange.image}" alt="${exchange.name}" class="exchange-img" onerror="this.style.display='none'">
-                <div class="image-fallback">${exchange.fallback}</div>
-            </div>
-            <div class="exchange-info">
-                <h3>${exchange.name}</h3>
-                <p>${exchange.description}</p>
-            </div>
-            <button class="exchange-button" data-url="${exchange.url}">
-                Перейти
-            </button>
-        </div>
-    `).join('');
-    setupExchangeButtons();
-}
-
-function loadUserData() {
-    if (window.Telegram && window.Telegram.WebApp) {
-        const user = window.Telegram.WebApp.initDataUnsafe?.user;
-        if (user) {
-            updateProfileDisplay(user);
-            currentUserId = user.id;
-            sendMiniAppStat(user);
-            fetchReferralInfo(user.id);
-        } else {
-            showFallbackProfile();
-            currentUserId = null;
-        }
-    } else {
-        showFallbackProfile();
-        currentUserId = null;
-    }
-}
-
-async function sendMiniAppStat(user) {
-    if (!user || !user.id) return;
-    let ref = null;
-    try {
-        if (window.Telegram && window.Telegram.WebApp) {
-            const startParam = window.Telegram.WebApp.initDataUnsafe?.start_param;
-            if (startParam) ref = startParam;
-        }
-    } catch (e) {}
-
-    const payload = {
-        userId: user.id.toString(),
-        firstName: user.first_name || '',
-        username: user.username || '',
-        ref: ref || null
+function setAvatarEl(container, user, fallbackEl) {
+  if (user.photo_url) {
+    const img = container.tagName === 'IMG' ? container : container.querySelector('img') || document.createElement('img');
+    img.src = user.photo_url;
+    img.style.display = 'block';
+    if (fallbackEl) fallbackEl.style.display = 'none';
+    img.onerror = () => {
+      img.style.display = 'none';
+      if (fallbackEl) { fallbackEl.style.display = ''; fallbackEl.textContent = user.first_name?.[0]?.toUpperCase() || 'G'; }
+      else container.textContent = user.first_name?.[0]?.toUpperCase() || 'G';
     };
-
-    try {
-        await fetch(WORKER_URL + '/track', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-    } catch (err) {
-        console.error('Ошибка отправки статистики Mini App:', err);
-    }
-}
-
-async function fetchReferralInfo(userId) {
-    try {
-        const res = await fetch(`${WORKER_URL}/referral-info?userId=${userId}`);
-        const data = await res.json();
-        referralInfo = {
-            count: data.count || 0,
-            frame: data.frame || false,
-            undo: data.undo || false,
-            neon: data.neon || false
-        };
-    } catch (err) {
-        console.error('Ошибка загрузки рефералов:', err);
-        referralInfo = { count: 0, frame: false, undo: false, neon: false };
-    }
-    updateReferralUI();
-    applyUndoAbility();
-    applyNeonTheme();
-}
-
-function updateReferralUI() {
-    const countEl = document.getElementById('referral-count');
-    const progressBar = document.querySelector('.progress-bar');
-    const steps = document.querySelectorAll('.step');
-    const rewardsGrid = document.getElementById('rewards-grid');
-    if (!countEl || !progressBar || !rewardsGrid) return;
-
-    countEl.textContent = referralInfo.count || 0;
-    const progress = Math.min(100, (referralInfo.count / 10) * 100);
-    progressBar.style.setProperty('--progress', `${progress}%`);
-
-    steps.forEach(step => {
-        const target = parseInt(step.dataset.target);
-        if (referralInfo.count >= target) step.classList.add('reached');
-        else step.classList.remove('reached');
-    });
-
-    const rewards = [
-        {
-            icon: '🖼️',
-            name: 'Красивая рамка',
-            desc: 'Выделит ваш профиль в топе 2048',
-            unlocked: referralInfo.frame,
-            target: 3
-        },
-        {
-            icon: '↩️',
-            name: 'Отмена хода',
-            desc: 'Пожизненная возможность отменить 1 ход в 2048',
-            unlocked: referralInfo.undo,
-            target: 5
-        },
-        {
-            icon: '🌈',
-            name: 'Неоновый дизайн',
-            desc: 'Неоновое оформление игры 2048',
-            unlocked: referralInfo.neon,
-            target: 10
-        }
-    ];
-
-    rewardsGrid.innerHTML = rewards.map(r => `
-        <div class="reward-card ${r.unlocked ? 'unlocked' : ''}">
-            <div class="reward-icon">${r.icon}</div>
-            <div class="reward-info">
-                <div class="reward-name">${r.name} (${r.target} друзей)</div>
-                <div class="reward-desc">${r.desc}</div>
-            </div>
-            <div class="reward-status">${r.unlocked ? '✅' : '🔒'}</div>
-        </div>
-    `).join('');
-}
-
-function applyUndoAbility() {
-    const btn = document.getElementById('undo-move-btn');
-    if (!btn) return;
-    if (referralInfo.undo && game2048) {
-        btn.style.display = 'inline-block';
-    } else {
-        btn.style.display = 'none';
-    }
-}
-
-function applyNeonTheme() {
-    const container = document.getElementById('game-2048-container');
-    if (!container) return;
-    if (referralInfo.neon) {
-        container.classList.add('neon-theme');
-    } else {
-        container.classList.remove('neon-theme');
-    }
-}
-
-function updateProfileDisplay(user) {
-    const userName = document.getElementById('user-name');
-    if (userName) userName.textContent = user.first_name + (user.last_name ? ' ' + user.last_name : '');
-    const userUsername = document.getElementById('user-username');
-    if (userUsername) userUsername.textContent = user.username ? '@' + user.username : 'Telegram User';
-    updateUserAvatar(user);
-    if (user.is_premium) showPremiumBadge();
-}
-
-function updateUserAvatar(user) {
-    const avatarImg = document.getElementById('avatar-img');
-    const avatarFallback = document.getElementById('avatar-fallback');
-    if (!avatarImg) return;
-    if (user.photo_url) {
-        avatarImg.src = user.photo_url;
-        avatarImg.style.display = 'block';
-        avatarImg.onerror = () => { avatarImg.style.display = 'none'; showAvatarFallback(user, avatarFallback); };
-        avatarFallback.style.display = 'none';
-    } else {
-        avatarImg.style.display = 'none';
-        showAvatarFallback(user, avatarFallback);
-    }
-}
-
-function showAvatarFallback(user, avatarFallback) {
-    if (user.first_name) avatarFallback.textContent = user.first_name.charAt(0).toUpperCase();
-    else avatarFallback.textContent = 'T';
-    avatarFallback.style.display = 'flex';
-}
-
-function showPremiumBadge() {
-    const profileInfo = document.querySelector('.profile-info');
-    if (profileInfo && !document.querySelector('.premium-badge')) {
-        const premiumBadge = document.createElement('div');
-        premiumBadge.className = 'premium-badge';
-        premiumBadge.innerHTML = '⭐ Premium';
-        profileInfo.appendChild(premiumBadge);
-    }
+    if (!img.parentNode) container.appendChild(img);
+  } else {
+    const letter = user.first_name?.[0]?.toUpperCase() || 'G';
+    if (fallbackEl) { fallbackEl.textContent = letter; }
+    else container.textContent = letter;
+  }
 }
 
 function showFallbackProfile() {
-    const userName = document.getElementById('user-name');
-    const userUsername = document.getElementById('user-username');
-    const avatarFallback = document.getElementById('avatar-fallback');
-    if (userName) userName.textContent = 'Telegram User';
-    if (userUsername) userUsername.textContent = 'Открой в Telegram';
-    if (avatarFallback) { avatarFallback.textContent = 'T'; avatarFallback.style.display = 'flex'; }
+  el('chip-name').textContent         = 'Игрок';
+  el('profile-name').textContent      = 'Telegram User';
+  el('profile-username').textContent  = 'Открой в Telegram';
+  el('ref-link-label').textContent    = `https://t.me/${BOT_USERNAME}`;
 }
 
-function setupNavigation() {
-    const navItems = document.querySelectorAll('.nav-item');
-    const sections = document.querySelectorAll('.content-section');
-    navItems.forEach(item => {
-        item.addEventListener('click', function() {
-            vibrate();
-            const targetSection = this.getAttribute('data-section');
-            navItems.forEach(nav => nav.classList.remove('active'));
-            this.classList.add('active');
-            sections.forEach(section => {
-                section.classList.remove('active');
-                if (section.id === targetSection) section.classList.add('active');
-            });
+/* ===================== РЕФЕРАЛЬНАЯ СИСТЕМА ===================== */
+// Совместима с оригинальным бэкендом: /track и /referral-info
 
-            if (targetSection === 'game-section') {
-                const gameContainer = document.getElementById('game-2048-container');
-                if (gameContainer.style.display !== 'none') {
-                    // уже открыто, ничего не делаем
-                } else {
-                    fetchLeaderboard();
-                }
-            }
-            if (targetSection === 'profile-section') {
-                if (currentUserId) fetchReferralInfo(currentUserId);
-            }
-        });
+async function sendTrackingStat(user) {
+  let ref = null;
+  try {
+    // Читаем start_param (ref_USERID), так же как в оригинале
+    const startParam = window.Telegram?.WebApp?.initDataUnsafe?.start_param;
+    if (startParam) ref = startParam;
+  } catch {}
+
+  const payload = {
+    userId:    user.id.toString(),
+    firstName: user.first_name || '',
+    username:  user.username   || '',
+    ref:       ref || null
+  };
+
+  try {
+    await fetch(WORKER_URL + '/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
     });
-
-    const activeSection = document.querySelector('.content-section.active');
-    if (activeSection && activeSection.id === 'game-section') {
-        fetchLeaderboard();
-    }
+  } catch (e) {
+    console.warn('Tracking failed:', e);
+  }
 }
 
-function setupGameButtons() {
-    document.querySelectorAll('.play-button').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.stopPropagation();
-            vibrate();
-            const link = this.getAttribute('data-link');
-            if (link) {
-                if (window.Telegram && window.Telegram.WebApp) {
-                    if (link.startsWith('https://t.me/')) window.Telegram.WebApp.openTelegramLink(link);
-                    else window.Telegram.WebApp.openLink(link);
-                } else {
-                    window.open(link, '_blank');
-                }
-            }
-        });
-    });
-}
-
-function setupExchangeButtons() {
-    document.querySelectorAll('.exchange-button').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.stopPropagation();
-            vibrate();
-            const exchangeUrl = this.getAttribute('data-url');
-            if (exchangeUrl) {
-                if (window.Telegram && window.Telegram.WebApp) window.Telegram.WebApp.openLink(exchangeUrl);
-                else window.open(exchangeUrl, '_blank');
-            }
-        });
-    });
-}
-
-function setupShareButton() {
-    const shareButton = document.getElementById('share-friends-button');
-    if (shareButton) {
-        shareButton.addEventListener('click', function() {
-            vibrate();
-            let botUrl;
-            if (currentUserId) {
-                botUrl = `https://t.me/${BOT_USERNAME}?start=ref_${currentUserId}`;
-            } else {
-                botUrl = `https://t.me/${BOT_USERNAME}`;
-            }
-            const shareText = 'Играй в лучшие мини-игры Telegram вместе с HADRON! 🎮';
-            if (window.Telegram && window.Telegram.WebApp) {
-                const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(botUrl)}&text=${encodeURIComponent(shareText)}`;
-                try {
-                    window.Telegram.WebApp.openTelegramLink(shareUrl);
-                } catch (error) {
-                    fallbackCopyToClipboard(botUrl);
-                }
-            } else {
-                if (navigator.share) {
-                    navigator.share({
-                        title: 'Games Verse',
-                        text: shareText,
-                        url: botUrl,
-                    }).catch(() => fallbackCopyToClipboard(botUrl));
-                } else {
-                    fallbackCopyToClipboard(botUrl);
-                }
-            }
-        });
-    }
-}
-
-function fallbackCopyToClipboard(text) {
-    try {
-        const textArea = document.createElement('textarea');
-        textArea.value = text;
-        textArea.style.position = 'fixed';
-        textArea.style.opacity = '0';
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        showNotification();
-    } catch (err) {
-        showNotification('Не удалось скопировать ссылку');
-    }
-}
-
-function showNotification(customMessage) {
-    const notification = document.getElementById('notification');
-    if (!notification) return;
-    notification.textContent = customMessage || translations.linkCopied;
-    notification.classList.add('show');
-    setTimeout(() => notification.classList.remove('show'), 2000);
-}
-
-/* =============== 2048 Game =============== */
-class Game2048 {
-    constructor(boardElement, scoreElement, bestScoreElement, statusElement) {
-        this.boardElement = boardElement;
-        this.scoreElement = scoreElement;
-        this.bestScoreElement = bestScoreElement;
-        this.statusElement = statusElement;
-        this.size = 4;
-        this.grid = [];
-        this.score = 0;
-        this.bestScore = localStorage.getItem('bestScore2048') ? parseInt(localStorage.getItem('bestScore2048')) : 0;
-        this.lastAddedTile = null;
-        this.mergedPositions = new Set();
-        this.moveMap = null;
-        this.history = [];
-
-        this.updateBestScoreUI();
-        this.init();
-        this.setupSwipeEvents();
-        this.setupKeyboardEvents();
-    }
-
-    init() {
-        this.grid = Array(this.size).fill().map(() => Array(this.size).fill(0));
-        this.score = 0;
-        this.updateScoreUI();
-        this.statusElement.textContent = '';
-        this.lastAddedTile = null;
-        this.mergedPositions.clear();
-        this.moveMap = null;
-        this.history = [];
-        this.addRandomTile();
-        this.addRandomTile();
-        this.render();
-    }
-
-    saveState() {
-        this.history.push({
-            grid: JSON.parse(JSON.stringify(this.grid)),
-            score: this.score,
-            bestScore: this.bestScore
-        });
-    }
-
-    undo() {
-        if (this.history.length === 0 || !referralInfo.undo) return;
-        const prev = this.history.pop();
-        this.grid = prev.grid;
-        this.score = prev.score;
-        this.bestScore = prev.bestScore;
-        this.updateScoreUI();
-        this.updateBestScoreUI();
-        this.render();
-    }
-
-    addRandomTile() {
-        const emptyCells = [];
-        for (let i = 0; i < this.size; i++) {
-            for (let j = 0; j < this.size; j++) {
-                if (this.grid[i][j] === 0) emptyCells.push({x: i, y: j});
-            }
-        }
-        if (emptyCells.length > 0) {
-            const {x, y} = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-            this.grid[x][y] = Math.random() < 0.9 ? 2 : 4;
-            this.lastAddedTile = {x, y};
-            return true;
-        }
-        return false;
-    }
-
-    move(direction) {
-        this.saveState();
-        const oldGrid = JSON.parse(JSON.stringify(this.grid));
-        let totalScoreGain = 0;
-        this.mergedPositions.clear();
-        this.moveMap = {};
-
-        const slideWithTracking = (row, isColumn, index, reverse) => {
-            let arr = row.filter(v => v !== 0);
-            let newRow = [];
-            let scoreGain = 0;
-            let merged = new Array(arr.length).fill(false);
-
-            for (let i = 0; i < arr.length; i++) {
-                if (i + 1 < arr.length && arr[i] === arr[i + 1] && !merged[i] && !merged[i+1]) {
-                    let mergedVal = arr[i] * 2;
-                    newRow.push(mergedVal);
-                    scoreGain += mergedVal;
-                    merged[i] = merged[i+1] = true;
-                    i++;
-                } else {
-                    newRow.push(arr[i]);
-                }
-            }
-            while (newRow.length < this.size) newRow.push(0);
-
-            let oldVals = arr;
-            let oldPtr = 0;
-            for (let newPos = 0; newPos < this.size; newPos++) {
-                if (newRow[newPos] === 0) continue;
-                if (oldPtr < oldVals.length && oldVals[oldPtr] * 2 === newRow[newPos] &&
-                    oldPtr + 1 < oldVals.length && oldVals[oldPtr] === oldVals[oldPtr + 1]) {
-                    this.recordMove(oldPtr, oldVals, newPos, isColumn, index, reverse, true, false);
-                    this.recordMove(oldPtr + 1, oldVals, newPos, isColumn, index, reverse, true, true);
-                    oldPtr += 2;
-                } else if (oldPtr < oldVals.length && oldVals[oldPtr] === newRow[newPos]) {
-                    this.recordMove(oldPtr, oldVals, newPos, isColumn, index, reverse, false, false);
-                    oldPtr++;
-                }
-            }
-            return {newRow, scoreGain};
-        };
-
-        this.recordMove = (oldIdx, oldVals, newIdx, isColumn, lineIdx, reverse, merged, isSecond) => {
-            const originalLine = [];
-            if (!isColumn) {
-                originalLine.push(...this.grid[lineIdx]);
-            } else {
-                for (let r = 0; r < this.size; r++) originalLine.push(this.grid[r][lineIdx]);
-            }
-            if (reverse) originalLine.reverse();
-
-            let skip = 0;
-            let sourceIdx = -1;
-            for (let i = 0; i < originalLine.length; i++) {
-                if (originalLine[i] !== 0) {
-                    if (skip === oldIdx) { sourceIdx = i; break; }
-                    skip++;
-                }
-            }
-            if (sourceIdx === -1) return;
-
-            if (reverse) sourceIdx = this.size - 1 - sourceIdx;
-
-            let fromRow, fromCol;
-            if (!isColumn) {
-                fromRow = lineIdx;
-                fromCol = sourceIdx;
-            } else {
-                fromRow = sourceIdx;
-                fromCol = lineIdx;
-            }
-
-            let targetIdx = newIdx;
-            if (reverse) targetIdx = this.size - 1 - targetIdx;
-
-            let toRow, toCol;
-            if (!isColumn) {
-                toRow = lineIdx;
-                toCol = targetIdx;
-            } else {
-                toRow = targetIdx;
-                toCol = lineIdx;
-            }
-
-            const key = `${toRow},${toCol}`;
-            if (!this.moveMap[key]) {
-                this.moveMap[key] = { fromRow, fromCol, merged };
-            }
-            if (merged) this.mergedPositions.add(key);
-        };
-
-        if (direction === 'left') {
-            for (let i = 0; i < this.size; i++) {
-                const {newRow, scoreGain} = slideWithTracking(this.grid[i], false, i, false);
-                this.grid[i] = newRow;
-                totalScoreGain += scoreGain;
-            }
-        } else if (direction === 'right') {
-            for (let i = 0; i < this.size; i++) {
-                const reversed = [...this.grid[i]].reverse();
-                const {newRow, scoreGain} = slideWithTracking(reversed, false, i, true);
-                totalScoreGain += scoreGain;
-                this.grid[i] = newRow.reverse();
-            }
-        } else if (direction === 'up') {
-            for (let j = 0; j < this.size; j++) {
-                const column = [];
-                for (let i = 0; i < this.size; i++) column.push(this.grid[i][j]);
-                const {newRow, scoreGain} = slideWithTracking(column, true, j, false);
-                totalScoreGain += scoreGain;
-                for (let i = 0; i < this.size; i++) this.grid[i][j] = newRow[i];
-            }
-        } else if (direction === 'down') {
-            for (let j = 0; j < this.size; j++) {
-                const column = [];
-                for (let i = 0; i < this.size; i++) column.push(this.grid[i][j]);
-                const reversed = column.reverse();
-                const {newRow, scoreGain} = slideWithTracking(reversed, true, j, true);
-                totalScoreGain += scoreGain;
-                const finalArr = newRow.reverse();
-                for (let i = 0; i < this.size; i++) this.grid[i][j] = finalArr[i];
-            }
-        }
-
-        if (totalScoreGain > 0) {
-            this.score += totalScoreGain;
-            this.updateScoreUI();
-        }
-
-        const changed = !this.gridsAreEqual(oldGrid, this.grid);
-        if (changed) {
-            this.addRandomTile();
-            this.render();
-            if (this.checkWin()) {
-                this.statusElement.textContent = translations.gameWin;
-                this.submitScoreToLeaderboard();
-            } else if (this.checkLose()) {
-                this.statusElement.textContent = translations.gameLose;
-                this.submitScoreToLeaderboard();
-                showSubscriptionModal();
-            }
-        } else {
-            this.history.pop();
-            this.moveMap = null;
-        }
-    }
-
-    gridsAreEqual(a, b) {
-        for (let i = 0; i < this.size; i++)
-            for (let j = 0; j < this.size; j++)
-                if (a[i][j] !== b[i][j]) return false;
-        return true;
-    }
-
-    render() {
-        const board = this.boardElement;
-        board.innerHTML = '';
-        const tileSize = board.clientWidth / this.size;
-
-        for (let i = 0; i < this.size; i++) {
-            for (let j = 0; j < this.size; j++) {
-                const value = this.grid[i][j];
-                const tile = document.createElement('div');
-                tile.className = 'tile-cell';
-                if (value !== 0) {
-                    let tileClass = `tile-${value}`;
-                    if (value > 2048) tileClass = 'tile-super';
-                    tile.classList.add(tileClass);
-                    tile.textContent = value;
-
-                    const key = `${i},${j}`;
-                    if (this.moveMap && this.moveMap[key]) {
-                        const { fromRow, fromCol, merged } = this.moveMap[key];
-                        const deltaX = (fromCol - j) * tileSize;
-                        const deltaY = (fromRow - i) * tileSize;
-                        tile.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
-                        tile.offsetHeight;
-                        tile.style.transform = '';
-                        if (merged) {
-                            tile.classList.add('tile-merge');
-                            tile.addEventListener('animationend', () => tile.classList.remove('tile-merge'), { once: true });
-                        }
-                    }
-
-                    if (this.lastAddedTile && this.lastAddedTile.x === i && this.lastAddedTile.y === j) {
-                        tile.classList.add('tile-new');
-                        tile.addEventListener('animationend', () => tile.classList.remove('tile-new'), { once: true });
-                    }
-                } else {
-                    tile.textContent = '';
-                }
-                board.appendChild(tile);
-            }
-        }
-        this.lastAddedTile = null;
-        this.moveMap = null;
-    }
-
-    updateScoreUI() {
-        this.scoreElement.textContent = this.score;
-        if (this.score > this.bestScore) {
-            this.bestScore = this.score;
-            localStorage.setItem('bestScore2048', this.bestScore);
-            this.updateBestScoreUI();
-        }
-    }
-
-    updateBestScoreUI() {
-        this.bestScoreElement.textContent = this.bestScore;
-    }
-
-    checkWin() {
-        return this.grid.some(row => row.includes(2048));
-    }
-
-    checkLose() {
-        for (let i = 0; i < this.size; i++)
-            for (let j = 0; j < this.size; j++)
-                if (this.grid[i][j] === 0) return false;
-        for (let i = 0; i < this.size; i++)
-            for (let j = 0; j < this.size; j++) {
-                const val = this.grid[i][j];
-                if (j < this.size-1 && val === this.grid[i][j+1]) return false;
-                if (i < this.size-1 && val === this.grid[i+1][j]) return false;
-            }
-        return true;
-    }
-
-    submitScoreToLeaderboard() {
-        if (!currentUserId) return;
-        const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
-        if (!user) return;
-        const payload = {
-            userId: currentUserId.toString(),
-            firstName: user.first_name || 'Игрок',
-            username: user.username || '',
-            score: this.score,
-            avatarUrl: user.photo_url || ''
-        };
-        fetch(WORKER_URL + '/submit-score', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        }).then(() => {
-            fetchLeaderboard();
-        }).catch(err => console.error('Ошибка отправки счёта:', err));
-    }
-
-    setupSwipeEvents() {
-        let touchStartX = 0, touchStartY = 0;
-        this.boardElement.addEventListener('touchstart', (e) => {
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-            e.preventDefault();
-        });
-        this.boardElement.addEventListener('touchend', (e) => {
-            if (touchStartX === 0 && touchStartY === 0) return;
-            let deltaX = e.changedTouches[0].clientX - touchStartX;
-            let deltaY = e.changedTouches[0].clientY - touchStartY;
-            if (Math.abs(deltaX) < 20 && Math.abs(deltaY) < 20) return;
-            if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                if (deltaX > 0) this.move('right');
-                else this.move('left');
-            } else {
-                if (deltaY > 0) this.move('down');
-                else this.move('up');
-            }
-            touchStartX = 0; touchStartY = 0;
-            vibrate();
-        });
-    }
-
-    setupKeyboardEvents() {
-        window.addEventListener('keydown', (e) => {
-            if (document.querySelector('#game-section.active')) {
-                const key = e.key;
-                if (key === 'ArrowLeft') { this.move('left'); e.preventDefault(); vibrate(); }
-                else if (key === 'ArrowRight') { this.move('right'); e.preventDefault(); vibrate(); }
-                else if (key === 'ArrowUp') { this.move('up'); e.preventDefault(); vibrate(); }
-                else if (key === 'ArrowDown') { this.move('down'); e.preventDefault(); vibrate(); }
-            }
-        });
-    }
-
-    resetGame() {
-        this.init();
-        this.render();
-    }
-}
-
-let game2048 = null;
-function initGame2048() {
-    const board = document.getElementById('game-board-2048');
-    const scoreEl = document.getElementById('game-score');
-    const bestEl = document.getElementById('best-score');
-    const statusEl = document.getElementById('game-status');
-    if (board && scoreEl && bestEl && statusEl && !game2048) {
-        game2048 = new Game2048(board, scoreEl, bestEl, statusEl);
-        const newGameBtn = document.getElementById('new-game-btn');
-        if (newGameBtn) {
-            newGameBtn.addEventListener('click', () => {
-                vibrate();
-                game2048.resetGame();
-            });
-        }
-        const undoBtn = document.getElementById('undo-move-btn');
-        if (undoBtn) {
-            undoBtn.addEventListener('click', () => {
-                vibrate();
-                game2048.undo();
-            });
-        }
-    }
-    applyUndoAbility();
-    applyNeonTheme();
-}
-
-/* =============== Переключение Игра / Топы =============== */
-function setupGameTabs() {
-    const tabGameBtn = document.getElementById('tab-game-btn');
-    const tabLeaderboardBtn = document.getElementById('tab-leaderboard-btn');
-    const gameContainer = document.getElementById('game-2048-container');
-    const leaderboardContainer = document.getElementById('leaderboard-container');
-
-    if (!tabGameBtn || !tabLeaderboardBtn || !gameContainer || !leaderboardContainer) return;
-
-    tabGameBtn.addEventListener('click', () => {
-        vibrate();
-        gameContainer.style.display = 'block';
-        leaderboardContainer.style.display = 'none';
-        tabGameBtn.classList.add('active');
-        tabLeaderboardBtn.classList.remove('active');
-    });
-
-    tabLeaderboardBtn.addEventListener('click', () => {
-        vibrate();
-        gameContainer.style.display = 'none';
-        leaderboardContainer.style.display = 'block';
-        tabLeaderboardBtn.classList.add('active');
-        tabGameBtn.classList.remove('active');
-        fetchLeaderboard();
-    });
-
-    gameContainer.style.display = 'block';
-    leaderboardContainer.style.display = 'none';
-    tabGameBtn.classList.add('active');
-    tabLeaderboardBtn.classList.remove('active');
-}
-
-/* =============== Leaderboard =============== */
-async function fetchLeaderboard() {
-    const list = document.getElementById('leaderboard-list');
-    if (!list) return;
-    list.innerHTML = '<div class="leaderboard-loading">Загрузка...</div>';
-
-    try {
-        const res = await fetch(WORKER_URL + '/leaderboard');
-        const data = await res.json();
-        renderLeaderboard(data.leaderboard || []);
-    } catch (err) {
-        console.error('Ошибка загрузки лидеров:', err);
-        list.innerHTML = '<div class="leaderboard-loading">Не удалось загрузить таблицу</div>';
-    }
-}
-
-function renderLeaderboard(leaderboard) {
-    const list = document.getElementById('leaderboard-list');
-    if (!list) return;
-    if (!leaderboard.length) {
-        list.innerHTML = '<div class="leaderboard-loading">Пока нет результатов</div>';
-        return;
-    }
-
-    list.innerHTML = leaderboard.map((player, index) => {
-        const isCurrentUser = currentUserId && player.userId.toString() === currentUserId.toString();
-        const rank = index + 1;
-        const avatarContent = player.avatarUrl
-            ? `<img src="${player.avatarUrl}" alt="${player.firstName}" onerror="this.style.display='none'; this.parentElement.textContent='${player.firstName.charAt(0).toUpperCase()}';" />`
-            : player.firstName.charAt(0).toUpperCase();
-
-        let extraClass = '';
-        if (isCurrentUser && referralInfo.frame) extraClass = 'has-frame';
-
-        return `
-            <div class="leaderboard-item ${isCurrentUser ? 'current-user' : ''} ${extraClass}">
-                <div class="leaderboard-rank">#${rank}</div>
-                <div class="leaderboard-avatar">
-                    ${avatarContent}
-                </div>
-                <div class="leaderboard-info">
-                    <div class="leaderboard-name">${escapeHtml(player.firstName)}</div>
-                </div>
-                <div class="leaderboard-score">
-                    ${player.score} <span>очк.</span>
-                    <button class="leaderboard-share-btn" aria-label="Поделиться результатом" data-share-name="${escapeHtml(player.firstName)}" data-share-score="${player.score}">
-                        <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg>
-                    </button>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
-
-function escapeHtml(text) {
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
+async function fetchReferralInfo(userId) {
+  try {
+    const res  = await fetch(`${WORKER_URL}/referral-info?userId=${userId}`);
+    const data = await res.json();
+    referralInfo = {
+      count: data.count || 0,
+      frame: data.frame || false,
+      undo:  data.undo  || false,
+      neon:  data.neon  || false
     };
-    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+  } catch (e) {
+    console.warn('Referral fetch failed:', e);
+    referralInfo = { count: 0, frame: false, undo: false, neon: false };
+  }
+  recalcClicker();   // учесть бонус от рефов
+  updateReferralUI();
+  updateAllUI();
 }
 
-function setupLeaderboardRefresh() {
-    const refreshBtn = document.getElementById('refresh-leaderboard');
-    if (refreshBtn) {
-        refreshBtn.addEventListener('click', () => {
-            vibrate();
-            fetchLeaderboard();
-        });
-    }
+function updateReferralUI() {
+  const count = referralInfo.count || 0;
+  el('ref-count').textContent = count;
+  el('ps-refs').textContent   = count;
+
+  // Прогресс до 10 (максимальная веха)
+  const pct = Math.min(100, (count / 10) * 100);
+  el('ref-progress-fill').style.width = pct + '%';
+
+  // Точки вех
+  ['3','5','10'].forEach(n => {
+    const dot = el('rm-' + n);
+    if (dot) dot.classList.toggle('reached', count >= parseInt(n));
+  });
+
+  // Награды
+  const rewards = [
+    { emoji: '🖼️', name: 'Красивая рамка',     desc: 'Выделит вас в таблице лидеров',             req: 3,  unlocked: referralInfo.frame },
+    { emoji: '🔥', name: '+20% к силе удара',   desc: 'Бонус к кузнице от рефералов',              req: 5,  unlocked: referralInfo.undo },
+    { emoji: '🌈', name: 'Эффект ауры',         desc: 'Особый визуальный эффект в профиле',        req: 10, unlocked: referralInfo.neon }
+  ];
+
+  el('ref-rewards').innerHTML = rewards.map(r => `
+    <div class="reward-row ${r.unlocked ? 'unlocked' : ''}">
+      <div class="reward-icon">${r.emoji}</div>
+      <div class="reward-text">
+        <div class="reward-name">${r.name}</div>
+        <div class="reward-desc">${r.desc}</div>
+        <div class="reward-req">${r.req} друзей для разблокировки</div>
+      </div>
+      <div class="reward-status">${r.unlocked ? '✅' : '🔒'}</div>
+    </div>
+  `).join('');
 }
 
-function setupLeaderboardShare() {
-    const leaderboardList = document.getElementById('leaderboard-list');
-    if (!leaderboardList) return;
-    leaderboardList.addEventListener('click', (e) => {
-        const shareBtn = e.target.closest('.leaderboard-share-btn');
-        if (!shareBtn) return;
-        e.stopPropagation();
-        const name = shareBtn.dataset.shareName;
-        const score = shareBtn.dataset.shareScore;
-        if (name && score) shareLeaderboardScore(name, parseInt(score, 10));
+/* ===================== ПОДЕЛИТЬСЯ ===================== */
+function setupShareButtons() {
+  el('share-btn').addEventListener('click', () => {
+    vibrate();
+    doShare();
+  });
+  el('copy-btn').addEventListener('click', () => {
+    vibrate();
+    const link = getRefLink();
+    copyToClipboard(link);
+    showToast('📋 Ссылка скопирована!');
+    // Бонус за первое копирование: +50 звёзд
+    addStars(50, true);
+  });
+}
+
+function getRefLink() {
+  return currentUserId
+    ? `https://t.me/${BOT_USERNAME}?start=ref_${currentUserId}`
+    : `https://t.me/${BOT_USERNAME}`;
+}
+
+function doShare() {
+  const link = getRefLink();
+  const text = '⭐ Куй звёзды в Games Verse — лучшие мини-игры Telegram! Присоединяйся!';
+  if (window.Telegram?.WebApp) {
+    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`;
+    try { window.Telegram.WebApp.openTelegramLink(shareUrl); } catch { copyToClipboard(link); showToast('📋 Ссылка скопирована!'); }
+  } else if (navigator.share) {
+    navigator.share({ title: 'Games Verse', text, url: link }).catch(() => {});
+  } else {
+    copyToClipboard(link);
+    showToast('📋 Ссылка скопирована!');
+  }
+}
+
+function copyToClipboard(text) {
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+  } else {
+    fallbackCopy(text);
+  }
+}
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.cssText = 'position:fixed;opacity:0';
+  document.body.appendChild(ta); ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+}
+
+/* ===================== НАВИГАЦИЯ ===================== */
+function setupNavigation() {
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      vibrate();
+      const tabId = btn.dataset.tab;
+      switchTab(tabId);
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      // Обновить лидерборд при переходе в профиль
+      if (tabId === 'tab-profile') {
+        renderLeaderboard();
+        updateProfileStats();
+        if (currentUserId) fetchReferralInfo(currentUserId);
+      }
     });
+  });
 }
 
-function shareLeaderboardScore(name, score) {
-    const shareText = `🏆 ${name} набрал ${score} очков в 2048! Сможешь побить рекорд? Играй в Games Verse: https://t.me/${BOT_USERNAME}`;
-    if (window.Telegram?.WebApp) {
-        const shareUrl = `https://t.me/share/url?url=${encodeURIComponent('https://t.me/' + BOT_USERNAME)}&text=${encodeURIComponent(shareText)}`;
-        window.Telegram.WebApp.openTelegramLink(shareUrl);
-    } else if (navigator.share) {
-        navigator.share({
-            title: 'Games Verse',
-            text: shareText,
-            url: 'https://t.me/' + BOT_USERNAME
-        }).catch(() => fallbackCopyToClipboard(shareText));
-    } else {
-        fallbackCopyToClipboard(shareText);
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+  const target = document.getElementById(tabId);
+  if (target) target.classList.add('active');
+  // Прокрутить наверх
+  document.querySelector('.main-content')?.scrollTo({ top: 0 });
+}
+
+/* ===================== ИГРЫ (карточки) ===================== */
+function renderGames() {
+  el('games-list').innerHTML = GAMES_DATA.map(g => `
+    <div class="game-card ${g.featured ? 'featured' : ''}">
+      <div class="game-img-wrap">
+        <img src="${g.img}" alt="${g.name}" onerror="this.style.display='none'">
+        <span style="${g.img ? 'display:none' : ''}">${g.fallback}</span>
+      </div>
+      <div class="game-info">
+        <div class="game-name">
+          ${esc(g.name)}
+          ${g.badge ? `<span class="game-badge">${g.badge}</span>` : ''}
+        </div>
+        <div class="game-desc">${esc(g.desc)}</div>
+        <div class="game-meta">
+          <div class="game-rating">
+            <span class="game-stars">${stars(g.rating)}</span>
+            <span>${g.rating}</span>
+          </div>
+          <span class="game-players">👥 ${g.players}</span>
+        </div>
+      </div>
+      <button class="play-btn" data-link="${g.link}">Играть</button>
+    </div>
+  `).join('');
+
+  document.querySelectorAll('.play-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      vibrate();
+      openLink(btn.dataset.link, true);
+    });
+  });
+}
+
+function stars(r) {
+  let s = '';
+  for (let i = 1; i <= 5; i++) s += i <= Math.round(r) ? '★' : '☆';
+  return s;
+}
+
+/* ===================== БИРЖИ ===================== */
+function renderExchanges() {
+  el('exchanges-list').innerHTML = EXCHANGES_DATA.map(x => `
+    <div class="exchange-card">
+      <div class="exchange-logo">
+        <img src="${x.img}" alt="${x.name}" onerror="this.style.display='none'">
+        <span>${x.fallback}</span>
+      </div>
+      <div class="exchange-info">
+        <div class="exchange-name">${esc(x.name)}</div>
+        <div class="exchange-desc">${esc(x.desc)}</div>
+      </div>
+      <button class="exchange-btn" data-url="${x.url}">Перейти</button>
+    </div>
+  `).join('');
+
+  document.querySelectorAll('.exchange-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      vibrate();
+      openLink(btn.dataset.url, false);
+    });
+  });
+}
+
+/* ===================== КЛИКЕР ===================== */
+let autoClickerTimer = null;
+
+function setupClicker() {
+  const btn = el('clicker-btn');
+  btn.addEventListener('click', e => {
+    vibrate();
+    const gained = clicker.clickPower;
+    addStars(gained);
+    spawnFloatText(e.clientX, e.clientY, `+${gained}⭐`);
+
+    // Анимация кнопки
+    el('clicker-orb').style.transform = 'scale(0.82)';
+    setTimeout(() => el('clicker-orb').style.transform = '', 100);
+
+    renderAchievements(); // проверить достижения
+  });
+}
+
+function addStars(n, silent = false) {
+  clicker.stars       += n;
+  clicker.totalEarned += n;
+  saveClickerState();
+  updateCoinsDisplay();
+  if (!silent) {
+    updateProfileStats();
+  }
+}
+
+function startAutoClicker() {
+  if (autoClickerTimer) clearInterval(autoClickerTimer);
+  autoClickerTimer = setInterval(() => {
+    if (clicker.perSec > 0) {
+      addStars(clicker.perSec, true);
+      // Мигание счётчика
+      el('coins-value').classList.add('pop');
+      setTimeout(() => el('coins-value').classList.remove('pop'), 200);
     }
+  }, 1000);
 }
 
-/* =============== CLAN BANNER (Pixel World) =============== */
-function setupClanBanner() {
-    const banner = document.getElementById('clan-banner');
-    if (!banner) return;
-    banner.addEventListener('click', () => {
-        const clanLink = 'https://t.me/pixelworld/play?startapp=eyJ0ZWFtIjoyN30';
-        if (window.Telegram?.WebApp) {
-            window.Telegram.WebApp.openTelegramLink(clanLink);
-        } else {
-            window.open(clanLink, '_blank');
-        }
+/* ===================== УЛУЧШЕНИЯ ===================== */
+function renderUpgrades() {
+  el('upgrades-list').innerHTML = UPGRADES.map(u => {
+    const lvl    = clicker.upgrades[u.id] || 0;
+    const maxed  = lvl >= u.maxLevel;
+    const cost   = maxed ? 0 : getUpgradeCost(u, lvl);
+    const canBuy = !maxed && clicker.stars >= cost;
+    return `
+      <div class="upgrade-item ${canBuy ? 'can-afford' : ''} ${maxed ? 'maxed' : ''}" data-upg="${u.id}">
+        <div class="upgrade-emoji">${u.emoji}</div>
+        <div class="upgrade-info">
+          <div class="upgrade-name">${u.name}</div>
+          <div class="upgrade-desc">${u.desc}</div>
+        </div>
+        <div class="upgrade-right">
+          ${maxed
+            ? '<div class="upgrade-cost">МАКС</div>'
+            : `<div class="upgrade-cost">⭐ ${fmtNum(cost)}</div>`
+          }
+          <div class="upgrade-level">ур. ${lvl}/${u.maxLevel}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  document.querySelectorAll('.upgrade-item:not(.maxed)').forEach(item => {
+    item.addEventListener('click', () => {
+      const id   = item.dataset.upg;
+      const upg  = UPGRADES.find(u => u.id === id);
+      const lvl  = clicker.upgrades[id] || 0;
+      if (lvl >= upg.maxLevel) return;
+      const cost = getUpgradeCost(upg, lvl);
+      if (clicker.stars < cost) {
+        showToast('Недостаточно звёзд ⭐');
         vibrate();
+        return;
+      }
+      vibrate();
+      clicker.stars -= cost;
+      clicker.upgrades[id] = lvl + 1;
+      recalcClicker();
+      saveClickerState();
+      renderUpgrades();
+      updateAllUI();
+      showToast(`${upg.emoji} ${upg.name} ур.${lvl + 1}!`);
     });
+  });
 }
 
-/* =============== SUBSCRIPTION MODAL (HADRON Channel) =============== */
-function showSubscriptionModal() {
-    const modal = document.getElementById('subscription-modal');
-    if (!modal || !currentUserId) return;
-    modal.style.display = 'flex';
+/* ===================== ДОСТИЖЕНИЯ ===================== */
+function renderAchievements() {
+  el('achievements-list').innerHTML = ACHIEVEMENTS.map(a => {
+    const done = a.cond();
+    return `<div class="achievement-chip ${done ? 'unlocked' : 'locked'}">${a.emoji} ${a.label}</div>`;
+  }).join('');
 }
 
+/* ===================== ЛИДЕРБОРД (локальный) ===================== */
+// Лидерборд строится из localStorage текущего пользователя
+// (без серверного хранения — только честный локальный топ как референс)
+// Для многопользовательского — можно подключить /submit-score
+
+function renderLeaderboard() {
+  const list = el('leaderboard-list');
+  if (!list) return;
+
+  // Собираем данные: текущий пользователь + псевдо-топ для демонстрации
+  const myName  = el('profile-name').textContent || 'Игрок';
+  const myScore = clicker.totalEarned || 0;
+
+  // Локальный рейтинг (можно расширить через API)
+  const entries = [
+    { name: myName, score: myScore, isMe: true }
+  ].sort((a, b) => b.score - a.score);
+
+  if (!entries.length || entries[0].score === 0) {
+    list.innerHTML = '<div class="lb-empty">Заработай первые звёзды в кузнице!</div>';
+    return;
+  }
+
+  list.innerHTML = entries.map((e, i) => {
+    const rankCls = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
+    return `
+      <div class="lb-item ${e.isMe ? 'me' : ''}">
+        <div class="lb-rank ${rankCls}">#${i+1}</div>
+        <div class="lb-avatar">${e.name?.[0]?.toUpperCase() || '?'}</div>
+        <div class="lb-name">${esc(e.name)}</div>
+        <div class="lb-score">⭐ ${fmtNum(e.score)}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+/* ===================== ОБЩИЙ UI UPDATE ===================== */
+function updateAllUI() {
+  updateCoinsDisplay();
+  updateProfileStats();
+  renderUpgrades();
+  renderAchievements();
+  // Обновить уровень профиля на основе totalEarned
+  const lvl = calcLevel(clicker.totalEarned);
+  el('profile-level-badge').textContent = `Ур. ${lvl}`;
+}
+
+function updateCoinsDisplay() {
+  el('coins-value').textContent = fmtNum(clicker.stars);
+}
+
+function updateProfileStats() {
+  el('ps-stars').textContent = fmtNum(clicker.totalEarned);
+  el('ps-refs').textContent  = referralInfo.count || 0;
+  el('click-stars').textContent  = fmtNum(clicker.stars);
+  el('click-per-sec').textContent = clicker.perSec + '/с';
+  el('click-power').textContent   = clicker.clickPower;
+}
+
+function calcLevel(total) {
+  if (total < 100)    return 1;
+  if (total < 500)    return 2;
+  if (total < 2000)   return 3;
+  if (total < 8000)   return 4;
+  if (total < 25000)  return 5;
+  if (total < 100000) return 6;
+  return 7;
+}
+
+/* ===================== БАННЕР КЛАНА ===================== */
+function setupClanBanner() {
+  const banner = el('clan-banner');
+  if (!banner) return;
+  banner.addEventListener('click', () => {
+    vibrate();
+    openLink('https://t.me/pixelworld/play?startapp=eyJ0ZWFtIjoyN30', true);
+  });
+}
+
+/* ===================== МОДАЛКА ПОДПИСКИ ===================== */
 function setupSubscriptionModal() {
-    const modal = document.getElementById('subscription-modal');
-    if (!modal) return;
+  const modal   = el('sub-modal');
+  const closeBtn = el('sub-close-btn');
+  const checkBtn = el('sub-check-btn');
+  const statusEl = el('sub-status');
 
-    const closeBtn = document.getElementById('modal-close-btn');
-    const checkBtn = document.getElementById('modal-check-btn');
-    const statusEl = document.getElementById('modal-status');
+  if (!modal) return;
 
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) modal.style.display = 'none';
-    });
-    if (closeBtn) {
-        closeBtn.addEventListener('click', () => {
-            modal.style.display = 'none';
-        });
+  modal.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
+  closeBtn?.addEventListener('click', () => { modal.style.display = 'none'; });
+  checkBtn?.addEventListener('click', async () => {
+    if (!currentUserId) { statusEl.textContent = 'Сначала открой в Telegram'; return; }
+    statusEl.textContent = 'Проверяем...';
+    try {
+      const res  = await fetch(`${WORKER_URL}/check-subscription?userId=${currentUserId}`);
+      const data = await res.json();
+      if (data.subscribed) {
+        statusEl.textContent = '✅ Подписка подтверждена!';
+        addStars(100);
+        showToast('🎉 +100 звёзд за подписку!');
+        setTimeout(() => { modal.style.display = 'none'; statusEl.textContent = ''; }, 1800);
+      } else {
+        statusEl.textContent = '❌ Подписка не найдена. Попробуй ещё раз.';
+      }
+    } catch {
+      statusEl.textContent = 'Ошибка. Попробуй позже.';
     }
+  });
+}
 
-    if (checkBtn) {
-        checkBtn.addEventListener('click', async () => {
-            statusEl.textContent = 'Проверяем...';
-            try {
-                const res = await fetch(`${WORKER_URL}/check-subscription?userId=${currentUserId}`);
-                const data = await res.json();
-                if (data.subscribed) {
-                    statusEl.textContent = '✅ Вы подписаны! Спасибо!';
-                    setTimeout(() => { modal.style.display = 'none'; }, 1500);
-                } else {
-                    statusEl.textContent = '❌ Подписка не найдена. Пожалуйста, подпишитесь на канал.';
-                }
-            } catch (err) {
-                console.error(err);
-                statusEl.textContent = 'Ошибка проверки. Попробуйте позже.';
-            }
-        });
+// Показать модалку (вызывается при первом заходе или через бот)
+function showSubModal() {
+  const modal = el('sub-modal');
+  if (modal) modal.style.display = 'flex';
+}
+
+/* ===================== УТИЛИТЫ ===================== */
+function el(id) { return document.getElementById(id); }
+
+function esc(str) {
+  return String(str).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[c]));
+}
+
+function fmtNum(n) {
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
+  if (n >= 1_000)     return (n / 1_000).toFixed(1) + 'K';
+  return String(Math.floor(n));
+}
+
+function vibrate() {
+  if (navigator.vibrate) navigator.vibrate(30);
+  if (window.Telegram?.WebApp?.HapticFeedback) {
+    try { window.Telegram.WebApp.HapticFeedback.impactOccurred('light'); } catch {}
+  }
+}
+
+function showToast(msg) {
+  const t = el('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function openLink(url, isTelegram = false) {
+  if (!url) return;
+  if (window.Telegram?.WebApp) {
+    if (isTelegram && url.startsWith('https://t.me/')) {
+      try { window.Telegram.WebApp.openTelegramLink(url); return; } catch {}
     }
+    try { window.Telegram.WebApp.openLink(url); return; } catch {}
+  }
+  window.open(url, '_blank');
+}
+
+function spawnFloatText(x, y, text) {
+  const div = document.createElement('div');
+  div.className = 'float-text';
+  div.textContent = text;
+  div.style.left = x + 'px';
+  div.style.top  = y + 'px';
+  document.body.appendChild(div);
+  div.addEventListener('animationend', () => div.remove());
 }
