@@ -215,11 +215,10 @@ document.addEventListener('DOMContentLoaded', () => {
   startAutoClicker();
   updateAllUI();
 
-  // Сплэш → после анимации проверяем подписку
-  setTimeout(() => {
-    document.getElementById('splash').classList.add('hidden');
-    checkMandatorySubscription();
-  }, 900);
+ setTimeout(() => {
+  document.getElementById('splash').classList.add('hidden');
+  showApp();                       // сразу показываем приложение без проверки
+}, 900);
 });
 
 /* ===================== TELEGRAM WEBAPP ===================== */
