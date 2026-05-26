@@ -1,12 +1,11 @@
 /* ============================================================
    HADRON — script.js
-   Полный редизайн Games Verse → HADRON
    TON-экосистема · GameFi · NFT · Telegram Gifts
    ============================================================ */
 
 /* ===================== КОНФИГ ===================== */
 const BOT_USERNAME  = 'khadron_bot';
-const WORKER_URL    = 'https://gamesverse-bot.scarneb.workers.dev'; // ← ваш Cloudflare Worker
+const WORKER_URL    = 'https://gamesverse-bot.scarneb.workers.dev'; // замени на свой
 
 /* ===================== ДАННЫЕ ИГР ===================== */
 const GAMES_DATA = [
@@ -101,6 +100,7 @@ function defaultClickerState() {
     totalEarned: 0,
     clickPower:  1,
     perSec:      0,
+    lastDailyClaim: null, // ISO строка или null
     upgrades: {
       anvil:    0,
       bellows:  0,
@@ -200,7 +200,7 @@ const ACHIEVEMENTS = [
 /* ===================== СТАРТ ===================== */
 document.addEventListener('DOMContentLoaded', () => {
   initTelegram();
-  renderGames();
+  renderGames();       // отрисуем игры (с фильтром)
   renderExchanges();
   renderGifts();
   setupNavigation();
@@ -210,19 +210,15 @@ document.addEventListener('DOMContentLoaded', () => {
   renderAchievements();
   setupClicker();
   setupShareButtons();
+  setupDailyBonus();
+  setupGameFilter();
   startAutoClicker();
   updateAllUI();
 
-  // Сплэш → показ приложения
+  // Сплэш → после анимации проверяем подписку
   setTimeout(() => {
     document.getElementById('splash').classList.add('hidden');
-    document.getElementById('app').classList.add('visible');
-
-    // Автопоказ модалки подписки при первом входе
-    const subscribed = localStorage.getItem('hadron_subscribed');
-    if (!subscribed) {
-      setTimeout(showSubModal, 1500);
-    }
+    checkMandatorySubscription();
   }, 900);
 });
 
@@ -450,9 +446,27 @@ function switchTab(tabId) {
   document.querySelector('.main-content')?.scrollTo({ top: 0 });
 }
 
-/* ===================== ИГРЫ (карточки) ===================== */
+/* ===================== ИГРЫ (карточки + фильтр) ===================== */
+let currentGameFilter = 'all';
+
+function setupGameFilter() {
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      vibrate();
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      currentGameFilter = chip.dataset.cat;
+      renderGames();
+    });
+  });
+}
+
 function renderGames() {
-  el('games-list').innerHTML = GAMES_DATA.map(g => `
+  const filtered = currentGameFilter === 'all'
+    ? GAMES_DATA
+    : GAMES_DATA.filter(g => g.category === currentGameFilter);
+
+  el('games-list').innerHTML = filtered.map(g => `
     <div class="game-card ${g.featured ? 'featured' : ''}">
       <div class="game-img-wrap">
         <img src="${g.img}" alt="${g.name}" onerror="this.style.display='none'">
@@ -503,7 +517,7 @@ function renderExchanges() {
         <div class="exchange-name">${esc(x.name)}</div>
         <div class="exchange-desc">${esc(x.desc)}</div>
       </div>
-      <button class="exchange-btn" data-url="${x.url}">Перейти</button>
+      <button class="exchange-btn" data-url="${x.url}" data-name="${x.name}">Перейти</button>
     </div>
   `).join('');
 
@@ -511,6 +525,15 @@ function renderExchanges() {
     btn.addEventListener('click', e => {
       e.stopPropagation();
       vibrate();
+      const name = btn.dataset.name;
+      // Отправляем событие на бэкенд
+      if (currentUserId) {
+        fetch(`${WORKER_URL}/track-exchange-click`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: currentUserId.toString(), exchangeName: name })
+        }).catch(() => {});
+      }
       openLink(btn.dataset.url, false);
     });
   });
@@ -582,6 +605,56 @@ function startAutoClicker() {
     }
   }, 1000);
 }
+
+/* ===================== ЕЖЕДНЕВНЫЙ БОНУС ===================== */
+function setupDailyBonus() {
+  updateDailyBonusUI();
+  el('daily-claim-btn').addEventListener('click', claimDailyBonus);
+}
+
+function canClaimDaily() {
+  if (!clicker.lastDailyClaim) return true;
+  const last = new Date(clicker.lastDailyClaim).getTime();
+  const now  = Date.now();
+  return (now - last) >= 24 * 60 * 60 * 1000;
+}
+
+function getTimeUntilNextClaim() {
+  if (!clicker.lastDailyClaim) return 0;
+  const last = new Date(clicker.lastDailyClaim).getTime();
+  const next = last + 24 * 60 * 60 * 1000;
+  return Math.max(0, next - Date.now());
+}
+
+function updateDailyBonusUI() {
+  const btn = el('daily-claim-btn');
+  const timerEl = el('daily-timer');
+  if (canClaimDaily()) {
+    btn.disabled = false;
+    btn.textContent = 'Забрать +50⭐';
+    timerEl.textContent = 'Доступен!';
+  } else {
+    btn.disabled = true;
+    const remaining = getTimeUntilNextClaim();
+    const h = Math.floor(remaining / 3600000);
+    const m = Math.floor((remaining % 3600000) / 60000);
+    const s = Math.floor((remaining % 60000) / 1000);
+    timerEl.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }
+}
+
+function claimDailyBonus() {
+  if (!canClaimDaily()) return;
+  vibrate();
+  addStars(50);
+  clicker.lastDailyClaim = new Date().toISOString();
+  saveClickerState();
+  updateDailyBonusUI();
+  showToast('🎁 +50 звёзд за ежедневный бонус!');
+}
+
+// Обновляем таймер ежедневного бонуса каждую секунду
+setInterval(updateDailyBonusUI, 1000);
 
 /* ===================== УЛУЧШЕНИЯ ===================== */
 function renderUpgrades() {
@@ -708,26 +781,38 @@ function setupClanBanner() {
   if (!banner) return;
   banner.addEventListener('click', () => {
     vibrate();
-    openLink('https://t.me/hadron', true); // ← замени на свою ссылку на канал
+    openLink('https://t.me/+GNfQDYSAYc4wNDBi', true); // ← замени на свою ссылку
   });
 }
 
-/* ===================== МОДАЛКА ПОДПИСКИ ===================== */
+/* ===================== ОБЯЗАТЕЛЬНАЯ ПОДПИСКА ===================== */
+function checkMandatorySubscription() {
+  const subscribed = localStorage.getItem('hadron_subscribed');
+  if (subscribed === 'true') {
+    // Уже подписан – показываем приложение
+    showApp();
+    return;
+  }
+  // Иначе показываем модалку подписки
+  showSubModal();
+}
+
+function showApp() {
+  const app = document.getElementById('app');
+  app.style.display = 'flex';
+  setTimeout(() => app.classList.add('visible'), 50);
+}
+
 function setupSubscriptionModal() {
   const modal    = el('sub-modal');
-  const closeBtn = el('sub-close-btn');
   const checkBtn = el('sub-check-btn');
   const statusEl = el('sub-status');
 
-  if (!modal) return;
-
-  modal.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
-
-  // Кнопка "Позже" — скрыть, но показать снова через 5 минут
-  closeBtn?.addEventListener('click', () => {
-    modal.style.display = 'none';
-    sessionStorage.setItem('hadron_later_ts', Date.now().toString());
-    setTimeout(showSubModal, 5 * 60 * 1000); // 5 минут
+  // Нельзя закрыть модалку кликом по оверлею (оставляем пустой обработчик)
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      // Ничего не делаем – нельзя закрыть
+    }
   });
 
   checkBtn?.addEventListener('click', async () => {
@@ -740,8 +825,10 @@ function setupSubscriptionModal() {
         statusEl.textContent = '✅ Подписка подтверждена!';
         addStars(100);
         showToast('🎉 +100 звёзд за подписку на HADRON!');
-        localStorage.setItem('hadron_subscribed', 'true'); // Запомнить навсегда
-        setTimeout(() => { modal.style.display = 'none'; statusEl.textContent = ''; }, 1800);
+        localStorage.setItem('hadron_subscribed', 'true');
+        // Скрываем модалку и показываем приложение
+        modal.style.display = 'none';
+        showApp();
       } else {
         statusEl.textContent = '❌ Подписка не найдена. Попробуй ещё раз.';
       }
@@ -755,6 +842,31 @@ function showSubModal() {
   const modal = el('sub-modal');
   if (modal) modal.style.display = 'flex';
 }
+
+// Кнопка перепроверки подписки в профиле (на случай сброса)
+function setupRecheckButton() {
+  const btn = el('recheck-sub-btn');
+  if (!btn) return;
+  btn.addEventListener('click', () => {
+    if (!currentUserId) return;
+    fetch(`${WORKER_URL}/check-subscription?userId=${currentUserId}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.subscribed) {
+          localStorage.setItem('hadron_subscribed', 'true');
+          btn.style.display = 'none';
+          showToast('✅ Подписка активна');
+          addStars(100); // если ещё не получали
+        } else {
+          showToast('❌ Вы не подписаны на канал');
+        }
+      });
+  });
+}
+// Вызываем один раз после загрузки
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(setupRecheckButton, 1000);
+});
 
 /* ===================== УТИЛИТЫ ===================== */
 function el(id) { return document.getElementById(id); }
