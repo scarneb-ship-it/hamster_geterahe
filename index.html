@@ -1,194 +1,268 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <!-- Теперь используется светлая тема по умолчанию, Telegram подхватит автоматически -->
-    <meta name="theme-color" content="#F5F7FA">
-    <title>Games Verse</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0f0f1a">
+  <title>Games Verse</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <!-- Splash Screen -->
-    <div id="splash-screen">
-        <img src="oblochka.jpg" alt="Загрузка..." id="splash-img">
+
+  <!-- ========== SPLASH SCREEN ========== -->
+  <div id="splash" class="splash">
+    <div class="splash-logo">
+      <div class="splash-icon">🎮</div>
+      <div class="splash-title">Games Verse</div>
+      <div class="splash-dots">
+        <span></span><span></span><span></span>
+      </div>
     </div>
+  </div>
 
-    <div class="app-container">
-        <main class="main-content">
-            <!-- Игры -->
-            <section id="games-section" class="content-section active">
-                <div class="section-header">
-                    <h2>Игры</h2>
-                    <span class="section-subtitle">Лучшие игры Telegram</span>
-                </div>
+  <!-- ========== ОСНОВНОЕ ПРИЛОЖЕНИЕ ========== -->
+  <div class="app" id="app">
 
-                <!-- Баннер клана -->
-                <div class="clan-banner" id="clan-banner">
-                    <div class="clan-banner-inner">
-                        <span class="clan-banner-icon">⚔️</span>
-                        <span class="clan-banner-text">Вступай в наш клан в Pixel World! Жми сюда →</span>
-                        <span class="clan-banner-icon">🛡️</span>
-                    </div>
-                </div>
-
-                <div class="games-grid" id="games-grid"></div>
-            </section>
-
-            <!-- Биржи -->
-            <section id="exchanges-section" class="content-section">
-                <div class="section-header">
-                    <h2>Крипто-биржи</h2>
-                    <span class="section-subtitle">Торгуйте криптовалютами безопасно</span>
-                </div>
-                <div class="gamefi-banner">
-                    <img src="images/gamefi.jpg" alt="GameFi Trading" class="gamefi-image">
-                    <div class="gamefi-overlay">
-                        <div class="gamefi-content">
-                            <h3 class="gamefi-title">Торгуйте монетами GameFi</h3>
-                            <p class="gamefi-description">На популярных криптобиржах с лучшими условиями</p>
-                            <div class="gamefi-stats">
-                                <div class="stat">
-                                    <span class="stat-number">100+</span>
-                                    <span class="stat-label">GameFi токенов</span>
-                                </div>
-                                <div class="stat">
-                                    <span class="stat-number">24/7</span>
-                                    <span class="stat-label">Торговля</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="exchanges-list" id="exchanges-list"></div>
-            </section>
-
-            <!-- 2048 -->
-            <section id="game-section" class="content-section game-fullscreen">
-                <div class="game-tabs">
-                    <button class="game-tab active" id="tab-game-btn">Игра</button>
-                    <button class="game-tab" id="tab-leaderboard-btn">Топы</button>
-                </div>
-
-                <div class="game-2048-container" id="game-2048-container">
-                    <div class="game-header-2048">
-                        <h3 class="game-title-2048">2048</h3>
-                        <div class="game-scores">
-                            <div class="score-box">
-                                <div class="score-label">Счёт</div>
-                                <div class="score-value" id="game-score">0</div>
-                            </div>
-                            <div class="score-box">
-                                <div class="score-label">Лучший</div>
-                                <div class="score-value" id="best-score">0</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="game-board-2048" id="game-board-2048"></div>
-                    <div class="game-controls">
-                        <button class="new-game-btn" id="new-game-btn">Новая игра</button>
-                        <button class="undo-move-btn" id="undo-move-btn" style="display:none;">↩ Отменить ход</button>
-                        <div class="game-status" id="game-status"></div>
-                    </div>
-                    <div class="swipe-hint">👆 Свайпайте пальцем или используйте стрелки</div>
-                </div>
-
-                <div class="leaderboard-container" id="leaderboard-container" style="display: none;">
-                    <div class="leaderboard-header">
-                        <h3 class="leaderboard-title">🏆 Таблица лидеров</h3>
-                        <button class="refresh-leaderboard" id="refresh-leaderboard">🔄</button>
-                    </div>
-                    <div class="leaderboard-list" id="leaderboard-list">
-                        <div class="leaderboard-loading">Загрузка...</div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Профиль -->
-            <section id="profile-section" class="content-section">
-                <div class="profile-header">
-                    <div class="profile-avatar" id="user-avatar">
-                        <img src="" alt="User Avatar" id="avatar-img" style="display: none;">
-                        <span id="avatar-fallback">T</span>
-                    </div>
-                    <div class="profile-info">
-                        <h2 id="user-name">Пользователь</h2>
-                        <p id="user-username">Открой в Telegram</p>
-                    </div>
-                </div>
-
-                <div class="referral-program" id="referral-program">
-                    <h3 class="referral-title">🎁 Пригласи друзей</h3>
-                    <p class="referral-subtitle">Получай награды за каждого друга</p>
-                    <div class="referral-count">
-                        <span class="referral-number" id="referral-count">0</span>
-                        <span class="referral-label">друзей</span>
-                    </div>
-                    <div class="progress-bar-container">
-                        <div class="progress-bar" id="referral-progress"></div>
-                        <div class="progress-steps">
-                            <span class="step" data-target="3">3</span>
-                            <span class="step" data-target="5">5</span>
-                            <span class="step" data-target="10">10</span>
-                        </div>
-                    </div>
-                    <div class="rewards-grid" id="rewards-grid"></div>
-                </div>
-
-                <div class="profile-actions">
-                    <button class="share-friends-button" id="share-friends-button">
-                        <div class="share-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                <path d="M18 8C19.6569 8 21 6.65685 21 5C21 3.34315 19.6569 2 18 2C16.3431 2 15 3.34315 15 5C15 6.65685 16.3431 8 18 8Z" stroke="currentColor" stroke-width="2"/>
-                                <path d="M6 15C7.65685 15 9 13.6569 9 12C9 10.3431 7.65685 9 6 9C4.34315 9 3 10.3431 3 12C3 13.6569 4.34315 15 6 15Z" stroke="currentColor" stroke-width="2"/>
-                                <path d="M18 22C19.6569 22 21 20.6569 21 19C21 17.3431 19.6569 16 18 16C16.3431 16 15 17.3431 15 19C15 20.6569 16.3431 22 18 22Z" stroke="currentColor" stroke-width="2"/>
-                                <path d="M8.59 13.51L15.42 17.49" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                <path d="M15.41 6.51L8.59 10.49" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            </svg>
-                        </div>
-                        <span>Поделиться с друзьями</span>
-                    </button>
-                </div>
-            </section>
-        </main>
-
-        <!-- Навигация -->
-        <nav class="bottom-nav">
-            <button class="nav-item active" data-section="games-section">
-                <span class="nav-icon">🎮</span>
-                <span class="nav-label">Игры</span>
-            </button>
-            <button class="nav-item" data-section="exchanges-section">
-                <span class="nav-icon">📊</span>
-                <span class="nav-label">Биржи</span>
-            </button>
-            <button class="nav-item" data-section="game-section">
-                <span class="nav-icon">🎲</span>
-                <span class="nav-label">2048</span>
-            </button>
-            <button class="nav-item" data-section="profile-section">
-                <span class="nav-icon">👤</span>
-                <span class="nav-label">Профиль</span>
-            </button>
-        </nav>
-
-        <div id="notification" class="notification">Ссылка скопирована в буфер обмена!</div>
-
-        <!-- Модальное окно подписки -->
-        <div id="subscription-modal" class="modal-overlay" style="display: none;">
-            <div class="modal-content">
-                <h3>📢 Подпишись на HADRON</h3>
-                <p>Присоединяйся к нашему Telegram‑каналу, чтобы первым узнавать о новостях, розыгрышах и эксклюзивных наградах!</p>
-                <a href="https://t.me/+GNfQDYSAYc4wNDBi" target="_blank" class="modal-btn modal-sub-btn" id="modal-sub-btn">Подписаться</a>
-                <button class="modal-btn modal-check-btn" id="modal-check-btn">Проверить подписку</button>
-                <button class="modal-btn modal-close-btn" id="modal-close-btn">Закрыть</button>
-                <p class="modal-status" id="modal-status"></p>
-            </div>
+    <!-- ====== ШАПКА С МОНЕТАМИ ====== -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="user-chip" id="user-chip">
+          <div class="user-chip-avatar" id="chip-avatar">G</div>
+          <span class="user-chip-name" id="chip-name">Игрок</span>
         </div>
-    </div>
+      </div>
+      <div class="header-right">
+        <div class="coins-display" id="coins-display">
+          <span class="coins-icon">⭐</span>
+          <span class="coins-value" id="coins-value">0</span>
+        </div>
+      </div>
+    </header>
 
-    <script src="script.js"></script>
+    <!-- ====== ОСНОВНОЙ КОНТЕНТ ====== -->
+    <main class="main-content">
+
+      <!-- === ВКЛАДКА: ИГРЫ === -->
+      <section id="tab-games" class="tab-section active">
+        <div class="section-title">
+          <h2>Игры</h2>
+          <span class="section-sub">Лучшие мини-игры Telegram</span>
+        </div>
+
+        <!-- Баннер клана -->
+        <div class="clan-banner" id="clan-banner">
+          <div class="clan-banner-track">
+            <span class="clan-banner-icon">⚔️</span>
+            <span class="clan-banner-text">Вступай в клан Pixel World — жми сюда!</span>
+            <span class="clan-banner-icon">🛡️</span>
+            <span class="clan-banner-text">Вступай в клан Pixel World — жми сюда!</span>
+            <span class="clan-banner-icon">⚔️</span>
+            <span class="clan-banner-text">Вступай в клан Pixel World — жми сюда!</span>
+          </div>
+        </div>
+
+        <div class="games-list" id="games-list"></div>
+      </section>
+
+      <!-- === ВКЛАДКА: МИНИ-ИГРА (КЛИКЕР) === -->
+      <section id="tab-clicker" class="tab-section">
+        <div class="clicker-wrap">
+
+          <!-- Заголовок игры -->
+          <div class="clicker-header">
+            <div class="clicker-title-block">
+              <h2 class="clicker-game-title">Звёздный Кузнец</h2>
+              <p class="clicker-game-sub">Куй звёзды, прокачивай кузницу!</p>
+            </div>
+            <div class="clicker-score-block">
+              <div class="score-pill">
+                <span>⭐</span>
+                <span id="click-stars">0</span>
+              </div>
+              <div class="score-pill secondary">
+                <span>🔥</span>
+                <span id="click-per-sec">0/с</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Кнопка кликера -->
+          <div class="clicker-arena">
+            <button class="clicker-btn" id="clicker-btn" aria-label="Ковать звезду">
+              <div class="clicker-btn-inner">
+                <div class="clicker-orb" id="clicker-orb">⭐</div>
+                <div class="clicker-ring"></div>
+                <div class="clicker-ring ring2"></div>
+              </div>
+            </button>
+            <div class="clicker-power-label">+<span id="click-power">1</span> за удар</div>
+          </div>
+
+          <!-- Магазин улучшений -->
+          <div class="upgrades-title">Улучшения кузницы</div>
+          <div class="upgrades-list" id="upgrades-list"></div>
+
+          <!-- Достижения -->
+          <div class="upgrades-title" style="margin-top:12px;">Достижения</div>
+          <div class="achievements-list" id="achievements-list"></div>
+
+        </div>
+      </section>
+
+      <!-- === ВКЛАДКА: БИРЖИ === -->
+      <section id="tab-exchanges" class="tab-section">
+        <div class="section-title">
+          <h2>Крипто-биржи</h2>
+          <span class="section-sub">Лучшие условия для трейдинга</span>
+        </div>
+
+        <!-- Баннер GameFi -->
+        <div class="gamefi-card">
+          <div class="gamefi-glow"></div>
+          <div class="gamefi-content">
+            <h3>Торгуй GameFi-токенами</h3>
+            <p>100+ токенов · 24/7 торговля · лучшие комиссии</p>
+          </div>
+          <div class="gamefi-stats">
+            <div class="gf-stat"><span>100+</span><small>токенов</small></div>
+            <div class="gf-stat"><span>24/7</span><small>торговля</small></div>
+            <div class="gf-stat"><span>0%</span><small>комиссия</small></div>
+          </div>
+        </div>
+
+        <div class="exchanges-list" id="exchanges-list"></div>
+      </section>
+
+      <!-- === ВКЛАДКА: ПРОФИЛЬ / РЕФЕРАЛЫ === -->
+      <section id="tab-profile" class="tab-section">
+
+        <!-- Профиль -->
+        <div class="profile-card">
+          <div class="profile-avatar-wrap">
+            <div class="profile-avatar" id="profile-avatar">
+              <img id="avatar-img" src="" alt="" style="display:none">
+              <span id="avatar-letter">G</span>
+            </div>
+            <div class="profile-level" id="profile-level-badge">Ур. 1</div>
+          </div>
+          <div class="profile-meta">
+            <h2 id="profile-name">Игрок</h2>
+            <p id="profile-username">Открой в Telegram</p>
+            <div class="profile-stats-row">
+              <div class="ps-item">
+                <span id="ps-stars">0</span>
+                <small>⭐ звёзды</small>
+              </div>
+              <div class="ps-item">
+                <span id="ps-refs">0</span>
+                <small>👥 друзья</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Реферальная программа -->
+        <div class="referral-card">
+          <div class="referral-header">
+            <div class="referral-header-text">
+              <h3>Пригласи друзей</h3>
+              <p>Получай звёзды за каждого</p>
+            </div>
+            <div class="referral-count-bubble" id="ref-bubble">
+              <span id="ref-count">0</span>
+              <small>друзей</small>
+            </div>
+          </div>
+
+          <!-- Прогресс -->
+          <div class="ref-progress-wrap">
+            <div class="ref-progress-track">
+              <div class="ref-progress-fill" id="ref-progress-fill"></div>
+              <div class="ref-milestones">
+                <div class="ref-milestone" data-n="3" style="left:30%">
+                  <div class="rm-dot" id="rm-3"></div>
+                  <span>3</span>
+                </div>
+                <div class="ref-milestone" data-n="5" style="left:50%">
+                  <div class="rm-dot" id="rm-5"></div>
+                  <span>5</span>
+                </div>
+                <div class="ref-milestone" data-n="10" style="left:100%">
+                  <div class="rm-dot" id="rm-10"></div>
+                  <span>10</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Награды -->
+          <div class="ref-rewards" id="ref-rewards"></div>
+
+          <!-- Кнопка поделиться -->
+          <button class="share-btn" id="share-btn">
+            <span class="share-btn-icon">🔗</span>
+            <span>Поделиться ссылкой</span>
+            <span class="share-btn-badge">+50 ⭐</span>
+          </button>
+
+          <!-- Скопировать ссылку -->
+          <button class="copy-btn" id="copy-btn">
+            <span>📋 Скопировать ссылку</span>
+          </button>
+
+          <p class="ref-link-label" id="ref-link-label"></p>
+        </div>
+
+        <!-- Топ-игроков (лидерборд кликера) -->
+        <div class="section-title" style="margin-top:20px;">
+          <h2>Топ кузнецов</h2>
+        </div>
+        <div class="leaderboard-list" id="leaderboard-list"></div>
+
+      </section>
+
+    </main>
+
+    <!-- ====== НИЖНЯЯ НАВИГАЦИЯ ====== -->
+    <nav class="bottom-nav">
+      <button class="nav-btn active" data-tab="tab-games">
+        <span class="nav-btn-icon">🎮</span>
+        <span class="nav-btn-label">Игры</span>
+      </button>
+      <button class="nav-btn" data-tab="tab-clicker">
+        <span class="nav-btn-icon">⭐</span>
+        <span class="nav-btn-label">Кузница</span>
+      </button>
+      <button class="nav-btn" data-tab="tab-exchanges">
+        <span class="nav-btn-icon">📊</span>
+        <span class="nav-btn-label">Биржи</span>
+      </button>
+      <button class="nav-btn" data-tab="tab-profile">
+        <span class="nav-btn-icon">👤</span>
+        <span class="nav-btn-label">Профиль</span>
+      </button>
+    </nav>
+
+  </div><!-- /.app -->
+
+  <!-- ====== ВСПЛЫВАЮЩЕЕ УВЕДОМЛЕНИЕ ====== -->
+  <div class="toast" id="toast"></div>
+
+  <!-- ====== МОДАЛКА ПОДПИСКИ ====== -->
+  <div class="modal-overlay" id="sub-modal" style="display:none">
+    <div class="modal-box">
+      <div class="modal-emoji">📢</div>
+      <h3>Подпишись на HADRON</h3>
+      <p>Узнавай первым о новых играх, розыгрышах и наградах!</p>
+      <a href="https://t.me/+GNfQDYSAYc4wNDBi" target="_blank" class="modal-btn modal-btn--primary" id="sub-link-btn">Подписаться</a>
+      <button class="modal-btn modal-btn--secondary" id="sub-check-btn">Я подписался</button>
+      <button class="modal-btn modal-btn--ghost" id="sub-close-btn">Позже</button>
+      <p class="modal-status" id="sub-status"></p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
