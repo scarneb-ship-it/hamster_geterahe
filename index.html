@@ -3,23 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#6C3A8B">
-    <title>Hadron Hub</title>
+    <meta name="theme-color" content="#667eea">
+    <title>Games Verse</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <!-- Splash Screen (замени картинку на свой логотип Hadron) -->
+    <!-- Splash Screen -->
     <div id="splash-screen">
-        <img src="oblochka.jpg" alt="Hadron" id="splash-img">
+        <img src="oblochka.jpg" alt="Загрузка..." id="splash-img">
     </div>
 
     <div class="app-container">
         <!-- Header -->
         <header class="header">
             <div class="header-content">
-                <h1 class="app-title">Hadron Hub</h1>
+                <h1 class="app-title">Games Verse</h1>
                 <button class="settings-button" id="settings-button" aria-label="Настройки">⚙️</button>
             </div>
         </header>
@@ -78,21 +78,15 @@
                 <div class="exchanges-list" id="exchanges-list"></div>
             </section>
 
-            <!-- Hub Section (NFT, Подарки, Нейросети) -->
-            <section id="hub-section" class="content-section">
-                <div class="section-header">
-                    <h2>Хаб Hadron</h2>
-                    <span class="section-subtitle">NFT, Подарки Telegram, Нейросети</span>
-                </div>
-                <div class="hub-grid" id="hub-grid"></div>
-            </section>
-
             <!-- 2048 Game Section -->
             <section id="game-section" class="content-section game-fullscreen">
+                <!-- Вкладки Игра / Топы -->
                 <div class="game-tabs">
                     <button class="game-tab active" data-tab="game">Игра</button>
                     <button class="game-tab" data-tab="leaderboard">Топы</button>
                 </div>
+
+                <!-- Контейнер игры -->
                 <div class="game-2048-container" id="game-container-2048">
                     <div class="game-header-2048">
                         <h3 class="game-title-2048">2048</h3>
@@ -114,6 +108,8 @@
                     </div>
                     <div class="swipe-hint">👆 Свайпайте пальцем или используйте стрелки</div>
                 </div>
+
+                <!-- Таблица лидеров -->
                 <div class="leaderboard-container" id="leaderboard-container">
                     <div class="leaderboard-header">
                         <h3 class="leaderboard-title">🏆 Таблица лидеров</h3>
@@ -135,9 +131,6 @@
                     <div class="profile-info">
                         <h2 id="user-name">Пользователь</h2>
                         <p id="user-username">Открой в Telegram</p>
-                        <div class="ref-count" id="ref-count" style="display:none;">
-                            👥 Друзей: <span id="ref-number">0</span>
-                        </div>
                     </div>
                 </div>
                 <div class="profile-actions">
@@ -157,7 +150,7 @@
             </section>
         </main>
 
-        <!-- Bottom Navigation (5 вкладок) -->
+        <!-- Bottom Navigation -->
         <nav class="bottom-nav">
             <button class="nav-item active" data-section="games-section">
                 <span class="nav-icon">🎮</span>
@@ -166,10 +159,6 @@
             <button class="nav-item" data-section="exchanges-section">
                 <span class="nav-icon">📊</span>
                 <span class="nav-label">Биржи</span>
-            </button>
-            <button class="nav-item" data-section="hub-section">
-                <span class="nav-icon">🎁</span>
-                <span class="nav-label">Хаб</span>
             </button>
             <button class="nav-item" data-section="game-section">
                 <span class="nav-icon">🎲</span>
@@ -182,18 +171,6 @@
         </nav>
 
         <div id="notification" class="notification">Ссылка скопирована в буфер обмена!</div>
-
-        <!-- Модальное окно подписки на канал Hadron -->
-        <div id="subscribe-modal" class="modal" style="display:none;">
-            <div class="modal-content">
-                <h3>📢 Подписка</h3>
-                <p>Чтобы открыть этот раздел, подпишись на канал <b>@hadron_channel</b></p>
-                <div class="modal-buttons">
-                    <button id="subscribe-link-btn" class="primary-btn">Подписаться</button>
-                    <button id="close-modal-btn" class="secondary-btn">Позже</button>
-                </div>
-            </div>
-        </div>
     </div>
 
     <script src="script.js"></script>
