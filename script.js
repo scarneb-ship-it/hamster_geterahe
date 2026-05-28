@@ -4,6 +4,9 @@ let currentUserId = null;
 const WORKER_URL = 'https://gamesverse-bot.scarneb.workers.dev';
 const HADRON_CHANNEL = 'https://t.me/+GNfQDYSAYc4wNDBi';
 
+// Глобальная настройка вибрации
+let vibrationEnabled = true;
+
 const GAMES_DATA = [
     {
         id: 0,
@@ -73,7 +76,7 @@ const SERVICES_DATA = [
         name: "Portals",
         url: "https://t.me/portals/market?startapp=xr9tzm",
         description: "Маркет подарков Telegram",
-        image: "images/portals.jpg",
+        image: "images/portals.jpg",   // исправлено: ваша картинка portals.jpg
         fallback: "🎁"
     },
     {
@@ -81,7 +84,7 @@ const SERVICES_DATA = [
         name: "StarsShip",
         url: "http://t.me/StarsShipBot?start=r6823288584",
         description: "Покупка Telegram Stars",
-        image: "images/starsship.jpg",
+        image: "images/starship.jpg",  // исправлено: ваша картинка starship.jpg (без лишней s)
         fallback: "⭐"
     }
 ];
@@ -116,8 +119,10 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
 });
 
+// Обновлённая функция вибрации: уменьшенная длительность + проверка настройки
 function vibrate() {
-    if (navigator.vibrate) navigator.vibrate(50);
+    if (!vibrationEnabled) return;
+    if (navigator.vibrate) navigator.vibrate(30); // было 50, стало 30 мс
 }
 
 function initializeApp() {
@@ -131,6 +136,7 @@ function initializeApp() {
     initializeServices();
     setupSettingsPanel();
     loadThemePreference();
+    loadVibrationPreference();   // загружаем настройку вибрации
     setLanguage();
     loadUserData();
     setupShareButton();
@@ -376,7 +382,7 @@ function setupNavigation() {
                 if (section.id === targetSection) section.classList.add('active');
             });
             toggleHeaderForSection(targetSection);
-            hideSubscribeModal(); // Закрываем окно подписки, если перешли
+            hideSubscribeModal();
 
             if (targetSection === 'game-section') {
                 resetGameTabsToDefault();
@@ -440,17 +446,55 @@ function setupSettingsPanel() {
     if (closeSettings) closeSettings.addEventListener('click', () => { vibrate(); settingsPanel.classList.remove('active'); });
     if (settingsPanel) settingsPanel.addEventListener('click', (e) => { if (e.target === settingsPanel) settingsPanel.classList.remove('active'); });
 
-    document.querySelectorAll('.theme-option').forEach(option => {
+    // Переключатель темы (уже был)
+    document.querySelectorAll('.theme-option[data-theme]').forEach(option => {
         option.addEventListener('click', function() {
             vibrate();
             const theme = this.getAttribute('data-theme');
-            document.querySelectorAll('.theme-option').forEach(opt => opt.classList.remove('active'));
+            document.querySelectorAll('.theme-option[data-theme]').forEach(opt => opt.classList.remove('active'));
             this.classList.add('active');
             if (theme === 'dark') document.body.classList.add('dark-theme');
             else document.body.classList.remove('dark-theme');
             localStorage.setItem('theme', theme);
         });
     });
+
+    // Переключатель вибрации (новый)
+    const vibrationOptions = document.querySelectorAll('.theme-option[data-vibration]');
+    vibrationOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            vibrate();  // короткий отклик при переключении (если вибрация включена)
+            const state = this.getAttribute('data-vibration'); // 'on' или 'off'
+            vibrationEnabled = (state === 'on');
+            localStorage.setItem('vibration', state);
+            updateVibrationSwitcherUI();
+        });
+    });
+
+    // При открытии настроек синхронизируем положение переключателя вибрации
+    updateVibrationSwitcherUI();
+}
+
+// Обновление активной кнопки вибрации в соответствии с текущим состоянием
+function updateVibrationSwitcherUI() {
+    const vibrationOptions = document.querySelectorAll('.theme-option[data-vibration]');
+    if (!vibrationOptions.length) return;
+    vibrationOptions.forEach(opt => {
+        opt.classList.remove('active');
+        if (opt.getAttribute('data-vibration') === (vibrationEnabled ? 'on' : 'off')) {
+            opt.classList.add('active');
+        }
+    });
+}
+
+function loadVibrationPreference() {
+    const saved = localStorage.getItem('vibration');
+    if (saved === 'off') {
+        vibrationEnabled = false;
+    } else {
+        vibrationEnabled = true; // по умолчанию вкл.
+    }
+    updateVibrationSwitcherUI();
 }
 
 function setLanguage() {
@@ -463,7 +507,7 @@ function setLanguage() {
 function loadThemePreference() {
     const savedTheme = localStorage.getItem('theme') || 'light';
     if (savedTheme === 'dark') document.body.classList.add('dark-theme');
-    document.querySelectorAll('.theme-option').forEach(opt => {
+    document.querySelectorAll('.theme-option[data-theme]').forEach(opt => {
         opt.classList.remove('active');
         if (opt.getAttribute('data-theme') === savedTheme) opt.classList.add('active');
     });
