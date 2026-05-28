@@ -1,5 +1,6 @@
-// script.js
+// script.js — Hadron Mini App
 const BOT_USERNAME = 'khadron_bot';
+const HADRON_CHANNEL = 'https://t.me/hadron_ton'; // ← замени на свой канал
 let currentUserId = null;
 
 const WORKER_URL = 'https://gamesverse-bot.scarneb.workers.dev';
@@ -31,7 +32,7 @@ const GAMES_DATA = [
         id: 2,
         name: "Hamster King",
         fullLink: "https://t.me/hamsterking_game_bot?startapp=6823288584",
-        description: "Стань королем хомяков",
+        description: "Стань королём хомяков",
         rating: 4.2,
         players: "188K",
         image: "images/hamster-king.jpg",
@@ -94,8 +95,101 @@ const EXCHANGES_DATA = [
     }
 ];
 
+// ==================== AI DATA ====================
+// Замени ссылки на свои реферальные ссылки
+const AI_DATA = [
+    {
+        id: 1,
+        name: "ChatGPT",
+        url: "https://chat.openai.com/",  // ← вставь рефку если есть
+        description: "Самый популярный AI-чатбот от OpenAI",
+        emoji: "💬",
+        bgColor: "#10a37f"
+    },
+    {
+        id: 2,
+        name: "Claude",
+        url: "https://claude.ai/",
+        description: "Умный AI-ассистент от Anthropic",
+        emoji: "🟠",
+        bgColor: "#cc7848"
+    },
+    {
+        id: 3,
+        name: "Midjourney",
+        url: "https://www.midjourney.com/",
+        description: "Генерация изображений по тексту",
+        emoji: "🎨",
+        bgColor: "#6c5ce7"
+    },
+    {
+        id: 4,
+        name: "Grok",
+        url: "https://x.com/i/grok",
+        description: "AI от xAI — встроен в X (Twitter)",
+        emoji: "⚡",
+        bgColor: "#000000"
+    },
+    {
+        id: 5,
+        name: "Suno AI",
+        url: "https://suno.com/",
+        description: "Генерация музыки с помощью AI",
+        emoji: "🎵",
+        bgColor: "#ff6b6b"
+    },
+    {
+        id: 6,
+        name: "Runway",
+        url: "https://runwayml.com/",
+        description: "AI-генерация видео и спецэффектов",
+        emoji: "🎬",
+        bgColor: "#2d3561"
+    }
+];
+
+// ==================== TON GIFTS DATA ====================
+// Замени на актуальные маркетплейсы и ссылки
+const GIFTS_DATA = [
+    {
+        id: 1,
+        name: "Fragment",
+        url: "https://fragment.com/",
+        description: "Официальный маркетплейс Telegram — имена, подарки",
+        emoji: "💎"
+    },
+    {
+        id: 2,
+        name: "Getgems",
+        url: "https://getgems.io/",
+        description: "Крупнейший NFT-маркетплейс на TON",
+        emoji: "💠"
+    },
+    {
+        id: 3,
+        name: "TON Diamonds",
+        url: "https://tondiamonds.com/",
+        description: "NFT-коллекции и редкие подарки TON",
+        emoji: "🔷"
+    },
+    {
+        id: 4,
+        name: "DeDust",
+        url: "https://dedust.io/",
+        description: "DEX на TON — обмен токенов и NFT",
+        emoji: "🌊"
+    },
+    {
+        id: 5,
+        name: "TON Gift Bot",
+        url: "https://t.me/toncoin",   // ← замени на актуального бота
+        description: "Отправляй TON-подарки друзьям прямо в Telegram",
+        emoji: "🎁"
+    }
+];
+
 const translations = {
-    appTitle: "Games Verse",
+    appTitle: "Hadron",
     settings: "Настройки",
     theme: "Тема",
     lightTheme: "Светлая",
@@ -137,15 +231,19 @@ function initializeApp() {
     setupNavigation();
     initializeGames();
     initializeExchanges();
+    initializeAI();
+    initializeGifts();
     setupSettingsPanel();
-    // Тема теперь всегда тёмная, функция загрузки темы удалена
+    loadThemePreference();
     setLanguage();
     loadUserData();
     setupShareButton();
+    setupSubscribeChannelButton();
     initGame2048();
     setupLeaderboardRefresh();
     setupLeaderboardShare();
     setupGameTabs();
+    showSubscribeBanner();
 }
 
 function initializeTelegramWebApp() {
@@ -163,6 +261,56 @@ function initializeTelegramWebApp() {
     }
 }
 
+// ==================== SUBSCRIBE BANNER ====================
+function showSubscribeBanner() {
+    // Показываем баннер один раз — если пользователь ещё не видел или не нажал "Подписаться"
+    const dismissed = localStorage.getItem('hadron_subscribe_dismissed');
+    if (dismissed) return;
+
+    const banner = document.getElementById('subscribe-banner');
+    if (!banner) return;
+
+    // Небольшая задержка чтобы не пугать при загрузке
+    setTimeout(() => {
+        banner.style.display = 'flex';
+    }, 1200);
+
+    const goBtn = document.getElementById('subscribe-go');
+    const laterBtn = document.getElementById('subscribe-later');
+    const closeBtn = document.getElementById('subscribe-close');
+
+    if (goBtn) {
+        goBtn.addEventListener('click', () => {
+            vibrate();
+            openExternalLink(HADRON_CHANNEL);
+            localStorage.setItem('hadron_subscribe_dismissed', '1');
+            hideBanner(banner);
+        });
+    }
+
+    if (laterBtn) {
+        laterBtn.addEventListener('click', () => {
+            vibrate();
+            // "Позже" — не сохраняем, покажем при следующем визите
+            hideBanner(banner);
+        });
+    }
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            vibrate();
+            hideBanner(banner);
+        });
+    }
+}
+
+function hideBanner(banner) {
+    banner.style.opacity = '0';
+    banner.style.transition = 'opacity 0.25s ease';
+    setTimeout(() => { banner.style.display = 'none'; }, 260);
+}
+
+// ==================== GAMES ====================
 function initializeGames() {
     const gamesGrid = document.getElementById('games-grid');
     if (!gamesGrid) return;
@@ -208,6 +356,7 @@ function generateStars(rating) {
     return stars;
 }
 
+// ==================== EXCHANGES ====================
 function initializeExchanges() {
     const exchangesList = document.getElementById('exchanges-list');
     if (!exchangesList) return;
@@ -229,6 +378,81 @@ function initializeExchanges() {
     setupExchangeButtons();
 }
 
+// ==================== AI SECTION ====================
+function initializeAI() {
+    const aiList = document.getElementById('ai-list');
+    if (!aiList) return;
+    aiList.innerHTML = AI_DATA.map(ai => `
+        <div class="ai-card">
+            <div class="ai-logo" style="background: ${ai.bgColor};">
+                <span>${ai.emoji}</span>
+            </div>
+            <div class="ai-info">
+                <h3>${ai.name}</h3>
+                <p>${ai.description}</p>
+            </div>
+            <button class="ai-button" data-url="${ai.url}">
+                Открыть
+            </button>
+        </div>
+    `).join('');
+    setupAIButtons();
+}
+
+function setupAIButtons() {
+    document.querySelectorAll('.ai-button').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.stopPropagation();
+            vibrate();
+            const url = this.getAttribute('data-url');
+            if (url) openExternalLink(url);
+        });
+    });
+}
+
+// ==================== TON GIFTS SECTION ====================
+function initializeGifts() {
+    const giftsList = document.getElementById('gifts-list');
+    if (!giftsList) return;
+    giftsList.innerHTML = GIFTS_DATA.map(gift => `
+        <div class="gift-card">
+            <div class="gift-logo">
+                <span>${gift.emoji}</span>
+            </div>
+            <div class="gift-info">
+                <h3>${gift.name}</h3>
+                <p>${gift.description}</p>
+            </div>
+            <button class="gift-button" data-url="${gift.url}">
+                Открыть
+            </button>
+        </div>
+    `).join('');
+    setupGiftButtons();
+}
+
+function setupGiftButtons() {
+    document.querySelectorAll('.gift-button').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.stopPropagation();
+            vibrate();
+            const url = this.getAttribute('data-url');
+            if (url) openExternalLink(url);
+        });
+    });
+}
+
+// ==================== HELPERS ====================
+function openExternalLink(url) {
+    if (window.Telegram && window.Telegram.WebApp) {
+        if (url.startsWith('https://t.me/')) window.Telegram.WebApp.openTelegramLink(url);
+        else window.Telegram.WebApp.openLink(url);
+    } else {
+        window.open(url, '_blank');
+    }
+}
+
+// ==================== USER / PROFILE ====================
 function loadUserData() {
     if (window.Telegram && window.Telegram.WebApp) {
         const user = window.Telegram.WebApp.initDataUnsafe?.user;
@@ -270,7 +494,7 @@ async function sendMiniAppStat(user) {
             body: JSON.stringify(payload)
         });
     } catch (err) {
-        console.error('Ошибка отправки статистики Mini App:', err);
+        console.error('Ошибка отправки статистики:', err);
     }
 }
 
@@ -323,12 +547,13 @@ function showFallbackProfile() {
     if (avatarFallback) { avatarFallback.textContent = 'T'; avatarFallback.style.display = 'flex'; }
 }
 
+// ==================== NAVIGATION ====================
 const headerElement = document.querySelector('.header');
 const mainContent = document.querySelector('.main-content');
 
 function toggleHeaderForSection(sectionId) {
     if (!headerElement) return;
-    if (sectionId === 'profile-section' || sectionId === 'game-section') {
+    if (sectionId === 'profile-section') {
         headerElement.style.display = 'none';
         if (mainContent) mainContent.style.paddingTop = '8px';
     } else {
@@ -351,25 +576,16 @@ function setupNavigation() {
                 if (section.id === targetSection) section.classList.add('active');
             });
             toggleHeaderForSection(targetSection);
-
             if (targetSection === 'game-section') {
-                // По умолчанию показываем игру, но если активна вкладка топов – показываем топы
-                const leaderboardContainer = document.getElementById('leaderboard-container');
-                const gameContainer = document.getElementById('game-2048-container');
-                const tabGame = document.getElementById('tab-game-btn');
-                const tabLeaderboard = document.getElementById('tab-leaderboard-btn');
-                if (gameContainer.style.display !== 'none') {
-                    // Игра видна – обновлять лидерборд не нужно
-                } else {
-                    // Показаны топы – подгружаем
-                    fetchLeaderboard();
-                }
+                resetGameTabsToDefault();
+                fetchLeaderboard();
             }
         });
     });
 
     const activeSection = document.querySelector('.content-section.active');
     if (activeSection && activeSection.id === 'game-section') {
+        resetGameTabsToDefault();
         fetchLeaderboard();
     }
     if (activeSection) toggleHeaderForSection(activeSection.id);
@@ -381,14 +597,7 @@ function setupGameButtons() {
             e.stopPropagation();
             vibrate();
             const link = this.getAttribute('data-link');
-            if (link) {
-                if (window.Telegram && window.Telegram.WebApp) {
-                    if (link.startsWith('https://t.me/')) window.Telegram.WebApp.openTelegramLink(link);
-                    else window.Telegram.WebApp.openLink(link);
-                } else {
-                    window.open(link, '_blank');
-                }
-            }
+            if (link) openExternalLink(link);
         });
     });
 }
@@ -398,11 +607,8 @@ function setupExchangeButtons() {
         button.addEventListener('click', function(e) {
             e.stopPropagation();
             vibrate();
-            const exchangeUrl = this.getAttribute('data-url');
-            if (exchangeUrl) {
-                if (window.Telegram && window.Telegram.WebApp) window.Telegram.WebApp.openLink(exchangeUrl);
-                else window.open(exchangeUrl, '_blank');
-            }
+            const url = this.getAttribute('data-url');
+            if (url) openExternalLink(url);
         });
     });
 }
@@ -415,7 +621,17 @@ function setupSettingsPanel() {
     if (closeSettings) closeSettings.addEventListener('click', () => { vibrate(); settingsPanel.classList.remove('active'); });
     if (settingsPanel) settingsPanel.addEventListener('click', (e) => { if (e.target === settingsPanel) settingsPanel.classList.remove('active'); });
 
-    // Переключатель темы удалён, всегда тёмная
+    document.querySelectorAll('.theme-option').forEach(option => {
+        option.addEventListener('click', function() {
+            vibrate();
+            const theme = this.getAttribute('data-theme');
+            document.querySelectorAll('.theme-option').forEach(opt => opt.classList.remove('active'));
+            this.classList.add('active');
+            if (theme === 'dark') document.body.classList.add('dark-theme');
+            else document.body.classList.remove('dark-theme');
+            localStorage.setItem('theme', theme);
+        });
+    });
 }
 
 function setLanguage() {
@@ -425,6 +641,16 @@ function setLanguage() {
     });
 }
 
+function loadThemePreference() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    if (savedTheme === 'dark') document.body.classList.add('dark-theme');
+    document.querySelectorAll('.theme-option').forEach(opt => {
+        opt.classList.remove('active');
+        if (opt.getAttribute('data-theme') === savedTheme) opt.classList.add('active');
+    });
+}
+
+// ==================== SHARE & SUBSCRIBE CHANNEL ====================
 function setupShareButton() {
     const shareButton = document.getElementById('share-friends-button');
     if (shareButton) {
@@ -436,7 +662,7 @@ function setupShareButton() {
             } else {
                 botUrl = `https://t.me/${BOT_USERNAME}`;
             }
-            const shareText = 'Играй в лучшие мини-игры Telegram вместе с HADRON! 🎮';
+            const shareText = '⚛️ Hadron — TON, GameFi, NFT, AI в одном месте! Заходи: ';
             if (window.Telegram && window.Telegram.WebApp) {
                 const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(botUrl)}&text=${encodeURIComponent(shareText)}`;
                 try {
@@ -446,15 +672,21 @@ function setupShareButton() {
                 }
             } else {
                 if (navigator.share) {
-                    navigator.share({
-                        title: 'Games Verse',
-                        text: shareText,
-                        url: botUrl,
-                    }).catch(() => fallbackCopyToClipboard(botUrl));
+                    navigator.share({ title: 'Hadron', text: shareText, url: botUrl }).catch(() => fallbackCopyToClipboard(botUrl));
                 } else {
                     fallbackCopyToClipboard(botUrl);
                 }
             }
+        });
+    }
+}
+
+function setupSubscribeChannelButton() {
+    const btn = document.getElementById('subscribe-channel-button');
+    if (btn) {
+        btn.addEventListener('click', () => {
+            vibrate();
+            openExternalLink(HADRON_CHANNEL);
         });
     }
 }
@@ -483,7 +715,7 @@ function showNotification(customMessage) {
     setTimeout(() => notification.classList.remove('show'), 2000);
 }
 
-/* =============== 2048 Game =============== */
+/* ========== GAME 2048 ========== */
 class Game2048 {
     constructor(boardElement, scoreElement, bestScoreElement, statusElement) {
         this.boardElement = boardElement;
@@ -519,11 +751,9 @@ class Game2048 {
 
     addRandomTile() {
         const emptyCells = [];
-        for (let i = 0; i < this.size; i++) {
-            for (let j = 0; j < this.size; j++) {
+        for (let i = 0; i < this.size; i++)
+            for (let j = 0; j < this.size; j++)
                 if (this.grid[i][j] === 0) emptyCells.push({x: i, y: j});
-            }
-        }
         if (emptyCells.length > 0) {
             const {x, y} = emptyCells[Math.floor(Math.random() * emptyCells.length)];
             this.grid[x][y] = Math.random() < 0.9 ? 2 : 4;
@@ -544,7 +774,6 @@ class Game2048 {
             let newRow = [];
             let scoreGain = 0;
             let merged = new Array(arr.length).fill(false);
-
             for (let i = 0; i < arr.length; i++) {
                 if (i + 1 < arr.length && arr[i] === arr[i + 1] && !merged[i] && !merged[i+1]) {
                     let mergedVal = arr[i] * 2;
@@ -577,15 +806,10 @@ class Game2048 {
 
         this.recordMove = (oldIdx, oldVals, newIdx, isColumn, lineIdx, reverse, merged, isSecond) => {
             const originalLine = [];
-            if (!isColumn) {
-                originalLine.push(...this.grid[lineIdx]);
-            } else {
-                for (let r = 0; r < this.size; r++) originalLine.push(this.grid[r][lineIdx]);
-            }
+            if (!isColumn) originalLine.push(...this.grid[lineIdx]);
+            else for (let r = 0; r < this.size; r++) originalLine.push(this.grid[r][lineIdx]);
             if (reverse) originalLine.reverse();
-
-            let skip = 0;
-            let sourceIdx = -1;
+            let skip = 0, sourceIdx = -1;
             for (let i = 0; i < originalLine.length; i++) {
                 if (originalLine[i] !== 0) {
                     if (skip === oldIdx) { sourceIdx = i; break; }
@@ -593,49 +817,30 @@ class Game2048 {
                 }
             }
             if (sourceIdx === -1) return;
-
             if (reverse) sourceIdx = this.size - 1 - sourceIdx;
-
             let fromRow, fromCol;
-            if (!isColumn) {
-                fromRow = lineIdx;
-                fromCol = sourceIdx;
-            } else {
-                fromRow = sourceIdx;
-                fromCol = lineIdx;
-            }
-
+            if (!isColumn) { fromRow = lineIdx; fromCol = sourceIdx; }
+            else { fromRow = sourceIdx; fromCol = lineIdx; }
             let targetIdx = newIdx;
             if (reverse) targetIdx = this.size - 1 - targetIdx;
-
             let toRow, toCol;
-            if (!isColumn) {
-                toRow = lineIdx;
-                toCol = targetIdx;
-            } else {
-                toRow = targetIdx;
-                toCol = lineIdx;
-            }
-
+            if (!isColumn) { toRow = lineIdx; toCol = targetIdx; }
+            else { toRow = targetIdx; toCol = lineIdx; }
             const key = `${toRow},${toCol}`;
-            if (!this.moveMap[key]) {
-                this.moveMap[key] = { fromRow, fromCol, merged };
-            }
+            if (!this.moveMap[key]) this.moveMap[key] = { fromRow, fromCol, merged };
             if (merged) this.mergedPositions.add(key);
         };
 
         if (direction === 'left') {
             for (let i = 0; i < this.size; i++) {
                 const {newRow, scoreGain} = slideWithTracking(this.grid[i], false, i, false);
-                this.grid[i] = newRow;
-                totalScoreGain += scoreGain;
+                this.grid[i] = newRow; totalScoreGain += scoreGain;
             }
         } else if (direction === 'right') {
             for (let i = 0; i < this.size; i++) {
                 const reversed = [...this.grid[i]].reverse();
                 const {newRow, scoreGain} = slideWithTracking(reversed, false, i, true);
-                totalScoreGain += scoreGain;
-                this.grid[i] = newRow.reverse();
+                totalScoreGain += scoreGain; this.grid[i] = newRow.reverse();
             }
         } else if (direction === 'up') {
             for (let j = 0; j < this.size; j++) {
@@ -657,11 +862,7 @@ class Game2048 {
             }
         }
 
-        if (totalScoreGain > 0) {
-            this.score += totalScoreGain;
-            this.updateScoreUI();
-        }
-
+        if (totalScoreGain > 0) { this.score += totalScoreGain; this.updateScoreUI(); }
         const changed = !this.gridsAreEqual(oldGrid, this.grid);
         if (changed) {
             this.addRandomTile();
@@ -689,7 +890,6 @@ class Game2048 {
         const board = this.boardElement;
         board.innerHTML = '';
         const tileSize = board.clientWidth / this.size;
-
         for (let i = 0; i < this.size; i++) {
             for (let j = 0; j < this.size; j++) {
                 const value = this.grid[i][j];
@@ -700,7 +900,6 @@ class Game2048 {
                     if (value > 2048) tileClass = 'tile-super';
                     tile.classList.add(tileClass);
                     tile.textContent = value;
-
                     const key = `${i},${j}`;
                     if (this.moveMap && this.moveMap[key]) {
                         const { fromRow, fromCol, merged } = this.moveMap[key];
@@ -714,7 +913,6 @@ class Game2048 {
                             tile.addEventListener('animationend', () => tile.classList.remove('tile-merge'), { once: true });
                         }
                     }
-
                     if (this.lastAddedTile && this.lastAddedTile.x === i && this.lastAddedTile.y === j) {
                         tile.classList.add('tile-new');
                         tile.addEventListener('animationend', () => tile.classList.remove('tile-new'), { once: true });
@@ -738,13 +936,8 @@ class Game2048 {
         }
     }
 
-    updateBestScoreUI() {
-        this.bestScoreElement.textContent = this.bestScore;
-    }
-
-    checkWin() {
-        return this.grid.some(row => row.includes(2048));
-    }
+    updateBestScoreUI() { this.bestScoreElement.textContent = this.bestScore; }
+    checkWin() { return this.grid.some(row => row.includes(2048)); }
 
     checkLose() {
         for (let i = 0; i < this.size; i++)
@@ -774,9 +967,7 @@ class Game2048 {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
-        }).then(() => {
-            fetchLeaderboard();
-        }).catch(err => console.error('Ошибка отправки счёта:', err));
+        }).then(() => fetchLeaderboard()).catch(err => console.error('Ошибка отправки счёта:', err));
     }
 
     setupSwipeEvents() {
@@ -792,11 +983,9 @@ class Game2048 {
             let deltaY = e.changedTouches[0].clientY - touchStartY;
             if (Math.abs(deltaX) < 20 && Math.abs(deltaY) < 20) return;
             if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                if (deltaX > 0) this.move('right');
-                else this.move('left');
+                if (deltaX > 0) this.move('right'); else this.move('left');
             } else {
-                if (deltaY > 0) this.move('down');
-                else this.move('up');
+                if (deltaY > 0) this.move('down'); else this.move('up');
             }
             touchStartX = 0; touchStartY = 0;
             vibrate();
@@ -806,19 +995,15 @@ class Game2048 {
     setupKeyboardEvents() {
         window.addEventListener('keydown', (e) => {
             if (document.querySelector('#game-section.active')) {
-                const key = e.key;
-                if (key === 'ArrowLeft') { this.move('left'); e.preventDefault(); vibrate(); }
-                else if (key === 'ArrowRight') { this.move('right'); e.preventDefault(); vibrate(); }
-                else if (key === 'ArrowUp') { this.move('up'); e.preventDefault(); vibrate(); }
-                else if (key === 'ArrowDown') { this.move('down'); e.preventDefault(); vibrate(); }
+                if (e.key === 'ArrowLeft') { this.move('left'); e.preventDefault(); vibrate(); }
+                else if (e.key === 'ArrowRight') { this.move('right'); e.preventDefault(); vibrate(); }
+                else if (e.key === 'ArrowUp') { this.move('up'); e.preventDefault(); vibrate(); }
+                else if (e.key === 'ArrowDown') { this.move('down'); e.preventDefault(); vibrate(); }
             }
         });
     }
 
-    resetGame() {
-        this.init();
-        this.render();
-    }
+    resetGame() { this.init(); this.render(); }
 }
 
 let game2048 = null;
@@ -830,60 +1015,59 @@ function initGame2048() {
     if (board && scoreEl && bestEl && statusEl && !game2048) {
         game2048 = new Game2048(board, scoreEl, bestEl, statusEl);
         const newGameBtn = document.getElementById('new-game-btn');
-        if (newGameBtn) {
-            newGameBtn.addEventListener('click', () => {
-                vibrate();
-                game2048.resetGame();
-            });
-        }
+        if (newGameBtn) newGameBtn.addEventListener('click', () => { vibrate(); game2048.resetGame(); });
     }
 }
 
-/* =============== Переключение Игра / Топы =============== */
+/* ========== GAME TABS ========== */
 function setupGameTabs() {
-    const tabGameBtn = document.getElementById('tab-game-btn');
-    const tabLeaderboardBtn = document.getElementById('tab-leaderboard-btn');
-    const gameContainer = document.getElementById('game-2048-container');
-    const leaderboardContainer = document.getElementById('leaderboard-container');
-
-    if (!tabGameBtn || !tabLeaderboardBtn || !gameContainer || !leaderboardContainer) return;
-
-    tabGameBtn.addEventListener('click', () => {
-        vibrate();
-        gameContainer.style.display = 'block';
-        leaderboardContainer.style.display = 'none';
-        tabGameBtn.classList.add('active');
-        tabLeaderboardBtn.classList.remove('active');
-    });
-
-    tabLeaderboardBtn.addEventListener('click', () => {
-        vibrate();
-        gameContainer.style.display = 'none';
-        leaderboardContainer.style.display = 'block';
-        tabLeaderboardBtn.classList.add('active');
-        tabGameBtn.classList.remove('active');
-        fetchLeaderboard();
-    });
-
-    // Инициализация: при первом заходе показываем игру
+    const tabs = document.querySelectorAll('.game-tab');
+    const gameContainer = document.querySelector('.game-2048-container');
+    const leaderboardContainer = document.querySelector('.leaderboard-container');
+    if (!tabs.length || !gameContainer || !leaderboardContainer) return;
     gameContainer.style.display = 'block';
     leaderboardContainer.style.display = 'none';
-    tabGameBtn.classList.add('active');
-    tabLeaderboardBtn.classList.remove('active');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            vibrate();
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const tabName = tab.dataset.tab;
+            if (tabName === 'game') {
+                gameContainer.style.display = 'block';
+                leaderboardContainer.style.display = 'none';
+            } else if (tabName === 'leaderboard') {
+                gameContainer.style.display = 'none';
+                leaderboardContainer.style.display = 'block';
+                fetchLeaderboard();
+            }
+        });
+    });
 }
 
-/* =============== Leaderboard =============== */
+function resetGameTabsToDefault() {
+    const gameContainer = document.querySelector('.game-2048-container');
+    const leaderboardContainer = document.querySelector('.leaderboard-container');
+    const tabs = document.querySelectorAll('.game-tab');
+    if (gameContainer && leaderboardContainer && tabs.length) {
+        gameContainer.style.display = 'block';
+        leaderboardContainer.style.display = 'none';
+        tabs.forEach(t => t.classList.remove('active'));
+        const gameTab = document.querySelector('.game-tab[data-tab="game"]');
+        if (gameTab) gameTab.classList.add('active');
+    }
+}
+
+/* ========== LEADERBOARD ========== */
 async function fetchLeaderboard() {
     const list = document.getElementById('leaderboard-list');
     if (!list) return;
     list.innerHTML = '<div class="leaderboard-loading">Загрузка...</div>';
-
     try {
         const res = await fetch(WORKER_URL + '/leaderboard');
         const data = await res.json();
         renderLeaderboard(data.leaderboard || []);
     } catch (err) {
-        console.error('Ошибка загрузки лидеров:', err);
         list.innerHTML = '<div class="leaderboard-loading">Не удалось загрузить таблицу</div>';
     }
 }
@@ -895,26 +1079,22 @@ function renderLeaderboard(leaderboard) {
         list.innerHTML = '<div class="leaderboard-loading">Пока нет результатов</div>';
         return;
     }
-
     list.innerHTML = leaderboard.map((player, index) => {
         const isCurrentUser = currentUserId && player.userId.toString() === currentUserId.toString();
         const rank = index + 1;
         const avatarContent = player.avatarUrl
             ? `<img src="${player.avatarUrl}" alt="${player.firstName}" onerror="this.style.display='none'; this.parentElement.textContent='${player.firstName.charAt(0).toUpperCase()}';" />`
             : player.firstName.charAt(0).toUpperCase();
-
         return `
             <div class="leaderboard-item ${isCurrentUser ? 'current-user' : ''}">
                 <div class="leaderboard-rank">#${rank}</div>
-                <div class="leaderboard-avatar">
-                    ${avatarContent}
-                </div>
+                <div class="leaderboard-avatar">${avatarContent}</div>
                 <div class="leaderboard-info">
                     <div class="leaderboard-name">${escapeHtml(player.firstName)}</div>
                 </div>
                 <div class="leaderboard-score">
                     ${player.score} <span>очк.</span>
-                    <button class="leaderboard-share-btn" aria-label="Поделиться результатом" data-share-name="${escapeHtml(player.firstName)}" data-share-score="${player.score}">
+                    <button class="leaderboard-share-btn" aria-label="Поделиться" data-share-name="${escapeHtml(player.firstName)}" data-share-score="${player.score}">
                         <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg>
                     </button>
                 </div>
@@ -924,24 +1104,13 @@ function renderLeaderboard(leaderboard) {
 }
 
 function escapeHtml(text) {
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
     return text.replace(/[&<>"']/g, function(m) { return map[m]; });
 }
 
 function setupLeaderboardRefresh() {
     const refreshBtn = document.getElementById('refresh-leaderboard');
-    if (refreshBtn) {
-        refreshBtn.addEventListener('click', () => {
-            vibrate();
-            fetchLeaderboard();
-        });
-    }
+    if (refreshBtn) refreshBtn.addEventListener('click', () => { vibrate(); fetchLeaderboard(); });
 }
 
 function setupLeaderboardShare() {
@@ -958,16 +1127,12 @@ function setupLeaderboardShare() {
 }
 
 function shareLeaderboardScore(name, score) {
-    const shareText = `🏆 ${name} набрал ${score} очков в 2048! Сможешь побить рекорд? Играй в Games Verse: https://t.me/${BOT_USERNAME}`;
+    const shareText = `🏆 ${name} набрал ${score} очков в 2048! Сможешь побить рекорд? Играй в Hadron: https://t.me/${BOT_USERNAME}`;
     if (window.Telegram?.WebApp) {
         const shareUrl = `https://t.me/share/url?url=${encodeURIComponent('https://t.me/' + BOT_USERNAME)}&text=${encodeURIComponent(shareText)}`;
         window.Telegram.WebApp.openTelegramLink(shareUrl);
     } else if (navigator.share) {
-        navigator.share({
-            title: 'Games Verse',
-            text: shareText,
-            url: 'https://t.me/' + BOT_USERNAME
-        }).catch(() => fallbackCopyToClipboard(shareText));
+        navigator.share({ title: 'Hadron', text: shareText, url: 'https://t.me/' + BOT_USERNAME }).catch(() => fallbackCopyToClipboard(shareText));
     } else {
         fallbackCopyToClipboard(shareText);
     }
