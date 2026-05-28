@@ -15,22 +15,6 @@
         <img src="oblochka.jpg" alt="Загрузка..." id="splash-img">
     </div>
 
-    <!-- Subscribe Banner (показывается при входе) -->
-    <div id="subscribe-banner" class="subscribe-banner" style="display:none;">
-        <div class="subscribe-banner-content">
-            <button class="subscribe-close" id="subscribe-close">✕</button>
-            <div class="subscribe-icon">⚛️</div>
-            <h3 class="subscribe-title">Подпишись на Hadron</h3>
-            <p class="subscribe-desc">TON · GameFi · NFT · Нейросети — всё в одном канале</p>
-            <div class="subscribe-buttons">
-                <button class="subscribe-btn-main" id="subscribe-go">
-                    Подписаться
-                </button>
-                <button class="subscribe-btn-later" id="subscribe-later">Позже</button>
-            </div>
-        </div>
-    </div>
-
     <div class="app-container">
         <!-- Header -->
         <header class="header">
@@ -95,42 +79,6 @@
                 <div class="exchanges-list" id="exchanges-list"></div>
             </section>
 
-            <!-- AI Section (Нейросети) -->
-            <section id="ai-section" class="content-section">
-                <div class="section-header">
-                    <h2>Нейросети</h2>
-                    <span class="section-subtitle">Лучшие AI-инструменты с бонусами</span>
-                </div>
-                <div class="ai-banner">
-                    <div class="ai-banner-content">
-                        <div class="ai-banner-icon">🤖</div>
-                        <div>
-                            <h3 class="ai-banner-title">AI-экосистема</h3>
-                            <p class="ai-banner-sub">Регистрируйся по реф. ссылкам и получай бонусы</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="ai-list" id="ai-list"></div>
-            </section>
-
-            <!-- TON Gifts Section -->
-            <section id="gifts-section" class="content-section">
-                <div class="section-header">
-                    <h2>TON Подарки</h2>
-                    <span class="section-subtitle">NFT-подарки и маркетплейсы Telegram</span>
-                </div>
-                <div class="gifts-banner">
-                    <div class="gifts-banner-inner">
-                        <span class="gifts-banner-emoji">🎁</span>
-                        <div>
-                            <h3 class="gifts-banner-title">Telegram Gifts & NFT</h3>
-                            <p class="gifts-banner-sub">Покупай, продавай и дари уникальные TON-подарки</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="gifts-list" id="gifts-list"></div>
-            </section>
-
             <!-- 2048 Game Section -->
             <section id="game-section" class="content-section game-fullscreen">
                 <div class="game-tabs">
@@ -169,12 +117,65 @@
                 </div>
             </section>
 
+            <!-- Hadron Channel Section (NEW) -->
+            <section id="hadron-section" class="content-section">
+                <div class="section-header">
+                    <h2>Hadron</h2>
+                    <span class="section-subtitle">TON · GameFi · NFT · Нейросети</span>
+                </div>
+
+                <!-- Channel Banner -->
+                <div class="hadron-channel-banner">
+                    <div class="hadron-banner-content">
+                        <div class="hadron-logo">⚛️</div>
+                        <div class="hadron-banner-text">
+                            <h3>Канал Hadron</h3>
+                            <p>TON экосистема, GameFi, NFT, нейросети и подарки Telegram</p>
+                        </div>
+                        <button class="hadron-subscribe-btn" id="hadron-subscribe-btn">
+                            Подписаться
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Giveaway Card -->
+                <div class="giveaway-card" id="giveaway-card">
+                    <div class="giveaway-header">
+                        <span class="giveaway-icon">🎁</span>
+                        <div>
+                            <h3 class="giveaway-title">Розыгрыш активен</h3>
+                            <p class="giveaway-subtitle">Подпишись на Hadron и участвуй</p>
+                        </div>
+                        <span class="giveaway-badge">LIVE</span>
+                    </div>
+                    <div class="giveaway-conditions">
+                        <div class="condition-item" id="condition-sub">
+                            <span class="condition-icon">⏳</span>
+                            <span>Подписка на канал Hadron</span>
+                        </div>
+                        <div class="condition-item" id="condition-bot">
+                            <span class="condition-icon">✅</span>
+                            <span>Открой этот бот</span>
+                        </div>
+                    </div>
+                    <button class="giveaway-check-btn" id="giveaway-check-btn">
+                        Проверить участие
+                    </button>
+                </div>
+
+                <!-- Topics Grid -->
+                <div class="section-header" style="margin-top: 20px;">
+                    <h2>Рубрики канала</h2>
+                </div>
+                <div class="topics-grid" id="topics-grid"></div>
+            </section>
+
             <!-- Profile Section -->
             <section id="profile-section" class="content-section">
                 <div class="profile-header">
                     <div class="profile-avatar" id="user-avatar">
                         <img src="" alt="User Avatar" id="avatar-img" style="display: none;">
-                        <span id="avatar-fallback">T</span>
+                        <span id="avatar-fallback">H</span>
                     </div>
                     <div class="profile-info">
                         <h2 id="user-name">Пользователь</h2>
@@ -182,9 +183,6 @@
                     </div>
                 </div>
                 <div class="profile-actions">
-                    <button class="subscribe-channel-button" id="subscribe-channel-button">
-                        <span>⚛️ Подписаться на Hadron</span>
-                    </button>
                     <button class="share-friends-button" id="share-friends-button">
                         <div class="share-icon">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -202,7 +200,7 @@
 
         </main>
 
-        <!-- Bottom Navigation -->
+        <!-- Bottom Navigation (5 tabs) -->
         <nav class="bottom-nav">
             <button class="nav-item active" data-section="games-section">
                 <span class="nav-icon">🎮</span>
@@ -212,17 +210,13 @@
                 <span class="nav-icon">📊</span>
                 <span class="nav-label">Биржи</span>
             </button>
-            <button class="nav-item" data-section="ai-section">
-                <span class="nav-icon">🤖</span>
-                <span class="nav-label">AI</span>
-            </button>
-            <button class="nav-item" data-section="gifts-section">
-                <span class="nav-icon">🎁</span>
-                <span class="nav-label">TON</span>
-            </button>
             <button class="nav-item" data-section="game-section">
                 <span class="nav-icon">🎲</span>
                 <span class="nav-label">2048</span>
+            </button>
+            <button class="nav-item" data-section="hadron-section">
+                <span class="nav-icon">⚛️</span>
+                <span class="nav-label">Hadron</span>
             </button>
             <button class="nav-item" data-section="profile-section">
                 <span class="nav-icon">👤</span>
@@ -230,7 +224,7 @@
             </button>
         </nav>
 
-        <div id="notification" class="notification">Ссылка скопирована в буфер обмена!</div>
+        <div id="notification" class="notification">Ссылка скопирована!</div>
     </div>
 
     <script src="script.js"></script>
