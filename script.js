@@ -1,8 +1,8 @@
-// script.js
 const BOT_USERNAME = 'khadron_bot';
 let currentUserId = null;
 
 const WORKER_URL = 'https://gamesverse-bot.scarneb.workers.dev';
+const HADRON_CHANNEL = 'https://t.me/+GNfQDYSAYc4wNDBi';
 
 const GAMES_DATA = [
     {
@@ -70,27 +70,19 @@ const SERVICES_DATA = [
     },
     {
         id: 2,
-        name: "Telegram Stars",
-        url: "https://t.me/PremiumBot?start=stars",
-        description: "Купить звёзды для подарков",
-        image: "images/stars.jpg",
-        fallback: "⭐"
-    },
-    {
-        id: 3,
-        name: "Telegram Gifts",
-        url: "https://t.me/gift",
-        description: "Отправить подарок друзьям",
-        image: "images/gifts.jpg",
+        name: "Portals",
+        url: "https://t.me/portals/market?startapp=xr9tzm",
+        description: "Маркет подарков Telegram",
+        image: "images/portals.jpg",
         fallback: "🎁"
     },
     {
-        id: 4,
-        name: "Telegram Premium",
-        url: "https://t.me/premium?start=premium",
-        description: "Улучшенные возможности Telegram",
-        image: "images/premium.jpg",
-        fallback: "🚀"
+        id: 3,
+        name: "StarsShip",
+        url: "http://t.me/StarsShipBot?start=r6823288584",
+        description: "Покупка Telegram Stars",
+        image: "images/starsship.jpg",
+        fallback: "⭐"
     }
 ];
 
@@ -130,16 +122,7 @@ function vibrate() {
 
 function initializeApp() {
     const splash = document.getElementById('splash-screen');
-    if (splash) {
-        setTimeout(() => {
-            splash.style.opacity = '0';
-            setTimeout(() => splash.style.display = 'none', 400);
-            checkSubscriptionModal();
-        }, 1500);
-    } else {
-        checkSubscriptionModal();
-    }
-
+    if (splash) splash.style.display = 'none';
     document.body.style.opacity = '1';
 
     initializeTelegramWebApp();
@@ -155,35 +138,39 @@ function initializeApp() {
     setupLeaderboardRefresh();
     setupLeaderboardShare();
     setupGameTabs();
+    setupSubscribeModal();
+    showSubscribeModal();
 }
 
-/* ========== МОДАЛЬНОЕ ОКНО ПОДПИСКИ ========== */
-function checkSubscriptionModal() {
-    if (localStorage.getItem('hadron_subscribed')) return;
+function showSubscribeModal() {
+    const modal = document.getElementById('subscribe-modal');
+    if (modal) modal.classList.add('active');
+}
+function hideSubscribeModal() {
+    const modal = document.getElementById('subscribe-modal');
+    if (modal) modal.classList.remove('active');
+}
 
-    const modal = document.getElementById('subscription-modal');
-    if (!modal) return;
-    modal.classList.add('active');
-
-    document.getElementById('subscribe-btn').addEventListener('click', () => {
-        if (window.Telegram?.WebApp) {
-            window.Telegram.WebApp.openTelegramLink('https://t.me/hadronn');
-        } else {
-            window.open('https://t.me/hadronn', '_blank');
-        }
-        localStorage.setItem('hadron_subscribed', '1');
-        modal.classList.remove('active');
-    });
-
-    document.getElementById('already-subscribed').addEventListener('click', () => {
-        localStorage.setItem('hadron_subscribed', '1');
-        modal.classList.remove('active');
-    });
-
-    document.getElementById('modal-close').addEventListener('click', () => {
-        localStorage.setItem('hadron_subscribed', '1');
-        modal.classList.remove('active');
-    });
+function setupSubscribeModal() {
+    const okBtn = document.getElementById('subscribe-ok');
+    const laterBtn = document.getElementById('subscribe-later');
+    if (okBtn) {
+        okBtn.addEventListener('click', () => {
+            vibrate();
+            if (window.Telegram && window.Telegram.WebApp) {
+                window.Telegram.WebApp.openTelegramLink(HADRON_CHANNEL);
+            } else {
+                window.open(HADRON_CHANNEL, '_blank');
+            }
+            hideSubscribeModal();
+        });
+    }
+    if (laterBtn) {
+        laterBtn.addEventListener('click', () => {
+            vibrate();
+            hideSubscribeModal();
+        });
+    }
 }
 
 function initializeTelegramWebApp() {
@@ -265,24 +252,6 @@ function initializeServices() {
         </div>
     `).join('');
     setupServiceButtons();
-}
-
-function setupServiceButtons() {
-    document.querySelectorAll('.exchange-button').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.stopPropagation();
-            vibrate();
-            const url = this.getAttribute('data-url');
-            if (url) {
-                if (window.Telegram?.WebApp) {
-                    if (url.startsWith('https://t.me/')) window.Telegram.WebApp.openTelegramLink(url);
-                    else window.Telegram.WebApp.openLink(url);
-                } else {
-                    window.open(url, '_blank');
-                }
-            }
-        });
-    });
 }
 
 function loadUserData() {
@@ -407,6 +376,7 @@ function setupNavigation() {
                 if (section.id === targetSection) section.classList.add('active');
             });
             toggleHeaderForSection(targetSection);
+            hideSubscribeModal(); // Закрываем окно подписки, если перешли
 
             if (targetSection === 'game-section') {
                 resetGameTabsToDefault();
@@ -435,6 +405,27 @@ function setupGameButtons() {
                     else window.Telegram.WebApp.openLink(link);
                 } else {
                     window.open(link, '_blank');
+                }
+            }
+        });
+    });
+}
+
+function setupServiceButtons() {
+    document.querySelectorAll('.exchange-button').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.stopPropagation();
+            vibrate();
+            const url = this.getAttribute('data-url');
+            if (url) {
+                if (window.Telegram && window.Telegram.WebApp) {
+                    if (url.startsWith('https://t.me/') || url.startsWith('http://t.me/')) {
+                        window.Telegram.WebApp.openTelegramLink(url);
+                    } else {
+                        window.Telegram.WebApp.openLink(url);
+                    }
+                } else {
+                    window.open(url, '_blank');
                 }
             }
         });
