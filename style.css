@@ -1,4 +1,3 @@
-/* style.css */
 :root {
   --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   --primary-light: #667eea;
@@ -38,7 +37,8 @@ body {
   color: var(--text-primary-light);
   line-height: 1.5;
   transition: all 0.3s ease;
-  opacity: 1;
+  opacity: 0;
+  animation: fadeIn 0.5s ease forwards;
   -webkit-font-smoothing: antialiased;
   -webkit-text-size-adjust: 100%;
   touch-action: manipulation;
@@ -61,167 +61,6 @@ body.dark-theme {
 
 .dark-theme .app-container {
   background: var(--surface-dark);
-}
-
-/* ===== SPLASH SCREEN ===== */
-#splash-screen {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  transition: opacity 0.4s ease;
-}
-
-.splash-content {
-  text-align: center;
-  color: white;
-}
-
-.splash-icon {
-  font-size: 64px;
-  margin-bottom: 16px;
-  animation: float 2s ease-in-out infinite;
-}
-
-.splash-title {
-  font-size: 36px;
-  font-weight: 800;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.splash-subtitle {
-  font-size: 14px;
-  opacity: 0.8;
-  margin: 10px 0 30px;
-  letter-spacing: 0.5px;
-}
-
-.loader {
-  width: 32px;
-  height: 32px;
-  border: 3px solid rgba(255,255,255,0.3);
-  border-top-color: #667eea;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin: 0 auto;
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* ===== МОДАЛЬНОЕ ОКНО ПОДПИСКИ ===== */
-.modal-overlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.6);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 10000;
-  backdrop-filter: blur(4px);
-}
-
-.modal-overlay.active {
-  display: flex;
-}
-
-.modal-card {
-  background: var(--surface-light);
-  width: 90%;
-  max-width: 320px;
-  border-radius: 24px;
-  padding: 30px 20px;
-  text-align: center;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-  position: relative;
-  animation: slideUp 0.4s ease;
-}
-
-.dark-theme .modal-card {
-  background: #1e293b;
-  color: white;
-}
-
-.modal-close {
-  position: absolute;
-  top: 12px; right: 16px;
-  background: none;
-  border: none;
-  font-size: 28px;
-  cursor: pointer;
-  color: #94a3b8;
-  line-height: 1;
-}
-
-.modal-icon {
-  font-size: 40px;
-  margin-bottom: 12px;
-}
-
-.modal-title {
-  font-size: 20px;
-  font-weight: 700;
-  margin-bottom: 10px;
-}
-
-.modal-text {
-  font-size: 14px;
-  color: #64748b;
-  margin-bottom: 24px;
-  line-height: 1.4;
-}
-
-.dark-theme .modal-text {
-  color: #cbd5e1;
-}
-
-.subscribe-btn {
-  display: block;
-  width: 100%;
-  padding: 14px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  border: none;
-  border-radius: 14px;
-  font-weight: 700;
-  font-size: 16px;
-  margin-bottom: 10px;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.subscribe-btn:active {
-  transform: scale(0.97);
-}
-
-.already-subscribed {
-  background: none;
-  border: none;
-  color: #64748b;
-  font-size: 14px;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-.dark-theme .already-subscribed {
-  color: #cbd5e1;
-}
-
-@keyframes slideUp {
-  from { transform: translateY(40px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
 }
 
 /* Header */
@@ -632,7 +471,103 @@ body.dark-theme {
   color: var(--text-secondary-dark);
 }
 
-/* Services List (бывшие биржи) */
+/* GameFi Banner (удалён из HTML, но стили оставлены на случай, если вернёте) */
+.gamefi-banner {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  margin-bottom: 18px;
+  box-shadow: var(--shadow-light);
+  height: 150px;
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.dark-theme .gamefi-banner {
+  box-shadow: var(--shadow-dark);
+}
+
+.gamefi-banner:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
+}
+
+.gamefi-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.7) saturate(1.3) hue-rotate(-10deg);
+  transition: all 0.3s ease;
+}
+
+.gamefi-banner:hover .gamefi-image {
+  filter: brightness(0.8) saturate(1.4) hue-rotate(-5deg);
+}
+
+.gamefi-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.85) 0%,
+    rgba(118, 75, 162, 0.85) 100%
+  );
+  display: flex;
+  align-items: center;
+  padding: 18px;
+}
+
+.gamefi-content {
+  color: white;
+  width: 100%;
+}
+
+.gamefi-title {
+  font-size: 19px;
+  font-weight: 700;
+  margin-bottom: 7px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  line-height: 1.2;
+}
+
+.gamefi-description {
+  font-size: 13px;
+  opacity: 0.95;
+  margin-bottom: 11px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  line-height: 1.3;
+}
+
+.gamefi-stats {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.stat-number {
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 2px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.stat-label {
+  font-size: 10px;
+  opacity: 0.9;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  font-weight: 500;
+}
+
+/* Services List (бывшие Exchanges List) */
 .services-list {
   display: grid;
   grid-template-columns: 1fr;
@@ -1020,6 +955,119 @@ body.dark-theme {
   opacity: 1;
 }
 
+/* ==================== SPLASH SCREEN ==================== */
+#splash-screen {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  animation: fadeIn 0.5s ease;
+}
+.splash-content {
+  text-align: center;
+  color: white;
+}
+.splash-title {
+  font-size: 36px;
+  font-weight: 800;
+  margin-bottom: 10px;
+  text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+.splash-subtitle {
+  font-size: 16px;
+  opacity: 0.9;
+  letter-spacing: 2px;
+}
+#splash-img {
+  max-width: 80%;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+/* ==================== SUBSCRIBE MODAL ==================== */
+.subscribe-modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  z-index: 300;
+  align-items: center;
+  justify-content: center;
+}
+.subscribe-modal.active {
+  display: flex;
+}
+.subscribe-content {
+  background: var(--surface-light);
+  border-radius: 20px;
+  padding: 24px;
+  width: 85%;
+  max-width: 340px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  animation: modalPop 0.3s ease;
+}
+.dark-theme .subscribe-content {
+  background: var(--card-dark);
+}
+.subscribe-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--text-primary-light);
+}
+.dark-theme .subscribe-title {
+  color: var(--text-primary-dark);
+}
+.subscribe-text {
+  font-size: 14px;
+  color: var(--text-secondary-light);
+  margin-bottom: 20px;
+  line-height: 1.4;
+}
+.dark-theme .subscribe-text {
+  color: var(--text-secondary-dark);
+}
+.subscribe-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.subscribe-btn {
+  background: var(--primary-gradient);
+  border: none;
+  padding: 12px 20px;
+  border-radius: 12px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.subscribe-btn:active {
+  transform: scale(0.96);
+}
+.subscribe-later {
+  background: transparent;
+  border: 1px solid var(--border-light);
+  padding: 12px 20px;
+  border-radius: 12px;
+  color: var(--text-secondary-light);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.subscribe-later:hover {
+  background: rgba(0,0,0,0.05);
+}
+@keyframes modalPop {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
 /* ==================== 2048 GAME TABS ==================== */
 .game-tabs {
   display: flex;
@@ -1372,7 +1420,6 @@ body.dark-theme {
     opacity: 0.8;
 }
 
-/* Share button in leaderboard */
 .leaderboard-share-btn {
     background: none;
     border: none;
@@ -1423,12 +1470,41 @@ body.dark-theme {
     padding: 16px 12px;
   }
   
-  .games-grid, .exchanges-list, .services-list {
+  .games-grid, .services-list {
     gap: 9px;
   }
   
   .game-card, .exchange-card {
     padding: 12px;
+  }
+  
+  .gamefi-banner {
+    height: 135px;
+    margin-bottom: 15px;
+  }
+  
+  .gamefi-overlay {
+    padding: 15px;
+  }
+  
+  .gamefi-title {
+    font-size: 17px;
+  }
+  
+  .gamefi-description {
+    font-size: 12px;
+  }
+  
+  .gamefi-stats {
+    gap: 15px;
+  }
+  
+  .stat-number {
+    font-size: 15px;
+  }
+  
+  .stat-label {
+    font-size: 9px;
   }
   
   .profile-avatar {
@@ -1483,13 +1559,23 @@ body.dark-theme {
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 ::selection {
