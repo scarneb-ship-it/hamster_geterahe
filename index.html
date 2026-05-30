@@ -1,1 +1,1193 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Hadron Nova</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0d1a;
+  --surface: #13132a;
+  --card: #1a1a35;
+  --accent: #7c5cfc;
+  --accent2: #00d4aa;
+  --gold: #f5c842;
+  --text: #e8e8ff;
+  --muted: #7070a0;
+  --border: rgba(124,92,252,0.25);
+  --shadow: 0 0 30px rgba(124,92,252,0.15);
+  --gem-size: calc(min(50vw, 200px) / 6 * 1.05);
+}
 
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.app {
+  max-width: 420px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* ---- HEADER ---- */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 10px;
+  background: linear-gradient(180deg, rgba(124,92,252,0.18) 0%, transparent 100%);
+  border-bottom: 1px solid var(--border);
+}
+.header-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #a07cff, #00d4aa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 1px;
+}
+.header-gem { font-size: 22px; }
+
+/* ---- TABS ---- */
+.tabs {
+  display: flex;
+  gap: 8px;
+  padding: 10px 16px;
+}
+.tab {
+  flex: 1;
+  padding: 9px 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--muted);
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tab.active {
+  background: linear-gradient(135deg, #7c5cfc, #5a3dd4);
+  border-color: #7c5cfc;
+  color: white;
+  box-shadow: 0 4px 15px rgba(124,92,252,0.4);
+}
+
+/* ---- GAME VIEW ---- */
+.game-view { flex: 1; display: flex; flex-direction: column; padding: 0 12px 12px; }
+
+/* ---- SCORE BAR ---- */
+.score-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin: 6px 0 10px;
+}
+.score-main {
+  display: flex;
+  flex-direction: column;
+}
+.score-label { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+.score-value { font-family: 'Orbitron', sans-serif; font-size: 28px; font-weight: 900; color: var(--text); line-height: 1; }
+.score-record { text-align: right; }
+.score-record .score-value { font-size: 22px; color: var(--gold); }
+
+/* ---- WAVE / COMBO / COINS ---- */
+.stats-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.stat-pill {
+  flex: 1;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 5px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.stat-pill-label { font-size: 10px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.stat-pill-value { font-family: 'Orbitron', sans-serif; font-size: 17px; font-weight: 700; color: var(--text); }
+.stat-pill.combo .stat-pill-value { color: #ff6b9d; }
+.stat-pill.coins .stat-pill-value { color: var(--gold); }
+.stat-pill.wave .stat-pill-value { color: var(--accent2); }
+
+/* ---- BOARD ---- */
+.board-wrapper {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 2px solid rgba(124,92,252,0.3);
+  box-shadow: 0 0 40px rgba(124,92,252,0.2), inset 0 0 30px rgba(0,0,0,0.3);
+  background: #0a0a1f;
+  margin-bottom: 10px;
+}
+.board-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+  padding: 6px;
+  touch-action: none;
+}
+.cell {
+  aspect-ratio: 1;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.12s, filter 0.12s;
+  background: rgba(255,255,255,0.03);
+  overflow: hidden;
+}
+.cell:active { transform: scale(0.9); }
+.cell.selected {
+  transform: scale(0.88);
+  filter: brightness(1.4);
+  outline: 2px solid white;
+  outline-offset: -2px;
+  z-index: 2;
+}
+.cell.hint { animation: hintPulse 0.6s ease-in-out infinite alternate; }
+@keyframes hintPulse {
+  from { filter: brightness(1); }
+  to { filter: brightness(1.5) saturate(1.4); }
+}
+.cell.matched {
+  animation: matchPop 0.35s ease-out forwards;
+}
+@keyframes matchPop {
+  0% { transform: scale(1); opacity: 1; }
+  40% { transform: scale(1.25); opacity: 0.9; }
+  100% { transform: scale(0); opacity: 0; }
+}
+.cell.falling {
+  animation: fallIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+@keyframes fallIn {
+  from { transform: translateY(-60px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.cell.new-gem {
+  animation: newGem 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+@keyframes newGem {
+  from { transform: scale(0) rotate(-20deg); opacity: 0; }
+  to { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.gem {
+  width: 85%;
+  height: 85%;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(16px, 4.5vw, 26px);
+  position: relative;
+  transition: all 0.15s;
+}
+
+/* gem colors */
+.gem-0 { background: linear-gradient(135deg, #4a9eff, #1a5bd4); box-shadow: 0 2px 8px rgba(74,158,255,0.5); }
+.gem-1 { background: linear-gradient(135deg, #9b59ff, #6a1fcc); box-shadow: 0 2px 8px rgba(155,89,255,0.5); }
+.gem-2 { background: linear-gradient(135deg, #ff6b6b, #c0392b); box-shadow: 0 2px 8px rgba(255,107,107,0.5); }
+.gem-3 { background: linear-gradient(135deg, #2ecc71, #1a8044); box-shadow: 0 2px 8px rgba(46,204,113,0.5); }
+.gem-4 { background: linear-gradient(135deg, #f39c12, #d35400); box-shadow: 0 2px 8px rgba(243,156,18,0.5); }
+.gem-5 { background: linear-gradient(135deg, #d4d4d4, #888); box-shadow: 0 2px 8px rgba(200,200,200,0.4); }
+
+.gem::before {
+  content: '';
+  position: absolute;
+  top: 3px; left: 4px;
+  width: 40%; height: 30%;
+  background: rgba(255,255,255,0.35);
+  border-radius: 4px;
+  transform: rotate(-10deg);
+}
+
+/* ---- BOOSTERS ---- */
+.boosters-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+.booster-btn {
+  flex: 1;
+  padding: 8px 4px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+.booster-btn:active { transform: scale(0.95); }
+.booster-btn.active-booster {
+  border-color: var(--accent);
+  background: rgba(124,92,252,0.2);
+  box-shadow: 0 0 12px rgba(124,92,252,0.4);
+}
+.booster-icon { font-size: 22px; }
+.booster-count {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--muted);
+}
+.booster-btn.active-booster .booster-count { color: var(--accent); }
+
+/* ---- MAIN BUTTON ---- */
+.main-btn {
+  width: 100%;
+  padding: 13px;
+  border-radius: 16px;
+  border: none;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: linear-gradient(135deg, #7c5cfc, #5a3dd4);
+  color: white;
+  box-shadow: 0 4px 20px rgba(124,92,252,0.5);
+  margin-bottom: 4px;
+}
+.main-btn:active { transform: scale(0.97); }
+.main-btn.paused { background: linear-gradient(135deg, #2ecc71, #1a8044); box-shadow: 0 4px 20px rgba(46,204,113,0.4); }
+
+.hint-text {
+  text-align: center;
+  font-size: 11px;
+  color: var(--muted);
+  padding: 3px 0;
+}
+
+/* ---- WAVE OVERLAY ---- */
+.wave-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border-radius: 16px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.wave-overlay.show {
+  opacity: 1;
+  pointer-events: all;
+}
+.wave-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 32px;
+  font-weight: 900;
+  color: white;
+  text-shadow: 0 0 30px rgba(124,92,252,0.8);
+  margin-bottom: 8px;
+}
+.wave-subtitle {
+  font-size: 14px;
+  color: var(--accent2);
+  font-weight: 700;
+}
+
+/* ---- LEADERBOARD ---- */
+.leaderboard-view { padding: 0 12px 12px; display: none; flex-direction: column; gap: 8px; }
+.leaderboard-view.active { display: flex; }
+
+.lb-filter {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.lb-filter-btn {
+  flex: 1;
+  padding: 7px 0;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-family: 'Nunito', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.lb-filter-btn.active {
+  background: rgba(124,92,252,0.2);
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.lb-item {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s;
+}
+.lb-item.me {
+  border-color: var(--accent);
+  background: rgba(124,92,252,0.12);
+  box-shadow: 0 0 15px rgba(124,92,252,0.2);
+}
+.lb-rank {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 16px;
+  font-weight: 900;
+  width: 32px;
+  text-align: center;
+}
+.lb-rank.gold { color: var(--gold); }
+.lb-rank.silver { color: #c0c0c0; }
+.lb-rank.bronze { color: #cd7f32; }
+.lb-avatar {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #5a3dd4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 800; color: white;
+  overflow: hidden; flex-shrink: 0;
+}
+.lb-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.lb-info { flex: 1; min-width: 0; }
+.lb-name { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lb-score-text { font-size: 13px; color: var(--muted); font-weight: 600; }
+.lb-score-num { font-family: 'Orbitron', sans-serif; font-size: 15px; font-weight: 700; color: var(--text); }
+
+/* ---- LEAGUE CARD ---- */
+.league-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+.league-icon { font-size: 52px; }
+.league-name {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--text);
+}
+.league-rank {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.league-all-btn {
+  width: 100%;
+  padding: 11px;
+  border-radius: 12px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 4px;
+}
+.league-all-btn:active { background: rgba(124,92,252,0.15); }
+
+/* ---- PARTICLES ---- */
+.particle {
+  position: fixed;
+  pointer-events: none;
+  font-size: 16px;
+  z-index: 999;
+  animation: particleUp 0.8s ease-out forwards;
+}
+@keyframes particleUp {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -100px) scale(0.5); opacity: 0; }
+}
+
+/* ---- FLOAT SCORE ---- */
+.float-score {
+  position: fixed;
+  pointer-events: none;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 0 10px rgba(124,92,252,0.8);
+  z-index: 999;
+  animation: floatUp 0.9s ease-out forwards;
+}
+@keyframes floatUp {
+  0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+  100% { transform: translate(-50%, -100px) scale(1.2); opacity: 0; }
+}
+
+/* ---- WAVE BANNER ---- */
+.wave-banner {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.5);
+  background: rgba(10,10,30,0.95);
+  border: 2px solid var(--accent);
+  border-radius: 20px;
+  padding: 28px 40px;
+  text-align: center;
+  z-index: 500;
+  pointer-events: none;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 0 50px rgba(124,92,252,0.5);
+}
+.wave-banner.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  pointer-events: all;
+}
+.wave-banner-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 30px;
+  font-weight: 900;
+  color: white;
+  margin-bottom: 6px;
+}
+.wave-banner-sub {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent2);
+}
+.wave-banner-bonus {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--gold);
+  margin-top: 8px;
+}
+
+/* ---- GAME OVER ---- */
+.gameover-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 600;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s;
+}
+.gameover-overlay.show { opacity: 1; pointer-events: all; }
+.gameover-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 32px 28px;
+  text-align: center;
+  width: 85%;
+  max-width: 340px;
+  box-shadow: 0 0 60px rgba(124,92,252,0.3);
+  transform: scale(0.8);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.gameover-overlay.show .gameover-card { transform: scale(1); }
+.gameover-emoji { font-size: 52px; margin-bottom: 12px; }
+.gameover-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.gameover-score {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 36px;
+  font-weight: 900;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.gameover-best {
+  font-size: 13px;
+  color: var(--gold);
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+.gameover-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  background: linear-gradient(135deg, #7c5cfc, #5a3dd4);
+  color: white;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(124,92,252,0.5);
+  transition: all 0.2s;
+}
+.gameover-btn:active { transform: scale(0.97); }
+
+/* gem icons */
+.gem-icon::after {
+  position: absolute;
+  font-size: 0.75em;
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="header">
+  <div class="header-gem">💎</div>
+  <div class="header-title">HADRON NOVA</div>
+  <div style="font-size:12px;color:var(--muted);font-weight:700">v2.0</div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" id="tab-game" onclick="switchTab('game')">Игра</button>
+  <button class="tab" id="tab-lb" onclick="switchTab('lb')">Топы</button>
+</div>
+
+<!-- GAME VIEW -->
+<div class="game-view" id="game-view">
+  <div class="score-bar">
+    <div class="score-main">
+      <div class="score-label">Счёт</div>
+      <div class="score-value" id="score-display">0</div>
+    </div>
+    <div class="score-record">
+      <div class="score-label">Рекорд</div>
+      <div class="score-value" id="record-display">0</div>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-pill wave">
+      <div class="stat-pill-label">Волна</div>
+      <div class="stat-pill-value" id="wave-display">1</div>
+    </div>
+    <div class="stat-pill combo">
+      <div class="stat-pill-label">Комбо</div>
+      <div class="stat-pill-value" id="combo-display">x1</div>
+    </div>
+    <div class="stat-pill coins">
+      <div class="stat-pill-label">Монеты</div>
+      <div class="stat-pill-value" id="coins-display">0 🪙</div>
+    </div>
+  </div>
+
+  <div class="board-wrapper">
+    <div class="board-grid" id="board-grid"></div>
+    <div class="wave-overlay" id="wave-overlay">
+      <div class="wave-title" id="wave-overlay-title">WAVE 1</div>
+      <div class="wave-subtitle" id="wave-overlay-sub">Начинаем!</div>
+    </div>
+  </div>
+
+  <div class="boosters-row">
+    <button class="booster-btn" id="booster-bomb" onclick="activateBooster('bomb')">
+      <div class="booster-icon">💣</div>
+      <div class="booster-count" id="bomb-count">3</div>
+    </button>
+    <button class="booster-btn" id="booster-swirl" onclick="activateBooster('swirl')">
+      <div class="booster-icon">🌀</div>
+      <div class="booster-count" id="swirl-count">2</div>
+    </button>
+    <button class="booster-btn" id="booster-bolt" onclick="activateBooster('bolt')">
+      <div class="booster-icon">⚡</div>
+      <div class="booster-count" id="bolt-count">3</div>
+    </button>
+  </div>
+
+  <button class="main-btn" id="main-btn" onclick="handleMainBtn()">Новая игра</button>
+  <div class="hint-text" id="hint-text">Собирайте комбинации и зарабатывайте очки</div>
+</div>
+
+<!-- LEADERBOARD VIEW -->
+<div class="leaderboard-view" id="lb-view">
+  <div class="lb-filter">
+    <button class="lb-filter-btn active" id="lb-world-btn" onclick="setLbFilter('world')">Мир</button>
+    <button class="lb-filter-btn" id="lb-friends-btn" onclick="setLbFilter('friends')">Друзья</button>
+  </div>
+  <div id="lb-list"></div>
+  <div class="league-card" id="league-card">
+    <div class="league-icon">🏆</div>
+    <div class="league-name">Алмазная лига</div>
+    <div class="league-rank" id="league-rank-text">Топ 12%</div>
+    <button class="league-all-btn">Все лиги</button>
+  </div>
+</div>
+
+</div>
+
+<!-- Wave Banner -->
+<div class="wave-banner" id="wave-banner">
+  <div class="wave-banner-title" id="wb-title">WAVE 1</div>
+  <div class="wave-banner-sub" id="wb-sub">Начало!</div>
+  <div class="wave-banner-bonus" id="wb-bonus"></div>
+</div>
+
+<!-- Game Over -->
+<div class="gameover-overlay" id="gameover-overlay">
+  <div class="gameover-card">
+    <div class="gameover-emoji">💫</div>
+    <div class="gameover-title">Игра окончена!</div>
+    <div class="gameover-score" id="go-score">0</div>
+    <div class="gameover-best" id="go-best">Рекорд: 0</div>
+    <button class="gameover-btn" onclick="startNewGame()">▶ НОВАЯ ИГРА</button>
+  </div>
+</div>
+
+<script>
+const COLS = 6, ROWS = 6;
+const GEM_TYPES = 6;
+const GEM_EMOJIS = ['💎','🔮','🔴','💚','🟠','⚪'];
+const GEM_LABELS = ['blue','purple','red','green','orange','white'];
+
+let grid = [];
+let selected = null;
+let score = 0, record = 0, wave = 1, combo = 1, coins = 0;
+let moves = 0, matchesInWave = 0;
+let boosters = { bomb: 3, swirl: 2, bolt: 3 };
+let activeBooster = null;
+let gameRunning = false;
+let paused = false;
+let processing = false;
+
+const WAVE_TARGET = [8, 14, 20, 28, 36, 46, 56, 68, 80, 100];
+
+function getWaveTarget(w) {
+  return w <= WAVE_TARGET.length ? WAVE_TARGET[w-1] : WAVE_TARGET[WAVE_TARGET.length-1] + (w - WAVE_TARGET.length) * 20;
+}
+
+function initGrid() {
+  grid = [];
+  for (let r = 0; r < ROWS; r++) {
+    grid.push([]);
+    for (let c = 0; c < COLS; c++) {
+      grid[r].push(randomGem());
+    }
+  }
+  while (findMatches().length > 0 || !hasValidMoves()) {
+    for (let r = 0; r < ROWS; r++)
+      for (let c = 0; c < COLS; c++)
+        grid[r][c] = randomGem();
+  }
+}
+
+function randomGem() { return Math.floor(Math.random() * GEM_TYPES); }
+
+function renderBoard(animClass) {
+  const bg = document.getElementById('board-grid');
+  bg.innerHTML = '';
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      if (animClass) cell.classList.add(animClass);
+      cell.dataset.r = r; cell.dataset.c = c;
+      const gem = document.createElement('div');
+      gem.className = `gem gem-${grid[r][c]}`;
+      gem.textContent = GEM_EMOJIS[grid[r][c]];
+      cell.appendChild(gem);
+      cell.addEventListener('pointerdown', () => onCellClick(r, c));
+      bg.appendChild(cell);
+    }
+  }
+}
+
+function getCellEl(r, c) {
+  return document.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);
+}
+
+function findMatches() {
+  const matched = new Set();
+  // horizontal
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS - 2; c++) {
+      const t = grid[r][c];
+      if (t !== null && t === grid[r][c+1] && t === grid[r][c+2]) {
+        let len = 3;
+        while (c + len < COLS && grid[r][c+len] === t) len++;
+        for (let i = 0; i < len; i++) matched.add(`${r},${c+i}`);
+      }
+    }
+  }
+  // vertical
+  for (let c = 0; c < COLS; c++) {
+    for (let r = 0; r < ROWS - 2; r++) {
+      const t = grid[r][c];
+      if (t !== null && t === grid[r+1][c] && t === grid[r+2][c]) {
+        let len = 3;
+        while (r + len < ROWS && grid[r+len][c] === t) len++;
+        for (let i = 0; i < len; i++) matched.add(`${r+i},${c}`);
+      }
+    }
+  }
+  return Array.from(matched).map(k => { const [r,c] = k.split(','); return {r:+r,c:+c}; });
+}
+
+function hasValidMoves() {
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      // try swap right
+      if (c < COLS-1) {
+        swap(r,c,r,c+1);
+        if (findMatches().length > 0) { swap(r,c,r,c+1); return true; }
+        swap(r,c,r,c+1);
+      }
+      // try swap down
+      if (r < ROWS-1) {
+        swap(r,c,r+1,c);
+        if (findMatches().length > 0) { swap(r,c,r+1,c); return true; }
+        swap(r,c,r+1,c);
+      }
+    }
+  }
+  return false;
+}
+
+function swap(r1,c1,r2,c2) {
+  [grid[r1][c1], grid[r2][c2]] = [grid[r2][c2], grid[r1][c1]];
+}
+
+function isAdjacent(r1,c1,r2,c2) {
+  return (Math.abs(r1-r2) + Math.abs(c1-c2)) === 1;
+}
+
+function onCellClick(r, c) {
+  if (!gameRunning || processing || paused) return;
+
+  if (activeBooster) {
+    applyBooster(activeBooster, r, c);
+    return;
+  }
+
+  if (selected === null) {
+    selected = {r, c};
+    getCellEl(r,c)?.classList.add('selected');
+  } else {
+    const {r: sr, c: sc} = selected;
+    getCellEl(sr, sc)?.classList.remove('selected');
+    if (sr === r && sc === c) {
+      selected = null;
+      return;
+    }
+    if (isAdjacent(sr, sc, r, c)) {
+      selected = null;
+      attemptSwap(sr, sc, r, c);
+    } else {
+      selected = {r, c};
+      getCellEl(r,c)?.classList.add('selected');
+    }
+  }
+}
+
+async function attemptSwap(r1,c1,r2,c2) {
+  processing = true;
+  swap(r1,c1,r2,c2);
+  const matches = findMatches();
+  if (matches.length === 0) {
+    swap(r1,c1,r2,c2);
+    processing = false;
+    // shake feedback
+    const c = getCellEl(r1,c1);
+    if (c) { c.style.animation=''; c.offsetHeight; c.style.animation='hintPulse 0.3s ease'; setTimeout(()=>c.style.animation='',350); }
+    return;
+  }
+  moves++;
+  await processMatches();
+  processing = false;
+  updateUI();
+}
+
+async function processMatches() {
+  combo = 1;
+  let anyMatch = true;
+  while (anyMatch) {
+    const matches = findMatches();
+    if (matches.length === 0) { anyMatch = false; break; }
+
+    // animate matches
+    await animateMatches(matches);
+
+    const pts = matches.length * 10 * combo * wave;
+    score += pts;
+    matchesInWave += matches.length;
+    coins += Math.floor(matches.length * combo * 0.5);
+    if (score > record) record = score;
+
+    showFloatScore(pts, matches);
+    spawnParticles(matches);
+
+    // remove matched
+    matches.forEach(({r,c}) => { grid[r][c] = null; });
+
+    // gravity
+    await gravityDrop();
+
+    // fill
+    fillBoard();
+
+    combo++;
+    if (combo > 1) showComboEffect(combo);
+
+    await sleep(200);
+    renderBoard();
+    updateUI();
+    await sleep(100);
+
+    // check wave
+    if (matchesInWave >= getWaveTarget(wave)) {
+      await triggerWave();
+    }
+  }
+  combo = Math.max(1, combo - 1);
+}
+
+async function animateMatches(matches) {
+  matches.forEach(({r,c}) => {
+    const el = getCellEl(r,c);
+    if (el) el.classList.add('matched');
+  });
+  await sleep(350);
+}
+
+async function gravityDrop() {
+  for (let c = 0; c < COLS; c++) {
+    let emptySlots = 0;
+    for (let r = ROWS-1; r >= 0; r--) {
+      if (grid[r][c] === null) emptySlots++;
+      else if (emptySlots > 0) {
+        grid[r+emptySlots][c] = grid[r][c];
+        grid[r][c] = null;
+      }
+    }
+  }
+}
+
+function fillBoard() {
+  for (let r = 0; r < ROWS; r++)
+    for (let c = 0; c < COLS; c++)
+      if (grid[r][c] === null) grid[r][c] = randomGem();
+}
+
+async function triggerWave() {
+  wave++;
+  matchesInWave = 0;
+  const bonus = wave * 50;
+  score += bonus;
+  coins += wave * 5;
+
+  // Show wave banner
+  const wb = document.getElementById('wave-banner');
+  document.getElementById('wb-title').textContent = `WAVE ${wave}`;
+  document.getElementById('wb-sub').textContent = 'Бонус за волну';
+  document.getElementById('wb-bonus').textContent = `+${bonus} 🪙`;
+  wb.classList.add('show');
+  await sleep(1800);
+  wb.classList.remove('show');
+  await sleep(300);
+
+  updateUI();
+}
+
+function applyBooster(type, r, c) {
+  if (boosters[type] <= 0) return;
+  boosters[type]--;
+  processing = true;
+
+  let affected = [];
+  if (type === 'bomb') {
+    // 3x3 area
+    for (let dr = -1; dr <= 1; dr++)
+      for (let dc = -1; dc <= 1; dc++) {
+        const nr = r+dr, nc = c+dc;
+        if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && grid[nr][nc] !== null)
+          affected.push({r:nr, c:nc});
+      }
+  } else if (type === 'swirl') {
+    // remove all of same type
+    const t = grid[r][c];
+    for (let rr = 0; rr < ROWS; rr++)
+      for (let cc = 0; cc < COLS; cc++)
+        if (grid[rr][cc] === t) affected.push({r:rr, c:cc});
+  } else if (type === 'bolt') {
+    // whole row + column
+    for (let cc = 0; cc < COLS; cc++) if (grid[r][cc] !== null) affected.push({r, c:cc});
+    for (let rr = 0; rr < ROWS; rr++) if (grid[rr][c] !== null && rr !== r) affected.push({r:rr, c});
+  }
+
+  const pts = affected.length * 15 * wave;
+  score += pts;
+  matchesInWave += affected.length;
+  coins += Math.floor(affected.length * 1.5);
+  if (score > record) record = score;
+
+  showFloatScore(pts, affected);
+  spawnParticles(affected);
+  affected.forEach(({r,c}) => {
+    getCellEl(r,c)?.classList.add('matched');
+    grid[r][c] = null;
+  });
+
+  deactivateBooster();
+  updateBoosterUI();
+  updateUI();
+
+  setTimeout(async () => {
+    await sleep(350);
+    await gravityDrop();
+    fillBoard();
+    renderBoard();
+    await sleep(100);
+    await processMatches();
+    processing = false;
+    updateUI();
+  }, 0);
+}
+
+function activateBooster(type) {
+  if (!gameRunning || boosters[type] <= 0) return;
+  if (activeBooster === type) {
+    deactivateBooster();
+    return;
+  }
+  deactivateBooster();
+  activeBooster = type;
+  document.getElementById(`booster-${type}`).classList.add('active-booster');
+  document.getElementById('hint-text').textContent =
+    type === 'bomb' ? '💣 Выберите клетку для взрыва!' :
+    type === 'swirl' ? '🌀 Выберите камень для удаления всех похожих!' :
+    '⚡ Выберите клетку для удара по строке и столбцу!';
+}
+
+function deactivateBooster() {
+  if (activeBooster) {
+    document.getElementById(`booster-${activeBooster}`)?.classList.remove('active-booster');
+    activeBooster = null;
+    document.getElementById('hint-text').textContent = 'Собирайте комбинации и зарабатывайте очки';
+  }
+}
+
+function updateBoosterUI() {
+  ['bomb','swirl','bolt'].forEach(b => {
+    document.getElementById(`${b}-count`).textContent = boosters[b];
+    document.getElementById(`booster-${b}`).style.opacity = boosters[b] > 0 ? '1' : '0.4';
+  });
+}
+
+function updateUI() {
+  document.getElementById('score-display').textContent = score.toLocaleString();
+  document.getElementById('record-display').textContent = record.toLocaleString();
+  document.getElementById('wave-display').textContent = wave;
+  document.getElementById('combo-display').textContent = `x${combo}`;
+  document.getElementById('coins-display').textContent = `${coins} 🪙`;
+  updateBoosterUI();
+  saveRecord();
+}
+
+function showFloatScore(pts, cells) {
+  if (!cells.length) return;
+  const mid = cells[Math.floor(cells.length/2)];
+  const el = getCellEl(mid.r, mid.c);
+  if (!el) return;
+  const rect = el.getBoundingClientRect();
+  const div = document.createElement('div');
+  div.className = 'float-score';
+  div.textContent = `+${pts}`;
+  div.style.left = rect.left + rect.width/2 + 'px';
+  div.style.top = rect.top + rect.height/2 + 'px';
+  document.body.appendChild(div);
+  setTimeout(() => div.remove(), 1000);
+}
+
+function spawnParticles(cells) {
+  const emojis = ['✨','💫','⭐','🌟'];
+  cells.slice(0, 4).forEach(({r,c}) => {
+    const el = getCellEl(r,c);
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const div = document.createElement('div');
+    div.className = 'particle';
+    div.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    div.style.left = (rect.left + Math.random()*rect.width) + 'px';
+    div.style.top = (rect.top + Math.random()*rect.height) + 'px';
+    document.body.appendChild(div);
+    setTimeout(() => div.remove(), 900);
+  });
+}
+
+function showComboEffect(combo) {
+  const el = document.getElementById('combo-display');
+  el.style.animation = 'none';
+  el.offsetHeight;
+  el.style.animation = 'matchPop 0.3s ease-out';
+  setTimeout(() => el.style.animation = '', 350);
+}
+
+function startNewGame() {
+  score = 0; wave = 1; combo = 1; coins = 0;
+  moves = 0; matchesInWave = 0;
+  boosters = { bomb: 3, swirl: 2, bolt: 3 };
+  activeBooster = null;
+  gameRunning = true; paused = false;
+
+  document.getElementById('gameover-overlay').classList.remove('show');
+  document.getElementById('main-btn').textContent = 'Пауза';
+  document.getElementById('main-btn').classList.remove('paused');
+  document.getElementById('hint-text').textContent = 'Собирайте комбинации и зарабатывайте очки';
+
+  initGrid();
+  renderBoard('new-gem');
+  updateUI();
+
+  loadRecord();
+}
+
+function handleMainBtn() {
+  if (!gameRunning) { startNewGame(); return; }
+  paused = !paused;
+  const btn = document.getElementById('main-btn');
+  if (paused) {
+    btn.textContent = 'Продолжить';
+    btn.classList.add('paused');
+    document.getElementById('hint-text').textContent = 'Игра на паузе';
+  } else {
+    btn.textContent = 'Пауза';
+    btn.classList.remove('paused');
+    document.getElementById('hint-text').textContent = 'Собирайте комбинации и зарабатывайте очки';
+    deactivateBooster();
+  }
+}
+
+function saveRecord() {
+  const saved = parseInt(localStorage.getItem('nova-record') || '0');
+  if (record > saved) localStorage.setItem('nova-record', record);
+}
+
+function loadRecord() {
+  record = parseInt(localStorage.getItem('nova-record') || '0');
+  updateUI();
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ---- LEADERBOARD ----
+const MOCK_LB = [
+  { name: 'Cosmo', score: 154820, avatar: '🚀' },
+  { name: 'Quantum', score: 98640, avatar: '⚛️' },
+  { name: 'Neutron', score: 73210, avatar: '🌌' },
+  { name: 'Orbit', score: 62410, avatar: '🪐' },
+  { name: 'Photon', score: 48960, avatar: '🔦' },
+  { name: 'Stellar', score: 36780, avatar: '⭐' },
+];
+
+let lbFilter = 'world';
+
+function setLbFilter(f) {
+  lbFilter = f;
+  document.getElementById('lb-world-btn').classList.toggle('active', f==='world');
+  document.getElementById('lb-friends-btn').classList.toggle('active', f==='friends');
+  renderLeaderboard();
+}
+
+function renderLeaderboard() {
+  const list = document.getElementById('lb-list');
+  const rankColors = ['gold','silver','bronze'];
+  const rankEmojis = ['🥇','🥈','🥉'];
+
+  let items = [...MOCK_LB];
+
+  const myScore = record;
+  const myRank = items.filter(i => i.score > myScore).length + 1;
+
+  if (lbFilter === 'friends') {
+    items = items.slice(0, 3);
+    items.push({ name: 'You', score: myScore, avatar: '👤', isMe: true });
+    items.sort((a,b) => b.score-a.score);
+  } else {
+    items.push({ name: 'You', score: myScore, avatar: '👤', isMe: true });
+    items.sort((a,b) => b.score-a.score);
+  }
+
+  list.innerHTML = items.map((p, i) => {
+    const rank = i+1;
+    const rankCls = rank <= 3 ? rankColors[rank-1] : '';
+    const rankStr = rank <= 3 ? rankEmojis[rank-1] : `#${rank}`;
+    return `
+      <div class="lb-item ${p.isMe ? 'me' : ''}">
+        <div class="lb-rank ${rankCls}">${rankStr}</div>
+        <div class="lb-avatar">${p.avatar}</div>
+        <div class="lb-info">
+          <div class="lb-name">${p.name}</div>
+        </div>
+        <div class="lb-score-num">${p.score.toLocaleString()}</div>
+      </div>
+    `;
+  }).join('');
+
+  // League
+  const pct = myRank <= 1 ? 1 :
+               myRank <= 3 ? 5 :
+               myRank <= items.length * 0.1 ? 10 :
+               myRank <= items.length * 0.2 ? 20 : 30;
+  const league = myRank === 1 ? '🏆 Чемпион' : myRank <= 3 ? '💎 Алмазная лига' : myRank <= 5 ? '🥈 Платиновая лига' : '🥉 Золотая лига';
+  const lname = league.split(' ').slice(1).join(' ');
+  const lion = league.split(' ')[0];
+  document.querySelector('.league-icon').textContent = lion;
+  document.querySelector('.league-name').textContent = lname;
+  document.getElementById('league-rank-text').textContent = myScore > 0 ? `Топ ${pct}%` : 'Сыграйте, чтобы войти в рейтинг';
+}
+
+function switchTab(tab) {
+  const gv = document.getElementById('game-view');
+  const lv = document.getElementById('lb-view');
+  document.getElementById('tab-game').classList.toggle('active', tab==='game');
+  document.getElementById('tab-lb').classList.toggle('active', tab==='lb');
+  gv.style.display = tab==='game' ? 'flex' : 'none';
+  lv.classList.toggle('active', tab==='lb');
+  if (tab==='lb') renderLeaderboard();
+}
+
+// ---- INIT ----
+loadRecord();
+renderLeaderboard();
+// Show board immediately with new game
+startNewGame();
+</script>
+</body>
+</html>
