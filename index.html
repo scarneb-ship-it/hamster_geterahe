@@ -18,12 +18,8 @@
         <div class="splash-bg-orb orb-3"></div>
         <div class="splash-grid"></div>
         <div class="splash-particles">
-            <div class="sp"></div>
-            <div class="sp"></div>
-            <div class="sp"></div>
-            <div class="sp"></div>
-            <div class="sp"></div>
-            <div class="sp"></div>
+            <div class="sp"></div><div class="sp"></div><div class="sp"></div>
+            <div class="sp"></div><div class="sp"></div><div class="sp"></div>
         </div>
         <div class="splash-inner">
             <div class="splash-logo-ring"><span class="splash-logo-h">P</span></div>
@@ -57,6 +53,19 @@
             <div class="subscribe-buttons">
                 <button class="subscribe-btn" id="subscribe-ok">Подписаться</button>
                 <button class="subscribe-later" id="subscribe-later">Позже</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно с текстом промта -->
+    <div id="prompt-modal" class="prompt-modal">
+        <div class="prompt-modal-content">
+            <h2 class="prompt-modal-title" id="modal-prompt-name"></h2>
+            <p class="prompt-modal-description" id="modal-prompt-desc"></p>
+            <div class="prompt-modal-text" id="modal-prompt-text"></div>
+            <div class="prompt-modal-actions">
+                <button class="btn-primary" id="copy-prompt-btn">📋 Скопировать</button>
+                <button class="btn-secondary" id="close-prompt-modal">Закрыть</button>
             </div>
         </div>
     </div>
@@ -109,7 +118,7 @@
                     <h2>Мои покупки</h2>
                     <span class="section-subtitle">Купленные промты</span>
                 </div>
-                <div class="purchases-list" id="purchases-list"></div>
+                <div class="purchases-grid" id="purchases-list"></div>
             </section>
 
             <!-- Профиль -->
