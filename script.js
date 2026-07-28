@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => initializeApp());
 
 function vibrate() {
     if (!vibrationEnabled) return;
-    navigator.vibrate?.call(navigator, 30);
+    if (navigator.vibrate) navigator.vibrate(30);
 }
 
 function initializeApp() {
@@ -117,10 +117,12 @@ function initializeTelegramWebApp() {
 
 // ===== Подписка на канал =====
 function showSubscribeModal() {
-    document.getElementById('subscribe-modal')?.classList.add('active');
+    const modal = document.getElementById('subscribe-modal');
+    if (modal) modal.classList.add('active');
 }
 function hideSubscribeModal() {
-    document.getElementById('subscribe-modal')?.classList.remove('active');
+    const modal = document.getElementById('subscribe-modal');
+    if (modal) modal.classList.remove('active');
 }
 
 async function checkSubscriptionAndShowModal() {
@@ -133,7 +135,11 @@ async function checkSubscriptionAndShowModal() {
         });
         if (!res.ok) { showSubscribeModal(); return; }
         const data = await res.json();
-        data.subscribed ? hideSubscribeModal() : showSubscribeModal();
+        if (data.subscribed) {
+            hideSubscribeModal();
+        } else {
+            showSubscribeModal();
+        }
     } catch (err) {
         console.error('Ошибка проверки подписки:', err);
         showSubscribeModal();
@@ -141,29 +147,39 @@ async function checkSubscriptionAndShowModal() {
 }
 
 function setupSubscribeModal() {
-    document.getElementById('subscribe-ok')?.addEventListener('click', () => {
-        vibrate();
-        window.Telegram?.WebApp?.openTelegramLink?.(HADRON_CHANNEL) ?? window.open(HADRON_CHANNEL, '_blank');
-        hideSubscribeModal();
-    });
-    document.getElementById('subscribe-later')?.addEventListener('click', () => {
-        vibrate();
-        hideSubscribeModal();
-    });
+    const okBtn = document.getElementById('subscribe-ok');
+    const laterBtn = document.getElementById('subscribe-later');
+    if (okBtn) {
+        okBtn.addEventListener('click', () => {
+            vibrate();
+            if (window.Telegram && window.Telegram.WebApp) {
+                window.Telegram.WebApp.openTelegramLink(HADRON_CHANNEL);
+            } else {
+                window.open(HADRON_CHANNEL, '_blank');
+            }
+            hideSubscribeModal();
+        });
+    }
+    if (laterBtn) {
+        laterBtn.addEventListener('click', () => {
+            vibrate();
+            hideSubscribeModal();
+        });
+    }
 }
 
 // ===== Навигация =====
 const headerElement = document.querySelector('.header');
-const mainContent = document.querySelector('.main-content');
+const mainContentEl = document.querySelector('.main-content');
 
 function toggleHeaderForSection(sectionId) {
     if (!headerElement) return;
     if (sectionId === 'profile-section') {
         headerElement.style.display = 'none';
-        if (mainContent) mainContent.style.paddingTop = '8px';
+        if (mainContentEl) mainContentEl.style.paddingTop = '8px';
     } else {
         headerElement.style.display = 'block';
-        if (mainContent) mainContent.style.paddingTop = '';
+        if (mainContentEl) mainContentEl.style.paddingTop = '';
     }
 }
 
@@ -177,7 +193,8 @@ function setupNavigation() {
             navItems.forEach(n => n.classList.remove('active'));
             this.classList.add('active');
             sections.forEach(s => {
-                s.classList.toggle('active', s.id === target);
+                if (s.id === target) s.classList.add('active');
+                else s.classList.remove('active');
             });
             toggleHeaderForSection(target);
             hideSubscribeModal();
@@ -246,20 +263,38 @@ function refreshShopButtons() {
 // ===== Модальное окно с текстом промта =====
 function setupPromptModal() {
     const modal = document.getElementById('prompt-modal');
-    document.getElementById('close-prompt-modal')?.addEventListener('click', () => modal.classList.remove('active'));
-    modal?.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
-    document.getElementById('copy-prompt-btn')?.addEventListener('click', () => {
-        const text = document.getElementById('modal-prompt-text').textContent;
-        navigator.clipboard.writeText(text).then(() => showNotification('Промт скопирован!'))
-            .catch(() => showNotification('Не удалось скопировать'));
+    if (!modal) return;
+
+    const closeBtn = document.getElementById('close-prompt-modal');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => modal.classList.remove('active'));
+    }
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.classList.remove('active');
     });
+
+    const copyBtn = document.getElementById('copy-prompt-btn');
+    if (copyBtn) {
+        copyBtn.addEventListener('click', () => {
+            const textEl = document.getElementById('modal-prompt-text');
+            if (textEl) {
+                navigator.clipboard.writeText(textEl.textContent).then(() => {
+                    showNotification('Промт скопирован!');
+                }).catch(() => {
+                    showNotification('Не удалось скопировать');
+                });
+            }
+        });
+    }
 }
 
 function showPromptModal(prompt) {
+    const modal = document.getElementById('prompt-modal');
+    if (!modal) return;
     document.getElementById('modal-prompt-name').textContent = prompt.name;
     document.getElementById('modal-prompt-desc').textContent = prompt.description;
     document.getElementById('modal-prompt-text').textContent = prompt.promptText;
-    document.getElementById('prompt-modal').classList.add('active');
+    modal.classList.add('active');
 }
 
 // ===== Покупки =====
@@ -277,7 +312,7 @@ function loadPurchases() {
         fetch(WORKER_URL + '/purchases?userId=' + currentUserId)
             .then(res => res.json())
             .then(data => {
-                if (data?.purchases) {
+                if (data && data.purchases) {
                     data.purchases.forEach(id => purchasedPrompts.add(id));
                     localStorage.setItem('purchasedPrompts', JSON.stringify(data.purchases));
                 }
@@ -297,7 +332,9 @@ function loadPurchases() {
 function loadPurchasesFromLocalStorage() {
     const stored = localStorage.getItem('purchasedPrompts');
     if (stored) {
-        try { JSON.parse(stored).forEach(id => purchasedPrompts.add(id)); } catch(e) {}
+        try {
+            JSON.parse(stored).forEach(id => purchasedPrompts.add(id));
+        } catch(e) {}
     }
 }
 
@@ -326,7 +363,7 @@ function renderPurchases() {
 
 // ===== Профиль пользователя =====
 function loadUserData() {
-    if (window.Telegram?.WebApp) {
+    if (window.Telegram && window.Telegram.WebApp) {
         const user = window.Telegram.WebApp.initDataUnsafe?.user;
         if (user) {
             updateProfileDisplay(user);
@@ -346,10 +383,10 @@ function loadUserData() {
 }
 
 async function sendMiniAppStat(user) {
-    if (!user?.id) return;
+    if (!user || !user.id) return;
     let ref = null;
     try {
-        if (window.Telegram?.WebApp) {
+        if (window.Telegram && window.Telegram.WebApp) {
             ref = window.Telegram.WebApp.initDataUnsafe?.start_param;
         }
     } catch(e) {}
@@ -365,61 +402,77 @@ async function sendMiniAppStat(user) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-    } catch(e) { console.error('Ошибка отправки статистики:', e); }
+    } catch(e) {
+        console.error('Ошибка отправки статистики:', e);
+    }
 }
 
 function updateProfileDisplay(user) {
-    document.getElementById('user-name')!.textContent = user.first_name + (user.last_name ? ' ' + user.last_name : '');
-    document.getElementById('user-username')!.textContent = user.username ? '@' + user.username : 'Telegram User';
+    const userNameEl = document.getElementById('user-name');
+    if (userNameEl) {
+        userNameEl.textContent = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+    }
+    const userUsernameEl = document.getElementById('user-username');
+    if (userUsernameEl) {
+        userUsernameEl.textContent = user.username ? '@' + user.username : 'Telegram User';
+    }
     updateUserAvatar(user);
     if (user.is_premium && !document.querySelector('.premium-badge')) {
         const badge = document.createElement('div');
         badge.className = 'premium-badge';
         badge.innerHTML = '⭐ Premium';
-        document.querySelector('.profile-info')?.appendChild(badge);
+        const profileInfo = document.querySelector('.profile-info');
+        if (profileInfo) profileInfo.appendChild(badge);
     }
 }
 
 function updateUserAvatar(user) {
-    const img = document.getElementById('avatar-img') as HTMLImageElement;
-    const fallback = document.getElementById('avatar-fallback')!;
+    const img = document.getElementById('avatar-img');
+    const fallback = document.getElementById('avatar-fallback');
+    if (!img || !fallback) return;
     if (user.photo_url) {
         img.src = user.photo_url;
         img.style.display = 'block';
-        img.onerror = () => { img.style.display = 'none'; showAvatarFallback(user, fallback); };
+        img.onerror = () => {
+            img.style.display = 'none';
+            fallback.textContent = user.first_name ? user.first_name.charAt(0).toUpperCase() : 'T';
+            fallback.style.display = 'flex';
+        };
         fallback.style.display = 'none';
     } else {
         img.style.display = 'none';
-        showAvatarFallback(user, fallback);
+        fallback.textContent = user.first_name ? user.first_name.charAt(0).toUpperCase() : 'T';
+        fallback.style.display = 'flex';
     }
 }
 
-function showAvatarFallback(user: any, el: HTMLElement) {
-    el.textContent = user.first_name ? user.first_name.charAt(0).toUpperCase() : 'T';
-    el.style.display = 'flex';
-}
-
 function showFallbackProfile() {
-    document.getElementById('user-name')!.textContent = 'Telegram User';
-    document.getElementById('user-username')!.textContent = 'Открой в Telegram';
-    const fallback = document.getElementById('avatar-fallback')!;
-    fallback.textContent = 'T';
-    fallback.style.display = 'flex';
+    const userNameEl = document.getElementById('user-name');
+    if (userNameEl) userNameEl.textContent = 'Telegram User';
+    const userUsernameEl = document.getElementById('user-username');
+    if (userUsernameEl) userUsernameEl.textContent = 'Открой в Telegram';
+    const fallback = document.getElementById('avatar-fallback');
+    if (fallback) {
+        fallback.textContent = 'T';
+        fallback.style.display = 'flex';
+    }
 }
 
 // ===== Шеринг =====
 function setupShareButton() {
-    document.getElementById('share-friends-button')?.addEventListener('click', () => {
+    const shareBtn = document.getElementById('share-friends-button');
+    if (!shareBtn) return;
+    shareBtn.addEventListener('click', () => {
         vibrate();
         const botUrl = currentUserId
             ? `https://t.me/${BOT_USERNAME}?start=ref_${currentUserId}`
             : `https://t.me/${BOT_USERNAME}`;
         const shareText = 'Лучшие промты для нейросетей в одном месте! 🚀';
-        if (window.Telegram?.WebApp) {
+        if (window.Telegram && window.Telegram.WebApp) {
             const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(botUrl)}&text=${encodeURIComponent(shareText)}`;
             try {
                 window.Telegram.WebApp.openTelegramLink(shareUrl);
-            } catch {
+            } catch (error) {
                 fallbackCopyToClipboard(botUrl);
             }
         } else if (navigator.share) {
@@ -431,7 +484,7 @@ function setupShareButton() {
     });
 }
 
-function fallbackCopyToClipboard(text: string) {
+function fallbackCopyToClipboard(text) {
     const ta = document.createElement('textarea');
     ta.value = text;
     ta.style.position = 'fixed';
@@ -445,26 +498,39 @@ function fallbackCopyToClipboard(text: string) {
 
 // ===== Настройки =====
 function setupSettingsPanel() {
-    document.getElementById('settings-button')?.addEventListener('click', () => {
-        vibrate();
-        document.getElementById('settings-panel')!.classList.add('active');
-    });
-    document.getElementById('close-settings')?.addEventListener('click', () => {
-        vibrate();
-        document.getElementById('settings-panel')!.classList.remove('active');
-    });
-    document.getElementById('settings-panel')?.addEventListener('click', (e) => {
-        if (e.target === document.getElementById('settings-panel'))
-            document.getElementById('settings-panel')!.classList.remove('active');
-    });
+    const settingsButton = document.getElementById('settings-button');
+    const settingsPanel = document.getElementById('settings-panel');
+    const closeSettings = document.getElementById('close-settings');
+
+    if (settingsButton) {
+        settingsButton.addEventListener('click', () => {
+            vibrate();
+            if (settingsPanel) settingsPanel.classList.add('active');
+        });
+    }
+    if (closeSettings) {
+        closeSettings.addEventListener('click', () => {
+            vibrate();
+            if (settingsPanel) settingsPanel.classList.remove('active');
+        });
+    }
+    if (settingsPanel) {
+        settingsPanel.addEventListener('click', (e) => {
+            if (e.target === settingsPanel) settingsPanel.classList.remove('active');
+        });
+    }
 
     document.querySelectorAll('.theme-option[data-theme]').forEach(opt => {
         opt.addEventListener('click', function() {
             vibrate();
-            const theme = this.dataset.theme!;
+            const theme = this.dataset.theme;
             document.querySelectorAll('.theme-option[data-theme]').forEach(o => o.classList.remove('active'));
             this.classList.add('active');
-            document.body.classList.toggle('dark-theme', theme === 'dark');
+            if (theme === 'dark') {
+                document.body.classList.add('dark-theme');
+            } else {
+                document.body.classList.remove('dark-theme');
+            }
             localStorage.setItem('theme', theme);
         });
     });
@@ -472,7 +538,7 @@ function setupSettingsPanel() {
     document.querySelectorAll('.theme-option[data-vibration]').forEach(opt => {
         opt.addEventListener('click', function() {
             vibrate();
-            const state = this.dataset.vibration!;
+            const state = this.dataset.vibration;
             vibrationEnabled = (state === 'on');
             localStorage.setItem('vibration', state);
             updateVibrationSwitcherUI();
@@ -483,28 +549,35 @@ function setupSettingsPanel() {
 
 function updateVibrationSwitcherUI() {
     document.querySelectorAll('.theme-option[data-vibration]').forEach(opt => {
-        opt.classList.toggle('active', opt.dataset.vibration === (vibrationEnabled ? 'on' : 'off'));
+        const isActive = (opt.dataset.vibration === 'on' && vibrationEnabled) ||
+                         (opt.dataset.vibration === 'off' && !vibrationEnabled);
+        if (isActive) opt.classList.add('active');
+        else opt.classList.remove('active');
     });
 }
 
 function loadVibrationPreference() {
-    vibrationEnabled = localStorage.getItem('vibration') !== 'off';
+    const saved = localStorage.getItem('vibration');
+    vibrationEnabled = (saved !== 'off');
     updateVibrationSwitcherUI();
 }
 
 function loadThemePreference() {
-    const saved = localStorage.getItem('theme') || 'light';
-    document.body.classList.toggle('dark-theme', saved === 'dark');
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-theme');
+    }
     document.querySelectorAll('.theme-option[data-theme]').forEach(opt => {
-        opt.classList.toggle('active', opt.dataset.theme === saved);
+        if (opt.dataset.theme === savedTheme) opt.classList.add('active');
+        else opt.classList.remove('active');
     });
 }
 
 // ===== Уведомления =====
-function showNotification(msg = 'Ссылка скопирована в буфер обмена!') {
+function showNotification(msg) {
     const el = document.getElementById('notification');
     if (!el) return;
-    el.textContent = msg;
+    el.textContent = msg || 'Ссылка скопирована в буфер обмена!';
     el.classList.add('show');
     setTimeout(() => el.classList.remove('show'), 2000);
 }
