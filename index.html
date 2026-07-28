@@ -2,173 +2,1190 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#667eea">
-    <title>PromptVerse</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Идеальная тренировка — Home Workout PRO</title>
+    <style>
+        :root {
+            --bg: #0d0f13;
+            --surface: #1a1d25;
+            --surface2: #22262f;
+            --accent: #f0a040;
+            --accent2: #e08020;
+            --text: #e0e0e0;
+            --text2: #a0a0a0;
+            --danger: #e05555;
+            --success: #5cba7a;
+            --info: #5b9bd5;
+            --border: #2a2d35;
+            --radius: 14px;
+            --radius-sm: 8px;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+            --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .app {
+            width: 100%;
+            max-width: 480px;
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 18px;
+        }
+        .header .logo {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, var(--accent), #f5c870);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .header .subtitle {
+            font-size: 0.8rem;
+            color: var(--text2);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        /* Day Selector */
+        .day-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .day-btn {
+            flex: 1;
+            min-width: 80px;
+            padding: 12px 8px;
+            border-radius: var(--radius-sm);
+            border: 2px solid var(--border);
+            background: var(--surface2);
+            color: var(--text2);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.25s;
+            text-align: center;
+            font-family: var(--font);
+        }
+        .day-btn:hover {
+            border-color: var(--accent);
+            color: var(--text);
+            background: #252a35;
+        }
+        .day-btn.active {
+            border-color: var(--accent);
+            background: var(--accent);
+            color: #111;
+            box-shadow: 0 0 20px rgba(240, 160, 64, 0.35);
+        }
+        .day-btn .day-label {
+            font-size: 0.7rem;
+            opacity: 0.8;
+            display: block;
+        }
+        .day-btn .day-name {
+            font-size: 1rem;
+        }
+
+        /* Timer Circle */
+        .timer-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .timer-circle {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            border: 6px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: border-color 0.4s;
+            background: var(--surface2);
+            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.3);
+        }
+        .timer-circle.work {
+            border-color: var(--accent);
+            box-shadow: 0 0 40px rgba(240, 160, 64, 0.3), inset 0 0 30px rgba(0, 0, 0, 0.3);
+        }
+        .timer-circle.rest {
+            border-color: var(--info);
+            box-shadow: 0 0 40px rgba(91, 155, 213, 0.3), inset 0 0 30px rgba(0, 0, 0, 0.3);
+        }
+        .timer-circle.paused {
+            border-color: #777;
+            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.4);
+        }
+        .timer-display {
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: -2px;
+            color: #fff;
+            transition: color 0.3s;
+        }
+        .timer-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text2);
+            margin-top: 2px;
+        }
+        .timer-progress-ring {
+            position: absolute;
+            top: -6px;
+            left: -6px;
+            width: calc(100% + 12px);
+            height: calc(100% + 12px);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        /* Exercise Info */
+        .exercise-info {
+            text-align: center;
+            margin-bottom: 14px;
+            min-height: 70px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .exercise-number {
+            font-size: 0.75rem;
+            color: var(--accent);
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+        .exercise-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 4px 0;
+            color: #fff;
+        }
+        .exercise-detail {
+            font-size: 0.85rem;
+            color: var(--text2);
+        }
+        .set-progress {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            margin-top: 6px;
+        }
+        .set-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--border);
+            transition: all 0.3s;
+        }
+        .set-dot.done {
+            background: var(--success);
+            box-shadow: 0 0 8px rgba(92, 186, 122, 0.6);
+        }
+        .set-dot.current {
+            background: var(--accent);
+            box-shadow: 0 0 10px rgba(240, 160, 64, 0.7);
+            animation: pulse-dot 0.8s infinite;
+        }
+        @keyframes pulse-dot {
+            0%,
+            100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.5);
+            }
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 14px;
+        }
+        .btn {
+            padding: 12px 20px;
+            border-radius: 25px;
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            font-family: var(--font);
+            letter-spacing: 0.5px;
+            min-width: 90px;
+            text-align: center;
+        }
+        .btn-start {
+            background: var(--accent);
+            color: #111;
+            box-shadow: 0 4px 15px rgba(240, 160, 64, 0.4);
+        }
+        .btn-start:hover {
+            background: #f5b850;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(240, 160, 64, 0.5);
+        }
+        .btn-pause {
+            background: var(--info);
+            color: #fff;
+        }
+        .btn-pause:hover {
+            background: #6aade0;
+            transform: translateY(-2px);
+        }
+        .btn-skip {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--text2);
+        }
+        .btn-skip:hover {
+            border-color: #fff;
+            color: #fff;
+        }
+        .btn-reset {
+            background: var(--danger);
+            color: #fff;
+        }
+        .btn-reset:hover {
+            background: #e87070;
+            transform: translateY(-2px);
+        }
+        .btn:active {
+            transform: scale(0.95);
+            transition: transform 0.1s;
+        }
+
+        /* Progress bar */
+        .progress-bar-container {
+            background: var(--border);
+            border-radius: 10px;
+            height: 8px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 10px;
+            background: linear-gradient(90deg, var(--accent), #f5c870);
+            transition: width 0.4s ease;
+            width: 0%;
+        }
+
+        /* Phase indicator */
+        .phase-indicator {
+            text-align: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            display: inline-block;
+            width: 100%;
+        }
+        .phase-warmup {
+            background: rgba(240, 160, 64, 0.15);
+            color: var(--accent);
+        }
+        .phase-workout {
+            background: rgba(92, 186, 122, 0.15);
+            color: var(--success);
+        }
+        .phase-cooldown {
+            background: rgba(91, 155, 213, 0.15);
+            color: var(--info);
+        }
+        .phase-rest {
+            background: rgba(160, 160, 160, 0.1);
+            color: var(--text2);
+        }
+
+        /* Notification toast */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--surface2);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: 700;
+            z-index: 100;
+            border: 1px solid var(--accent);
+            box-shadow: var(--shadow);
+            animation: slideDown 0.4s ease, fadeOut 0.4s ease 1.6s forwards;
+            pointer-events: none;
+        }
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+            }
+        }
+
+        /* Stats */
+        .stats-row {
+            display: flex;
+            gap: 8px;
+            justify-content: space-around;
+            font-size: 0.7rem;
+            color: var(--text2);
+            letter-spacing: 1px;
+        }
+        .stats-row span {
+            background: var(--surface2);
+            padding: 6px 10px;
+            border-radius: 15px;
+            border: 1px solid var(--border);
+        }
+
+        /* Scroll */
+        .app {
+            max-height: 95vh;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border) transparent;
+        }
+        .app::-webkit-scrollbar {
+            width: 4px;
+        }
+        .app::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        @media (max-width: 400px) {
+            .timer-circle {
+                width: 130px;
+                height: 130px;
+            }
+            .timer-display {
+                font-size: 2.4rem;
+            }
+            .btn {
+                padding: 10px 14px;
+                font-size: 0.8rem;
+                min-width: 70px;
+            }
+            .day-btn {
+                font-size: 0.7rem;
+                padding: 10px 4px;
+            }
+        }
+    </style>
 </head>
 <body>
 
-    <!-- Splash Screen -->
-    <div id="splash-screen">
-        <div class="splash-bg-orb orb-1"></div>
-        <div class="splash-bg-orb orb-2"></div>
-        <div class="splash-bg-orb orb-3"></div>
-        <div class="splash-grid"></div>
-        <div class="splash-particles">
-            <div class="sp"></div><div class="sp"></div><div class="sp"></div>
-            <div class="sp"></div><div class="sp"></div><div class="sp"></div>
-        </div>
-        <div class="splash-inner">
-            <div class="splash-logo-ring"><span class="splash-logo-h">P</span></div>
-            <div class="splash-brand">PROMPT</div>
-            <div class="splash-brand-sub">MARKETPLACE</div>
-            <div class="splash-tags">
-                <span class="stag stag-blue">AI Prompts</span>
-                <span class="stag stag-purple">ChatGPT</span>
-                <span class="stag stag-teal">Midjourney</span>
-                <span class="stag stag-amber">Stars</span>
-                <span class="stag stag-coral">Telegram</span>
-                <span class="stag stag-green">Mini Apps</span>
-                <span class="stag stag-purple">Web3</span>
-                <span class="stag stag-blue">DeFi</span>
-            </div>
-            <div class="splash-loader-bar">
-                <div class="splash-loader-fill"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Подписка на канал HADRON -->
-    <div id="subscribe-modal" class="subscribe-modal">
-        <div class="subscribe-content">
-            <h2 class="subscribe-title">🤖 Собрано нейросетями</h2>
-            <p class="subscribe-text">
-                Этот Mini App полностью спроектирован и написан с помощью искусственного интеллекта.  
-                Хочешь понимать, как работают такие технологии, и учиться создавать своё?  
-                Подпишись на канал HADRON — там разборы, инсайды и практика по AI‑разработке.
-            </p>
-            <div class="subscribe-buttons">
-                <button class="subscribe-btn" id="subscribe-ok">Подписаться</button>
-                <button class="subscribe-later" id="subscribe-later">Позже</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Модальное окно с текстом промта -->
-    <div id="prompt-modal" class="prompt-modal">
-        <div class="prompt-modal-content">
-            <h2 class="prompt-modal-title" id="modal-prompt-name"></h2>
-            <p class="prompt-modal-description" id="modal-prompt-desc"></p>
-            <div class="prompt-modal-text" id="modal-prompt-text"></div>
-            <div class="prompt-modal-actions">
-                <button class="btn-primary" id="copy-prompt-btn">📋 Скопировать</button>
-                <button class="btn-secondary" id="close-prompt-modal">Закрыть</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="app-container">
+    <div class="app" id="app">
         <!-- Header -->
-        <header class="header">
-            <div class="header-content">
-                <h1 class="app-title">PromptVerse</h1>
-                <button class="settings-button" id="settings-button" aria-label="Настройки">⚙️</button>
-            </div>
-        </header>
+        <div class="header">
+            <div class="logo">🏋️ WORKOUT PRO</div>
+            <div class="subtitle">Идеальная программа 10/10</div>
+        </div>
 
-        <!-- Settings Panel -->
-        <div class="settings-panel" id="settings-panel">
-            <div class="settings-content">
-                <h3 class="settings-title">Настройки</h3>
-                <div class="setting-item">
-                    <span class="setting-label">Тема</span>
-                    <div class="theme-switcher">
-                        <button class="theme-option active" data-theme="light">Светлая</button>
-                        <button class="theme-option" data-theme="dark">Темная</button>
-                    </div>
-                </div>
-                <div class="setting-item">
-                    <span class="setting-label">Вибрация</span>
-                    <div class="theme-switcher" id="vibration-switcher">
-                        <button class="theme-option active" data-vibration="on">Вкл</button>
-                        <button class="theme-option" data-vibration="off">Выкл</button>
-                    </div>
-                </div>
-                <button class="close-settings" id="close-settings">Готово</button>
+        <!-- Day Selector -->
+        <div class="day-selector" id="daySelector">
+            <button class="day-btn active" data-day="A">
+                <span class="day-label">День</span>
+                <span class="day-name">🅰️ Сила</span>
+            </button>
+            <button class="day-btn" data-day="B">
+                <span class="day-label">День</span>
+                <span class="day-name">🅱️ Рост</span>
+            </button>
+            <button class="day-btn" data-day="C">
+                <span class="day-label">День</span>
+                <span class="day-name">🅲️ Кор</span>
+            </button>
+        </div>
+
+        <!-- Phase Indicator -->
+        <div class="phase-indicator phase-warmup" id="phaseIndicator">🔥 РАЗМИНКА</div>
+
+        <!-- Timer Circle -->
+        <div class="timer-section">
+            <div class="timer-circle work" id="timerCircle">
+                <svg class="timer-progress-ring" viewBox="0 0 172 172" id="progressSvg">
+                    <circle cx="86" cy="86" r="80" fill="none" stroke="transparent" stroke-width="6"/>
+                    <circle cx="86" cy="86" r="80" fill="none" stroke="currentColor" stroke-width="6"
+                    stroke-linecap="round" id="progressCircle"
+                    stroke-dasharray="502.65" stroke-dashoffset="0"
+                    style="color: #f0a040; transition: stroke-dashoffset 0.9s linear;"/>
+                </svg>
+                <div class="timer-display" id="timerDisplay">00:30</div>
+                <div class="timer-label" id="timerLabel">РАБОТА</div>
             </div>
         </div>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Магазин промтов -->
-            <section id="shop-section" class="content-section active">
-                <div class="section-header">
-                    <h2>Магазин промтов</h2>
-                    <span class="section-subtitle">Готовые промты для нейросетей</span>
-                </div>
-                <div class="shop-grid" id="shop-grid"></div>
-            </section>
+        <!-- Exercise Info -->
+        <div class="exercise-info" id="exerciseInfo">
+            <div class="exercise-number">№47</div>
+            <div class="exercise-name">Круги руками</div>
+            <div class="exercise-detail">30 сек · Подход 1/1</div>
+            <div class="set-progress" id="setDots"></div>
+        </div>
 
-            <!-- Мои покупки -->
-            <section id="purchases-section" class="content-section">
-                <div class="section-header">
-                    <h2>Мои покупки</h2>
-                    <span class="section-subtitle">Купленные промты</span>
-                </div>
-                <div class="purchases-grid" id="purchases-list"></div>
-            </section>
+        <!-- Progress Bar -->
+        <div class="progress-bar-container">
+            <div class="progress-bar-fill" id="progressBar" style="width: 0%;"></div>
+        </div>
 
-            <!-- Профиль -->
-            <section id="profile-section" class="content-section">
-                <div class="profile-header">
-                    <div class="profile-avatar" id="user-avatar">
-                        <img src="" alt="User Avatar" id="avatar-img" style="display: none;">
-                        <span id="avatar-fallback">T</span>
-                    </div>
-                    <div class="profile-info">
-                        <h2 id="user-name">Пользователь</h2>
-                        <p id="user-username">Открой в Telegram</p>
-                    </div>
-                </div>
-                <div class="profile-actions">
-                    <button class="share-friends-button" id="share-friends-button">
-                        <div class="share-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                <path d="M18 8C19.6569 8 21 6.65685 21 5C21 3.34315 19.6569 2 18 2C16.3431 2 15 3.34315 15 5C15 6.65685 16.3431 8 18 8Z" stroke="currentColor" stroke-width="2"/>
-                                <path d="M6 15C7.65685 15 9 13.6569 9 12C9 10.3431 7.65685 9 6 9C4.34315 9 3 10.3431 3 12C3 13.6569 4.34315 15 6 15Z" stroke="currentColor" stroke-width="2"/>
-                                <path d="M18 22C19.6569 22 21 20.6569 21 19C21 17.3431 19.6569 16 18 16C16.3431 16 15 17.3431 15 19C15 20.6569 16.3431 22 18 22Z" stroke="currentColor" stroke-width="2"/>
-                                <path d="M8.59 13.51L15.42 17.49" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                <path d="M15.41 6.51L8.59 10.49" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            </svg>
-                        </div>
-                        <span>Поделиться с друзьями</span>
-                    </button>
-                </div>
-            </section>
-        </main>
+        <!-- Controls -->
+        <div class="controls">
+            <button class="btn btn-start" id="btnStart">▶ СТАРТ</button>
+            <button class="btn btn-pause" id="btnPause" disabled>⏸ ПАУЗА</button>
+            <button class="btn btn-skip" id="btnSkip" disabled>⏭ ПРОПУСК</button>
+            <button class="btn btn-reset" id="btnReset">↺ СБРОС</button>
+        </div>
 
-        <!-- Bottom Navigation -->
-        <nav class="bottom-nav">
-            <button class="nav-item active" data-section="shop-section">
-                <span class="nav-icon">🛒</span>
-                <span class="nav-label">Магазин</span>
-            </button>
-            <button class="nav-item" data-section="purchases-section">
-                <span class="nav-icon">📋</span>
-                <span class="nav-label">Покупки</span>
-            </button>
-            <button class="nav-item" data-section="profile-section">
-                <span class="nav-icon">👤</span>
-                <span class="nav-label">Профиль</span>
-            </button>
-        </nav>
-
-        <div id="notification" class="notification">Ссылка скопирована в буфер обмена!</div>
+        <!-- Stats -->
+        <div class="stats-row">
+            <span id="statExercise">Упражнение: 0/0</span>
+            <span id="statTotal">Всего: 00:00</span>
+        </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+
+    <script>
+        (function() {
+            // ==================== AUDIO ENGINE ====================
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            let audioCtx = null;
+
+            function initAudio() {
+                if (!audioCtx) {
+                    audioCtx = new AudioCtx();
+                }
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+            }
+
+            function playBeep(freq = 800, duration = 0.15, type = 'sine') {
+                if (!audioCtx) return;
+                try {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + duration);
+                } catch (e) { /* silent */ }
+            }
+
+            function playStartSound() { playBeep(600, 0.1);
+                setTimeout(() => playBeep(900, 0.15), 100); }
+
+            function playEndSound() { playBeep(900, 0.1);
+                setTimeout(() => playBeep(600, 0.2), 120); }
+
+            function playTickSound() { playBeep(400, 0.06, 'square'); }
+
+            // ==================== TOAST ====================
+            function showToast(msg) {
+                const container = document.getElementById('toastContainer');
+                const toast = document.createElement('div');
+                toast.className = 'toast';
+                toast.textContent = msg;
+                container.appendChild(toast);
+                setTimeout(() => toast.remove(), 2000);
+            }
+
+            // ==================== TRAINING DATA ====================
+            const warmupExercises = [
+                { num: 47, name: 'Круги руками', duration: 30, reps: null, sets: 1, restAfter: 5,
+                    comment: '30 сек' },
+                { num: 50, name: 'Вращение руками', duration: 30, reps: null, sets: 1, restAfter: 5,
+                    comment: '30 сек' },
+                { num: 85, name: 'Поза кошки-коровы', duration: null, reps: 10, sets: 1, restAfter: 5,
+                    comment: '10 повторов' },
+                { num: 15, name: 'Приседания (без веса)', duration: null, reps: 10, sets: 1, restAfter: 5,
+                    comment: '10 повторов' },
+                { num: 11, name: 'Отжимание от стены', duration: null, reps: 10, sets: 1, restAfter: 5,
+                    comment: '10 раз' },
+            ];
+
+            const cooldownExercises = [
+                { num: 116, name: 'Растяжка плеч', duration: 30, reps: null, sets: 1, restAfter: 3, comment: '30 сек' },
+                { num: 118, name: 'Растяжка спины', duration: 30, reps: null, sets: 1, restAfter: 3, comment: '30 сек' },
+                { num: 120, name: 'Растяжка ног', duration: 30, reps: null, sets: 1, restAfter: 3, comment: '30 сек' },
+                { num: 142, name: 'Растяжка ягодиц', duration: 30, reps: null, sets: 1, restAfter: 3, comment: '30 сек' },
+                { num: 169, name: 'Глубокая растяжка', duration: 30, reps: null, sets: 1, restAfter: 3, comment: '30 сек' },
+                { num: 171, name: 'Финальная растяжка', duration: 30, reps: null, sets: 1, restAfter: 0,
+                comment: '30 сек' },
+            ];
+
+            const dayAExercises = [
+                { num: 238, name: 'Подтягивания широким хватом', duration: null, reps: 'Макс', sets: 4, restAfter: 135,
+                    comment: 'Максимум' },
+                { num: 15, name: 'Приседания (с гантелью у груди)', duration: null, reps: '8-10', sets: 4, restAfter: 120,
+                    comment: '8-10 повторов' },
+                { num: 178, name: 'Жим гантелей над головой (сидя)', duration: null, reps: '8-10', sets: 4, restAfter: 105,
+                    comment: '8-10 повторов' },
+                { num: 179, name: 'Гребля в наклоне (с гантелями)', duration: null, reps: '10-12', sets: 3, restAfter: 90,
+                    comment: '10-12 повторов' },
+                { num: 39, name: 'Ягодичный мостик (с гантелью)', duration: null, reps: '12-15', sets: 3, restAfter: 60,
+                    comment: '12-15 повторов' },
+                { num: 4, name: 'Планка', duration: 50, reps: null, sets: 3, restAfter: 45, comment: '45-60 сек' },
+            ];
+
+            const dayBExercises = [
+                { num: '58/66', name: 'Болгарский сплит-присед (левая/правая)', duration: null, reps: '10 на каждую',
+                    sets: 3, restAfter: 90, comment: '10 на каждую ногу' },
+                { num: 14, name: 'Отжимания от пола (классические)', duration: null, reps: '10-15', sets: 3,
+                restAfter: 75, comment: '10-15 повторов' },
+                { num: 241, name: 'Подтягивания обратным хватом', duration: null, reps: 'Макс', sets: 3, restAfter: 90,
+                    comment: 'Максимум' },
+                { num: 182, name: 'Подъем гантелей в стороны', duration: null, reps: '12-15', sets: 3, restAfter: 52,
+                    comment: '12-15 повторов' },
+                { num: '195/196', name: 'Подъем гантели сидя на бицепс (лев/прав)', duration: null, reps: '10-12',
+                    sets: 3, restAfter: 60, comment: '10-12 повторов' },
+                { num: 181, name: 'Подъем гантели на трицепс (стоя)', duration: null, reps: '10-12', sets: 3,
+                    restAfter: 60, comment: '10-12 повторов' },
+                { num: 5, name: 'Обратные скручивания', duration: null, reps: '15-20', sets: 3, restAfter: 30,
+                    comment: '15-20 повторов' },
+            ];
+
+            const dayCExercises = [
+                { num: 221, name: 'Медленный альпинист', duration: 40, reps: null, sets: 1, restAfter: 0,
+                    comment: '40 секунд · Без прыжков', isCircuit: true },
+                { num: '75/74', name: 'Мостик на одной ноге (правая/левая)', duration: null, reps: '12 на каждую',
+                    sets: 1, restAfter: 0, comment: '12 на каждую · Сжатие ягодицы', isCircuit: true },
+                { num: 95, name: 'Жук на спине', duration: null, reps: '10', sets: 1, restAfter: 0, comment: '10 раз',
+                    isCircuit: true },
+                { num: 12, name: 'Обратные отжимания от стула', duration: null, reps: '12-15', sets: 1, restAfter: 0,
+                    comment: '12-15 раз · Ноги прямые', isCircuit: true },
+                { num: 101, name: 'Гиперэкстензии (лежа на животе)', duration: null, reps: '15', sets: 1, restAfter: 0,
+                    comment: '15 раз · Задержка 2 сек', isCircuit: true },
+                { num: '23/29', name: 'Планка на боку (правый/левый)', duration: 30, reps: null, sets: 1, restAfter: 0,
+                    comment: '30 сек на бок', isCircuit: true },
+            ];
+
+            const dayCConfig = { circuits: 4, restBetweenCircuits: 90 };
+
+            // ==================== STATE ====================
+            let currentDay = 'A';
+            let phase = 'warmup'; // 'warmup' | 'workout' | 'cooldown' | 'rest' | 'idle'
+            let currentExerciseIndex = 0;
+            let currentSet = 0;
+            let totalSetsDone = 0;
+            let timeRemaining = 0;
+            let timerInterval = null;
+            let isPaused = false;
+            let isRunning = false;
+            let circuitRound = 0;
+            let workoutList = [];
+            let totalExercisesInPhase = 0;
+
+            // ==================== DOM REFS ====================
+            const daySelector = document.getElementById('daySelector');
+            const phaseIndicator = document.getElementById('phaseIndicator');
+            const timerCircle = document.getElementById('timerCircle');
+            const timerDisplay = document.getElementById('timerDisplay');
+            const timerLabel = document.getElementById('timerLabel');
+            const exerciseInfo = document.getElementById('exerciseInfo');
+            const setDotsContainer = document.getElementById('setDots');
+            const progressBar = document.getElementById('progressBar');
+            const progressCircle = document.getElementById('progressCircle');
+            const btnStart = document.getElementById('btnStart');
+            const btnPause = document.getElementById('btnPause');
+            const btnSkip = document.getElementById('btnSkip');
+            const btnReset = document.getElementById('btnReset');
+            const statExercise = document.getElementById('statExercise');
+            const statTotal = document.getElementById('statTotal');
+
+            let totalSessionSeconds = 0;
+            let elapsedSessionSeconds = 0;
+            let sessionTimerInterval = null;
+
+            // ==================== FUNCTIONS ====================
+            function getWorkoutForDay(day) {
+                if (day === 'A') return [...dayAExercises];
+                if (day === 'B') return [...dayBExercises];
+                return [...dayCExercises];
+            }
+
+            function getFullExerciseList(day) {
+                const workout = getWorkoutForDay(day);
+                if (day === 'C') {
+                    // Для дня C — круговая: каждый круг содержит все упражнения
+                    const flat = [];
+                    for (let r = 0; r < dayCConfig.circuits; r++) {
+                        workout.forEach(ex => {
+                            flat.push({ ...ex, circuitRound: r + 1, totalCircuits: dayCConfig
+                                    .circuits });
+                        });
+                        if (r < dayCConfig.circuits - 1) {
+                            flat.push({
+                                num: 'ОТДЫХ',
+                                name: 'Отдых между кругами',
+                                duration: dayCConfig.restBetweenCircuits,
+                                reps: null,
+                                sets: 1,
+                                restAfter: 0,
+                                comment: `${dayCConfig.restBetweenCircuits} сек`,
+                                isRest: true,
+                                circuitRound: r + 1,
+                                totalCircuits: dayCConfig.circuits
+                            });
+                        }
+                    }
+                    return flat;
+                }
+                // Для дней A и B — каждое упражнение с подходами
+                const flat = [];
+                workout.forEach(ex => {
+                    for (let s = 0; s < ex.sets; s++) {
+                        flat.push({ ...ex, currentSet: s + 1, totalSets: ex.sets, isRest: false });
+                        if (s < ex.sets - 1) {
+                            flat.push({
+                                num: 'ОТДЫХ',
+                                name: 'Отдых',
+                                duration: ex.restAfter,
+                                reps: null,
+                                sets: 1,
+                                restAfter: 0,
+                                comment: `${ex.restAfter} сек`,
+                                isRest: true,
+                                parentNum: ex.num,
+                                currentSet: s + 1,
+                                totalSets: ex.sets
+                            });
+                        }
+                    }
+                });
+                return flat;
+            }
+
+            function getWarmupList() {
+                const flat = [];
+                warmupExercises.forEach(ex => {
+                    flat.push({ ...ex, isWarmup: true, currentSet: 1, totalSets: 1, isRest: false });
+                });
+                return flat;
+            }
+
+            function getCooldownList() {
+                const flat = [];
+                cooldownExercises.forEach(ex => {
+                    flat.push({ ...ex, isCooldown: true, currentSet: 1, totalSets: 1, isRest: false });
+                });
+                return flat;
+            }
+
+            function buildFullSession(day) {
+                const warmup = getWarmupList();
+                const workout = getFullExerciseList(day);
+                const cooldown = getCooldownList();
+                return {
+                    warmup,
+                    workout,
+                    cooldown,
+                    allPhases: ['warmup', 'workout', 'cooldown'],
+                    getPhaseList(phaseName) {
+                        if (phaseName === 'warmup') return warmup;
+                        if (phaseName === 'workout') return workout;
+                        return cooldown;
+                    }
+                };
+            }
+
+            let session = buildFullSession('A');
+            let currentFlatList = [];
+            let currentFlatIndex = 0;
+
+            function navigateToPhase(phaseName, index = 0) {
+                phase = phaseName;
+                currentFlatList = session.getPhaseList(phaseName);
+                currentFlatIndex = index;
+                if (currentFlatList.length === 0) {
+                    // пустая фаза — пропускаем
+                    advancePhase();
+                    return;
+                }
+                currentExerciseIndex = index;
+                const ex = currentFlatList[index];
+                if (ex.isRest) {
+                    phase = 'rest';
+                } else if (ex.isWarmup) {
+                    phase = 'warmup';
+                } else if (ex.isCooldown) {
+                    phase = 'cooldown';
+                } else {
+                    phase = 'workout';
+                }
+                updateUIForExercise(ex);
+                resetTimerForExercise(ex);
+                updatePhaseIndicator();
+                updateProgress();
+            }
+
+            function advancePhase() {
+                if (phase === 'warmup') {
+                    navigateToPhase('workout', 0);
+                    showToast('🔥 Разминка завершена! Приступаем к тренировке.');
+                } else if (phase === 'workout' || phase === 'rest') {
+                    navigateToPhase('cooldown', 0);
+                    showToast('🧘 Заминка! Не пропускайте растяжку.');
+                } else if (phase === 'cooldown') {
+                    finishSession();
+                }
+            }
+
+            function advanceExercise() {
+                if (currentFlatIndex + 1 < currentFlatList.length) {
+                    currentFlatIndex++;
+                    const ex = currentFlatList[currentFlatIndex];
+                    if (ex.isRest) {
+                        phase = 'rest';
+                    } else if (ex.isWarmup) {
+                        phase = 'warmup';
+                    } else if (ex.isCooldown) {
+                        phase = 'cooldown';
+                    } else {
+                        phase = 'workout';
+                    }
+                    currentExerciseIndex = currentFlatIndex;
+                    updateUIForExercise(ex);
+                    resetTimerForExercise(ex);
+                    updatePhaseIndicator();
+                    updateProgress();
+                } else {
+                    advancePhase();
+                }
+            }
+
+            function resetTimerForExercise(ex) {
+                clearInterval(timerInterval);
+                if (ex.duration) {
+                    timeRemaining = ex.duration;
+                } else if (ex.reps) {
+                    // Для упражнений с повторами — оцениваем время: ~2.5 сек на повтор
+                    const repsNum = parseInt(ex.reps) || 10;
+                    timeRemaining = Math.max(10, repsNum * 2.5);
+                } else {
+                    timeRemaining = 30;
+                }
+                isPaused = true;
+                isRunning = false;
+                updateTimerDisplay();
+                updateTimerCircleClasses();
+                btnStart.textContent = '▶ СТАРТ';
+                btnPause.disabled = true;
+                btnSkip.disabled = false;
+                setProgressCircle(0);
+            }
+
+            function updateUIForExercise(ex) {
+                const numDisplay = ex.num || '—';
+                const nameDisplay = ex.name || 'Упражнение';
+                const commentDisplay = ex.comment || '';
+                let setInfo = '';
+                if (ex.isRest) {
+                    setInfo = `Отдых · ${ex.duration || 60} сек`;
+                } else if (ex.isWarmup) {
+                    setInfo = commentDisplay;
+                } else if (ex.isCooldown) {
+                    setInfo = commentDisplay;
+                } else if (ex.isCircuit) {
+                    setInfo =
+                        `${commentDisplay} · Круг ${ex.circuitRound || circuitRound}/${ex.totalCircuits || dayCConfig.circuits}`;
+                } else {
+                    const setNum = ex.currentSet || 1;
+                    const totalSets = ex.totalSets || 1;
+                    setInfo = `${commentDisplay} · Подход ${setNum}/${totalSets}`;
+                }
+
+                document.querySelector('.exercise-number').textContent = `№${numDisplay}`;
+                document.querySelector('.exercise-name').textContent = nameDisplay;
+                document.querySelector('.exercise-detail').textContent = setInfo;
+
+                // Set dots
+                const totalSets = ex.totalSets || 1;
+                const currentSetNum = ex.currentSet || 1;
+                let dotsHTML = '';
+                if (!ex.isRest && totalSets > 1) {
+                    for (let i = 1; i <= totalSets; i++) {
+                        let cls = 'set-dot';
+                        if (i < currentSetNum) cls += ' done';
+                        if (i === currentSetNum) cls += ' current';
+                        dotsHTML += `<span class="${cls}"></span>`;
+                    }
+                }
+                setDotsContainer.innerHTML = dotsHTML;
+
+                // Update stats
+                const totalInPhase = currentFlatList.filter(e => !e.isRest).length;
+                const doneInPhase = currentFlatIndex + 1;
+                statExercise.textContent = `Упражнение: ${Math.min(doneInPhase, totalInPhase)}/${totalInPhase}`;
+            }
+
+            function updatePhaseIndicator() {
+                const el = phaseIndicator;
+                el.classList.remove('phase-warmup', 'phase-workout', 'phase-cooldown', 'phase-rest');
+                if (phase === 'warmup') {
+                    el.classList.add('phase-warmup');
+                    el.textContent = '🔥 РАЗМИНКА';
+                } else if (phase === 'workout') {
+                    el.classList.add('phase-workout');
+                    el.textContent = '💪 ТРЕНИРОВКА';
+                } else if (phase === 'cooldown') {
+                    el.classList.add('phase-cooldown');
+                    el.textContent = '🧘 ЗАМИНКА';
+                } else if (phase === 'rest') {
+                    el.classList.add('phase-rest');
+                    el.textContent = '⏳ ОТДЫХ';
+                }
+            }
+
+            function updateProgress() {
+                const totalPhases = 3;
+                let phaseProgress = 0;
+                if (currentFlatList.length > 0) {
+                    phaseProgress = (currentFlatIndex + 1) / currentFlatList.length;
+                }
+                let overallProgress = 0;
+                if (phase === 'warmup') {
+                    overallProgress = (phaseProgress * 0.1);
+                } else if (phase === 'workout' || phase === 'rest') {
+                    overallProgress = 0.1 + (phaseProgress * 0.75);
+                } else if (phase === 'cooldown') {
+                    overallProgress = 0.85 + (phaseProgress * 0.15);
+                }
+                progressBar.style.width = `${Math.min(100, overallProgress * 100)}%`;
+            }
+
+            function updateTimerDisplay() {
+                const totalSec = Math.max(0, Math.round(timeRemaining));
+                const mins = Math.floor(totalSec / 60);
+                const secs = totalSec % 60;
+                timerDisplay.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            }
+
+            function setProgressCircle(fraction) {
+                const circumference = 502.65;
+                const offset = circumference * (1 - Math.min(1, Math.max(0, fraction)));
+                progressCircle.style.strokeDashoffset = offset;
+            }
+
+            function updateTimerCircleClasses() {
+                timerCircle.classList.remove('work', 'rest', 'paused');
+                if (isPaused && !isRunning) {
+                    timerCircle.classList.add('paused');
+                } else if (phase === 'rest') {
+                    timerCircle.classList.add('rest');
+                } else {
+                    timerCircle.classList.add('work');
+                }
+                if (phase === 'rest') {
+                    timerLabel.textContent = 'ОТДЫХ';
+                    progressCircle.style.color = '#5b9bd5';
+                } else {
+                    timerLabel.textContent = 'РАБОТА';
+                    progressCircle.style.color = '#f0a040';
+                }
+            }
+
+            function getCurrentExercise() {
+                if (currentFlatList.length === 0) return null;
+                return currentFlatList[Math.min(currentFlatIndex, currentFlatList.length - 1)];
+            }
+
+            function startTimer() {
+                initAudio();
+                if (isRunning && !isPaused) return;
+                if (isPaused) {
+                    // Resume
+                    isPaused = false;
+                    isRunning = true;
+                    btnStart.textContent = '▶ СТАРТ';
+                    btnPause.disabled = false;
+                    btnSkip.disabled = false;
+                    updateTimerCircleClasses();
+                    runTimer();
+                    playStartSound();
+                    return;
+                }
+                // Fresh start
+                const ex = getCurrentExercise();
+                if (!ex) return;
+                if (ex.duration) {
+                    timeRemaining = ex.duration;
+                } else if (ex.reps && !ex.isRest) {
+                    const repsNum = parseInt(ex.reps) || 10;
+                    timeRemaining = Math.max(10, repsNum * 2.5);
+                } else {
+                    timeRemaining = ex.duration || 30;
+                }
+                isPaused = false;
+                isRunning = true;
+                btnStart.textContent = '▶ СТАРТ';
+                btnPause.disabled = false;
+                btnSkip.disabled = false;
+                updateTimerCircleClasses();
+                updateTimerDisplay();
+                runTimer();
+                playStartSound();
+                startSessionTimer();
+            }
+
+            function pauseTimer() {
+                if (!isRunning || isPaused) return;
+                isPaused = true;
+                isRunning = false;
+                clearInterval(timerInterval);
+                btnStart.textContent = '▶ ПРОДОЛЖИТЬ';
+                btnPause.disabled = true;
+                updateTimerCircleClasses();
+                playTickSound();
+            }
+
+            function runTimer() {
+                clearInterval(timerInterval);
+                const ex = getCurrentExercise();
+                const totalDuration = ex ? (ex.duration || (ex.reps ? Math.max(10, (parseInt(ex.reps) || 10) * 2.5) :
+                    30)) : timeRemaining;
+                const initialTime = timeRemaining;
+
+                timerInterval = setInterval(() => {
+                    if (isPaused) return;
+                    timeRemaining -= 0.1;
+                    if (timeRemaining <= 0) {
+                        timeRemaining = 0;
+                        clearInterval(timerInterval);
+                        updateTimerDisplay();
+                        setProgressCircle(1);
+                        playEndSound();
+                        // Переход к следующему
+                        setTimeout(() => advanceExercise(), 300);
+                        return;
+                    }
+                    updateTimerDisplay();
+                    const fractionElapsed = (totalDuration - timeRemaining) / totalDuration;
+                    setProgressCircle(fractionElapsed);
+                    // Tick на последних 3 секундах
+                    if (timeRemaining <= 3.1 && timeRemaining > 0 && Math.abs(timeRemaining - Math.round(
+                            timeRemaining)) < 0.15) {
+                        playTickSound();
+                    }
+                }, 100);
+            }
+
+            function skipExercise() {
+                clearInterval(timerInterval);
+                playTickSound();
+                advanceExercise();
+                if (isRunning && !isPaused) {
+                    // Автостарт следующего
+                    setTimeout(() => {
+                        if (!isPaused && isRunning) {
+                            startTimer();
+                        }
+                    }, 200);
+                }
+            }
+
+            function resetAll() {
+                clearInterval(timerInterval);
+                clearInterval(sessionTimerInterval);
+                isRunning = false;
+                isPaused = true;
+                timeRemaining = 0;
+                session = buildFullSession(currentDay);
+                currentFlatList = session.warmup;
+                currentFlatIndex = 0;
+                phase = 'warmup';
+                circuitRound = 0;
+                elapsedSessionSeconds = 0;
+                totalSessionSeconds = 0;
+                navigateToPhase('warmup', 0);
+                btnStart.textContent = '▶ СТАРТ';
+                btnPause.disabled = true;
+                btnSkip.disabled = false;
+                updateTimerDisplay();
+                setProgressCircle(0);
+                progressBar.style.width = '0%';
+                updateTimerCircleClasses();
+                statExercise.textContent = 'Упражнение: 0/0';
+                statTotal.textContent = 'Всего: 00:00';
+                updateSessionTimerDisplay();
+            }
+
+            function finishSession() {
+                clearInterval(timerInterval);
+                clearInterval(sessionTimerInterval);
+                isRunning = false;
+                isPaused = true;
+                phase = 'idle';
+                phaseIndicator.textContent = '✅ ТРЕНИРОВКА ЗАВЕРШЕНА!';
+                phaseIndicator.className = 'phase-indicator phase-workout';
+                timerDisplay.textContent = '00:00';
+                timerLabel.textContent = 'ГОТОВО';
+                timerCircle.classList.add('work');
+                progressBar.style.width = '100%';
+                setProgressCircle(1);
+                btnStart.textContent = '▶ СТАРТ';
+                btnPause.disabled = true;
+                btnSkip.disabled = true;
+                showToast('🏆 Отличная работа! Тренировка завершена!');
+                playEndSound();
+                setTimeout(() => playEndSound(), 300);
+                updateSessionTimerDisplay();
+            }
+
+            function startSessionTimer() {
+                if (sessionTimerInterval) return;
+                sessionTimerInterval = setInterval(() => {
+                    elapsedSessionSeconds++;
+                    updateSessionTimerDisplay();
+                }, 1000);
+            }
+
+            function updateSessionTimerDisplay() {
+                const sec = elapsedSessionSeconds;
+                const mins = Math.floor(sec / 60);
+                const secs = sec % 60;
+                statTotal.textContent = `Всего: ${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            }
+
+            function switchDay(day) {
+                if (isRunning && !isPaused) {
+                    pauseTimer();
+                }
+                currentDay = day;
+                session = buildFullSession(day);
+                resetAll();
+                // Update active button
+                document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
+                const activeBtn = document.querySelector(`.day-btn[data-day="${day}"]`);
+                if (activeBtn) activeBtn.classList.add('active');
+                showToast(`Выбран день ${day}`);
+            }
+
+            // ==================== EVENT LISTENERS ====================
+            daySelector.addEventListener('click', (e) => {
+                const btn = e.target.closest('.day-btn');
+                if (!btn) return;
+                const day = btn.dataset.day;
+                if (day && day !== currentDay) {
+                    switchDay(day);
+                }
+            });
+
+            btnStart.addEventListener('click', () => {
+                initAudio();
+                if (isRunning && !isPaused) return;
+                if (phase === 'idle') {
+                    resetAll();
+                    setTimeout(() => startTimer(), 100);
+                    return;
+                }
+                startTimer();
+            });
+
+            btnPause.addEventListener('click', pauseTimer);
+            btnSkip.addEventListener('click', skipExercise);
+            btnReset.addEventListener('click', () => {
+                resetAll();
+                showToast('↺ Тренировка сброшена');
+            });
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.code === 'Space') {
+                    e.preventDefault();
+                    if (isRunning && !isPaused) {
+                        pauseTimer();
+                    } else {
+                        startTimer();
+                    }
+                } else if (e.code === 'ArrowRight') {
+                    e.preventDefault();
+                    skipExercise();
+                } else if (e.code === 'KeyR') {
+                    e.preventDefault();
+                    resetAll();
+                    showToast('↺ Сброс');
+                }
+            });
+
+            // ==================== INIT ====================
+            function init() {
+                session = buildFullSession('A');
+                currentFlatList = session.warmup;
+                currentFlatIndex = 0;
+                phase = 'warmup';
+                navigateToPhase('warmup', 0);
+                updateTimerDisplay();
+                setProgressCircle(0);
+                progressBar.style.width = '0%';
+                btnPause.disabled = true;
+                btnSkip.disabled = false;
+                updateTimerCircleClasses();
+                statTotal.textContent = 'Всего: 00:00';
+                updateSessionTimerDisplay();
+                document.querySelector('.day-btn[data-day="A"]').classList.add('active');
+            }
+
+            init();
+            console.log('🏋️ Workout PRO — Идеальная программа готова!');
+            console.log('День A: Силовая база | День B: Мышечный рост | День C: Жиросжигание и кор');
+            console.log('Управление: ПРОБЕЛ = старт/пауза | → = пропуск | R = сброс');
+        })();
+    </script>
 </body>
 </html>
