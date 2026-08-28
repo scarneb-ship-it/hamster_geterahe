@@ -8,6 +8,19 @@ let vibrationEnabled = true;
 
 const GAMES_DATA = [
     {
+        id: 6, // уникальный id
+        name: "1win Casino",
+        fullLink: "https://one-vv3942.com/casino/list?open=register&p=aghw",
+        description: "Играй и выигрывай!",
+        rating: 4.9,
+        players: "500K+",
+        image: "", // можно оставить пустым или указать несуществующий файл
+        fallback: "🎰",
+        badge: "AD",
+        highlight: true,
+        isAd: true
+    },
+    {
         id: 1,
         name: "Hamster GameDev",
         fullLink: "https://t.me/Hamster_GAme_Dev_bot/start?startapp=kentId6823288584",
@@ -148,7 +161,6 @@ function initializeApp() {
     initGame2048();
     setupLeaderboardRefresh();
     setupGameTabs();
-    setupAdBanner(); // ← добавлено
 }
 
 // ===== Telegram WebApp =====
@@ -172,7 +184,7 @@ function initializeGames() {
     const gamesGrid = document.getElementById('games-grid');
     if (!gamesGrid) return;
     gamesGrid.innerHTML = GAMES_DATA.map(game => `
-        <div class="game-card ${game.highlight ? 'highlight' : ''}" data-game-id="${game.id}">
+        <div class="game-card ${game.highlight ? 'highlight' : ''} ${game.isAd ? 'ad-card' : ''}" data-game-id="${game.id}">
             <div class="game-image">
                 <img src="${game.image}" alt="${game.name}" class="game-img" onerror="this.style.display='none'">
                 <div class="image-fallback">${game.fallback}</div>
@@ -233,32 +245,6 @@ function initializeServices() {
         </div>
     `).join('');
     setupServiceButtons();
-}
-
-// ===== Реклама 1win =====
-function setupAdBanner() {
-    const banner = document.getElementById('ad-banner-1win');
-    if (!banner) return;
-
-    const closeBtn = document.getElementById('ad-close-1win');
-    const actionBtn = document.getElementById('ad-button-1win');
-
-    // Закрытие баннера
-    closeBtn.addEventListener('click', () => {
-        banner.style.display = 'none';
-        // Опционально можно сохранить в localStorage
-    });
-
-    // Переход по ссылке
-    actionBtn.addEventListener('click', () => {
-        vibrate();
-        const url = 'https://one-vv3942.com/casino/list?open=register&p=aghw';
-        if (window.Telegram && window.Telegram.WebApp) {
-            window.Telegram.WebApp.openLink(url);
-        } else {
-            window.open(url, '_blank');
-        }
-    });
 }
 
 // ===== Данные пользователя =====
