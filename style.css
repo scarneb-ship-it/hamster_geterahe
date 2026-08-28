@@ -259,95 +259,6 @@ body.dark-theme {
   color: var(--text-secondary-dark);
 }
 
-/* Рекламный баннер 1win */
-.ad-banner {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-    border-radius: 16px;
-    padding: 12px 12px 12px 16px;
-    margin-bottom: 16px;
-    position: relative;
-    border: 1px solid rgba(255, 215, 0, 0.3);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-    transition: all 0.3s ease;
-    animation: adPulse 2s infinite;
-}
-@keyframes adPulse {
-    0% { box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
-    50% { box-shadow: 0 8px 25px rgba(255, 215, 0, 0.3); }
-    100% { box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
-}
-.dark-theme .ad-banner {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-    border-color: rgba(255, 215, 0, 0.5);
-}
-
-.ad-close {
-    position: absolute;
-    top: 6px;
-    right: 8px;
-    background: transparent;
-    border: none;
-    color: rgba(255,255,255,0.6);
-    font-size: 16px;
-    cursor: pointer;
-    padding: 4px;
-    line-height: 1;
-}
-.ad-close:hover {
-    color: #fff;
-}
-
-.ad-content {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.ad-logo {
-    font-size: 36px;
-    flex-shrink: 0;
-    line-height: 1;
-}
-
-.ad-text {
-    flex-grow: 1;
-    min-width: 0;
-}
-
-.ad-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: #ffd700;
-    margin-bottom: 2px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.ad-desc {
-    font-size: 12px;
-    color: rgba(255,255,255,0.8);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.ad-button {
-    background: linear-gradient(135deg, #ffd700, #ffb347);
-    color: #1a1a2e;
-    border: none;
-    border-radius: 30px;
-    padding: 10px 18px;
-    font-weight: 800;
-    font-size: 13px;
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: transform 0.2s, box-shadow 0.2s;
-    box-shadow: 0 4px 10px rgba(255, 215, 0, 0.4);
-}
-.ad-button:active {
-    transform: scale(0.95);
-}
-
 /* Games Grid */
 .games-grid {
   display: grid;
@@ -405,6 +316,58 @@ body.dark-theme {
   right: 0;
   height: 3px;
   background: var(--highlight-gradient);
+}
+
+/* Рекламная карточка 1win */
+.game-card.ad-card {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  border: 2px solid #f0a500;
+  box-shadow: 0 0 15px rgba(240, 165, 0, 0.4), var(--shadow-light);
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+
+.game-card.ad-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at center, rgba(240,165,0,0.15) 0%, transparent 60%);
+  animation: adGlow 3s infinite alternate;
+}
+
+@keyframes adGlow {
+  from { transform: translate(-10%, -10%) scale(0.8); opacity: 0.3; }
+  to   { transform: translate(10%, 10%) scale(1.2); opacity: 0.6; }
+}
+
+.game-card.ad-card .game-description,
+.game-card.ad-card .players-count,
+.game-card.ad-card .rating-value {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.game-card.ad-card .game-badge {
+  background: linear-gradient(135deg, #f0a500, #ff6b00);
+  color: #000;
+  font-weight: 800;
+}
+
+.game-card.ad-card .play-button {
+  background: linear-gradient(135deg, #f0a500, #ff6b00);
+  box-shadow: 0 4px 15px rgba(240,165,0,0.6);
+}
+
+.dark-theme .game-card.ad-card {
+  border-color: #f0a500;
+  box-shadow: 0 0 20px rgba(240, 165, 0, 0.6), var(--shadow-dark);
+}
+
+.dark-theme .game-card.ad-card .play-button {
+  background: linear-gradient(135deg, #f0a500, #ff6b00);
 }
 
 .game-header {
