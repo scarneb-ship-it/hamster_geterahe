@@ -259,7 +259,105 @@ body.dark-theme {
   color: var(--text-secondary-dark);
 }
 
-/* Games Grid */
+/* ==================== РЕКЛАМНЫЙ БАННЕР ==================== */
+.ad-banner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: linear-gradient(135deg, #1e1e2f, #2d2d44);
+    border-radius: 16px;
+    padding: 10px;
+    margin-bottom: 18px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark-theme .ad-banner {
+    background: linear-gradient(135deg, #1a1a2e, #252540);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.ad-banner-close {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    transition: background 0.2s;
+}
+
+.ad-banner-close:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+.ad-banner-img {
+    width: 90px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 12px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.ad-banner-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.ad-banner-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ad-banner-text {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ad-banner-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.ad-banner-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+}
+
+.ad-banner-btn:active {
+    transform: scale(0.97);
+}
+
+/* ==================== ИГРЫ ==================== */
 .games-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -316,58 +414,6 @@ body.dark-theme {
   right: 0;
   height: 3px;
   background: var(--highlight-gradient);
-}
-
-/* Рекламная карточка 1win */
-.game-card.ad-card {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-  border: 2px solid #f0a500;
-  box-shadow: 0 0 15px rgba(240, 165, 0, 0.4), var(--shadow-light);
-  color: #ffffff;
-  position: relative;
-  overflow: hidden;
-}
-
-.game-card.ad-card::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle at center, rgba(240,165,0,0.15) 0%, transparent 60%);
-  animation: adGlow 3s infinite alternate;
-}
-
-@keyframes adGlow {
-  from { transform: translate(-10%, -10%) scale(0.8); opacity: 0.3; }
-  to   { transform: translate(10%, 10%) scale(1.2); opacity: 0.6; }
-}
-
-.game-card.ad-card .game-description,
-.game-card.ad-card .players-count,
-.game-card.ad-card .rating-value {
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.game-card.ad-card .game-badge {
-  background: linear-gradient(135deg, #f0a500, #ff6b00);
-  color: #000;
-  font-weight: 800;
-}
-
-.game-card.ad-card .play-button {
-  background: linear-gradient(135deg, #f0a500, #ff6b00);
-  box-shadow: 0 4px 15px rgba(240,165,0,0.6);
-}
-
-.dark-theme .game-card.ad-card {
-  border-color: #f0a500;
-  box-shadow: 0 0 20px rgba(240, 165, 0, 0.6), var(--shadow-dark);
-}
-
-.dark-theme .game-card.ad-card .play-button {
-  background: linear-gradient(135deg, #f0a500, #ff6b00);
 }
 
 .game-header {
@@ -1453,6 +1499,24 @@ body.dark-theme {
   }
   .new-game-btn {
     padding: 6px 14px;
+    font-size: 12px;
+  }
+  .ad-banner-img {
+    width: 70px;
+    height: 70px;
+  }
+  .ad-banner {
+    padding: 8px;
+    gap: 10px;
+  }
+  .ad-banner-title {
+    font-size: 14px;
+  }
+  .ad-banner-text {
+    font-size: 12px;
+  }
+  .ad-banner-btn {
+    padding: 6px 12px;
     font-size: 12px;
   }
 }
