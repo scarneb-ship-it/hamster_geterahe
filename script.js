@@ -8,19 +8,6 @@ let vibrationEnabled = true;
 
 const GAMES_DATA = [
     {
-        id: 6, // уникальный id
-        name: "1win Casino",
-        fullLink: "https://one-vv3942.com/casino/list?open=register&p=aghw",
-        description: "Играй и выигрывай!",
-        rating: 4.9,
-        players: "500K+",
-        image: "", // можно оставить пустым или указать несуществующий файл
-        fallback: "🎰",
-        badge: "AD",
-        highlight: true,
-        isAd: true
-    },
-    {
         id: 1,
         name: "Hamster GameDev",
         fullLink: "https://t.me/Hamster_GAme_Dev_bot/start?startapp=kentId6823288584",
@@ -70,6 +57,19 @@ const GAMES_DATA = [
         image: "images/underpaws.jpg",
         fallback: "🐾",
         badge: "Beta"
+    },
+    // НОВЫЙ РЕКЛАМНЫЙ БЛОК 1WIN
+    {
+        id: 6,
+        name: "1win Casino",
+        fullLink: "https://one-vv3942.com/casino/list?open=register&p=aghw",
+        description: "Казино и ставки на спорт",
+        rating: 4.9,
+        players: "500K",
+        image: "", // можно оставить пустым, будет показан fallback
+        fallback: "🎰",
+        highlight: true,      // выделяет карточку зелёной рамкой
+        badge: "Реклама"      // добавляет бейдж
     }
 ];
 const SERVICES_DATA = [
@@ -184,7 +184,7 @@ function initializeGames() {
     const gamesGrid = document.getElementById('games-grid');
     if (!gamesGrid) return;
     gamesGrid.innerHTML = GAMES_DATA.map(game => `
-        <div class="game-card ${game.highlight ? 'highlight' : ''} ${game.isAd ? 'ad-card' : ''}" data-game-id="${game.id}">
+        <div class="game-card ${game.highlight ? 'highlight' : ''}" data-game-id="${game.id}">
             <div class="game-image">
                 <img src="${game.image}" alt="${game.name}" class="game-img" onerror="this.style.display='none'">
                 <div class="image-fallback">${game.fallback}</div>
