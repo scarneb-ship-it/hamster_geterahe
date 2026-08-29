@@ -149,8 +149,8 @@ function initializeApp() {
     setupLeaderboardRefresh();
     setupGameTabs();
 
-    // Инициализация рекламного попапа
-    initAdPopup();
+    // Инициализация рекламного баннера
+    initAdBanner();
 }
 
 // ===== Telegram WebApp =====
@@ -169,164 +169,50 @@ function initializeTelegramWebApp() {
     }
 }
 
-// ===== РЕКЛАМНЫЙ ПОПАП =====
-function initAdPopup() {
-    // Проверяем, показывалась ли реклама сегодня
-    const today = new Date().toDateString();
-    const lastShown = localStorage.getItem('lastAdShownDate');
-    if (lastShown === today) return; // уже показывали сегодня
+// ===== Рекламный баннер =====
+function initAdBanner() {
+    const banner = document.getElementById('ad-banner');
+    const closeBtn = document.getElementById('ad-banner-close');
+    const goBtn = document.getElementById('ad-banner-btn');
 
-    // Устанавливаем таймер на 10 секунд
-    setTimeout(() => {
-        showAdPopup();
-    }, 10000);
-}
+    if (!banner || !closeBtn || !goBtn) return;
 
-function showAdPopup() {
-    // Проверяем, не открыт ли уже попап
-    if (document.getElementById('ad-popup-overlay')) return;
+    // Проверяем, скрыт ли баннер на 24 часа
+    const hiddenUntil = localStorage.getItem('adBannerHiddenUntil');
+    if (hiddenUntil && Date.now() < parseInt(hiddenUntil)) {
+        banner.style.display = 'none';
+        return;
+    }
 
-    // Создаём оверлей
-    const overlay = document.createElement('div');
-    overlay.id = 'ad-popup-overlay';
-    overlay.style.cssText = `
-        position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0,0,0,0.7);
-        z-index: 300;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        animation: adFadeIn 0.3s ease;
-    `;
+    // Показываем баннер
+    banner.style.display = 'flex';
 
-    // Контейнер попапа
-    const popup = document.createElement('div');
-    popup.style.cssText = `
-        background: #1e1e1e;
-        border-radius: 20px;
-        max-width: 340px;
-        width: 90%;
-        overflow: hidden;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-        position: relative;
-        animation: adScaleIn 0.3s ease;
-    `;
-
-    // Крестик закрытия
-    const closeBtn = document.createElement('button');
-    closeBtn.innerHTML = '✕';
-    closeBtn.style.cssText = `
-        position: absolute;
-        top: 10px; right: 10px;
-        background: rgba(255,255,255,0.2);
-        border: none;
-        color: white;
-        width: 30px; height: 30px;
-        border-radius: 50%;
-        font-size: 16px;
-        cursor: pointer;
-        z-index: 2;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    `;
-    closeBtn.addEventListener('click', hideAdPopup);
-    popup.appendChild(closeBtn);
-
-    // Баннер
-    const img = document.createElement('img');
-    img.src = 'images/1wind.jpg';
-    img.alt = '1win Casino';
-    img.style.cssText = `
-        width: 100%;
-        height: auto;
-        display: block;
-    `;
-    img.addEventListener('error', () => {
-        // Если картинка не загрузилась, показываем заглушку
-        img.style.display = 'none';
-        const fallback = document.createElement('div');
-        fallback.style.cssText = `
-            width: 100%;
-            height: 200px;
-            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 60px;
-        `;
-        fallback.textContent = '🎰';
-        popup.insertBefore(fallback, img);
+    // Обработчик закрытия
+    closeBtn.addEventListener('click', () => {
+        hideAdBannerFor24Hours();
     });
-    popup.appendChild(img);
 
-    // Кнопка перехода
-    const button = document.createElement('button');
-    button.textContent = 'Перейти в 1win';
-    button.style.cssText = `
-        display: block;
-        width: calc(100% - 32px);
-        margin: 16px auto;
-        padding: 14px 20px;
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        color: white;
-        border: none;
-        border-radius: 12px;
-        font-size: 16px;
-        font-weight: 700;
-        cursor: pointer;
-        text-align: center;
-        transition: transform 0.2s;
-    `;
-    button.addEventListener('click', () => {
+    // Обработчик клика по кнопке
+    goBtn.addEventListener('click', () => {
+        // Открываем ссылку
         const adUrl = 'https://one-vv3942.com/casino/list?open=register&p=aghw';
         if (window.Telegram && window.Telegram.WebApp) {
             window.Telegram.WebApp.openLink(adUrl);
         } else {
             window.open(adUrl, '_blank');
         }
-        hideAdPopup();
+        // Скрываем баннер на 24 часа
+        hideAdBannerFor24Hours();
     });
-    popup.appendChild(button);
-
-    overlay.appendChild(popup);
-    document.body.appendChild(overlay);
-
-    // Сохраняем дату показа
-    localStorage.setItem('lastAdShownDate', new Date().toDateString());
-
-    // Автозакрытие через 10 секунд
-    setTimeout(() => {
-        hideAdPopup();
-    }, 10000);
 }
 
-function hideAdPopup() {
-    const overlay = document.getElementById('ad-popup-overlay');
-    if (overlay) {
-        overlay.style.opacity = '0';
-        overlay.style.transition = 'opacity 0.3s';
-        setTimeout(() => overlay.remove(), 300);
-    }
+function hideAdBannerFor24Hours() {
+    const banner = document.getElementById('ad-banner');
+    if (banner) banner.style.display = 'none';
+    // Сохраняем время, до которого баннер скрыт
+    const hideUntil = Date.now() + 24 * 60 * 60 * 1000; // 24 часа
+    localStorage.setItem('adBannerHiddenUntil', hideUntil.toString());
 }
-
-// Добавляем CSS анимации для попапа
-(function addAdAnimations() {
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes adFadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        @keyframes adScaleIn {
-            from { transform: scale(0.8); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-    `;
-    document.head.appendChild(style);
-})();
 
 // ===== Инициализация игр =====
 function initializeGames() {
