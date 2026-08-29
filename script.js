@@ -66,7 +66,7 @@ const GAMES_DATA = [
         description: "Казино и ставки на спорт",
         rating: 4.9,
         players: "500K",
-        image: "", // можно оставить пустым, будет показан fallback
+        image: "images/XXL_height.webp",
         fallback: "🎰",
         highlight: true,      // выделяет карточку зелёной рамкой
         badge: "Реклама"      // добавляет бейдж
