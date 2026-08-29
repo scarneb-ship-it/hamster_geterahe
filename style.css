@@ -17,6 +17,8 @@
   --shadow-light: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-dark: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
   --highlight-gradient: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
+  /* Высота шапки для sticky-элементов */
+  --header-height: 64px;
 }
 
 * {
@@ -70,7 +72,9 @@ body.dark-theme {
   padding: 20px 16px;
   border-radius: 0 0 20px 20px;
   box-shadow: var(--shadow-light);
-  position: relative;
+  /* Sticky-позиционирование */
+  position: sticky;
+  top: 0;
   z-index: 10;
 }
 
@@ -257,6 +261,23 @@ body.dark-theme {
 
 .dark-theme .section-subtitle {
   color: var(--text-secondary-dark);
+}
+
+/* ==================== STICKY-БЛОК ДЛЯ ИГР ==================== */
+.games-sticky-header {
+    position: sticky;
+    top: var(--header-height); /* прилипает под шапкой */
+    z-index: 9; /* чуть ниже шапки */
+    background: var(--surface-light);
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+    transition: background 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.dark-theme .games-sticky-header {
+    background: var(--surface-dark);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* ==================== РЕКЛАМНЫЙ БАННЕР ==================== */
@@ -1518,6 +1539,9 @@ body.dark-theme {
   .ad-banner-btn {
     padding: 6px 12px;
     font-size: 12px;
+  }
+  :root {
+    --header-height: 56px; /* подстройка под высоту шапки на маленьких экранах */
   }
 }
 
