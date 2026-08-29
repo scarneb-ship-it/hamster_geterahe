@@ -195,7 +195,7 @@ function initAdBanner() {
     // Обработчик клика по кнопке
     goBtn.addEventListener('click', () => {
         // Открываем ссылку
-        const adUrl = 'https://one-vv3942.com/casino/list?open=register&p=aghw';
+        const adUrl = 'https://one-vv5058.com/casino/list?open=register&p=wrih';
         if (window.Telegram && window.Telegram.WebApp) {
             window.Telegram.WebApp.openLink(adUrl);
         } else {
